@@ -2,19 +2,23 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { ReactNode } from "react";
 
 const NAV_ITEMS = [
   { href: "/", label: "Markets" },
   { href: "/portfolio", label: "Portfolio" },
   { href: "/leaderboard", label: "Leaderboard" },
   { href: "/create", label: "Create" },
+  { href: "/profile", label: "Profile" },
 ];
 
 interface HeaderProps {
   authenticated: boolean;
+  /** Server-rendered balance chip, passed as a slot since Header is a client component. */
+  balance?: ReactNode;
 }
 
-export function Header({ authenticated }: HeaderProps) {
+export function Header({ authenticated, balance }: HeaderProps) {
   const pathname = usePathname();
 
   // App chrome (nav + balance) is only meaningful once signed in. Unauthenticated
@@ -36,9 +40,7 @@ export function Header({ authenticated }: HeaderProps) {
             Markets
           </span>
         </Link>
-        <div className="num border border-hairline px-3 py-1.5 text-sm text-text">
-          1,000 HC
-        </div>
+        {balance}
       </div>
       <nav
         aria-label="Primary"

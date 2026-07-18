@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Hanken_Grotesk, IBM_Plex_Mono, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
+import { BalanceChip } from "@/components/layout/BalanceChip";
+import { DailyBonusClaimer } from "@/components/layout/DailyBonusClaimer";
 import { Header } from "@/components/layout/Header";
 import { ToastProvider } from "@/components/ui/Toast";
 import { createClient } from "@/lib/supabase/server";
@@ -44,7 +46,11 @@ export default async function RootLayout({
     >
       <body className="min-h-full bg-page font-sans text-text">
         <ToastProvider>
-          <Header authenticated={Boolean(user)} />
+          <Header
+            authenticated={Boolean(user)}
+            balance={user ? <BalanceChip /> : null}
+          />
+          {user ? <DailyBonusClaimer /> : null}
           <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
             {children}
           </main>

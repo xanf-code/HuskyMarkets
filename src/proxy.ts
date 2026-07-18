@@ -1,11 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getAuthRedirect } from "@/lib/auth";
+import type { Database } from "@/lib/database.types";
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
-  const supabase = createServerClient(
+  const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -30,7 +31,21 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const redirectTo = getAuthRedirect(request.nextUrl.pathname, Boolean(user));
+  let onboarded = false;
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("onboarded")
+      .eq("id", user.id)
+      .maybeSingle();
+    onboarded = Boolean(profile?.onboarded);
+  }
+
+  const redirectTo = getAuthRedirect(
+    request.nextUrl.pathname,
+    Boolean(user),
+    onboarded,
+  );
   if (redirectTo) {
     const url = request.nextUrl.clone();
     url.pathname = redirectTo;
