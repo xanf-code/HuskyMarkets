@@ -3,6 +3,7 @@ import { Hanken_Grotesk, IBM_Plex_Mono, Source_Serif_4 } from "next/font/google"
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { ToastProvider } from "@/components/ui/Toast";
+import { createClient } from "@/lib/supabase/server";
 
 const sourceSerif = Source_Serif_4({
   subsets: ["latin"],
@@ -26,11 +27,16 @@ export const metadata: Metadata = {
     "Prediction markets for Northeastern students — virtual HuskyCoin only.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <html
       lang="en"
@@ -38,7 +44,7 @@ export default function RootLayout({
     >
       <body className="min-h-full bg-page font-sans text-text">
         <ToastProvider>
-          <Header />
+          <Header authenticated={Boolean(user)} />
           <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
             {children}
           </main>

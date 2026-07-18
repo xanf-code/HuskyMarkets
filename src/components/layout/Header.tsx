@@ -10,8 +10,17 @@ const NAV_ITEMS = [
   { href: "/create", label: "Create" },
 ];
 
-export function Header() {
+interface HeaderProps {
+  authenticated: boolean;
+}
+
+export function Header({ authenticated }: HeaderProps) {
   const pathname = usePathname();
+
+  // App chrome (nav + balance) is only meaningful once signed in. Unauthenticated
+  // visitors only ever see public pages (login, tos, shared bets), which supply
+  // their own headings, so render nothing rather than leaking the signed-in shell.
+  if (!authenticated) return null;
 
   return (
     <header className="border-b border-hairline bg-page">

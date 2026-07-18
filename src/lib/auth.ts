@@ -8,7 +8,10 @@ export function isNeuEmail(email: string): boolean {
 }
 
 const PUBLIC_EXACT = new Set(["/login", "/tos"]);
-const PUBLIC_PREFIXES = ["/share/", "/api/og/"];
+// `/auth/` covers the magic-link callback (`/auth/callback`): the code is
+// exchanged for a session there, so the request must reach the route handler
+// while the visitor is still unauthenticated instead of being bounced to /login.
+const PUBLIC_PREFIXES = ["/auth/", "/share/", "/api/og/"];
 
 export function getAuthRedirect(
   pathname: string,

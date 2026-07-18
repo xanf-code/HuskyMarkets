@@ -27,6 +27,10 @@ describe("getAuthRedirect", () => {
       expect(getAuthRedirect("/api/og/market/abc-123", false)).toBeNull();
     });
 
+    it("allows the auth callback so the magic-link code can be exchanged", () => {
+      expect(getAuthRedirect("/auth/callback", false)).toBeNull();
+    });
+
     it("does not treat /loginfoo as public", () => {
       expect(getAuthRedirect("/loginfoo", false)).toBe("/login");
     });
@@ -37,6 +41,14 @@ describe("getAuthRedirect", () => {
 
     it("does not treat a bare /api/og as public", () => {
       expect(getAuthRedirect("/api/og", false)).toBe("/login");
+    });
+
+    it("does not treat a bare /auth as public", () => {
+      expect(getAuthRedirect("/auth", false)).toBe("/login");
+    });
+
+    it("does not treat /authfoo as public", () => {
+      expect(getAuthRedirect("/authfoo", false)).toBe("/login");
     });
   });
 
