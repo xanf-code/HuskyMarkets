@@ -154,9 +154,23 @@ export function OrderPanel(props: OrderPanelProps) {
       className="card-surface flex flex-col gap-4 p-4 sm:p-5"
     >
       <div className="flex items-center justify-between border-b border-hairline">
-        <span className="-mb-px border-b-2 border-red px-1 pb-3 text-sm font-semibold text-text">
-          Buy
-        </span>
+        <div role="tablist" className="flex gap-4">
+          <span
+            role="tab"
+            aria-selected="true"
+            className="-mb-px border-b-2 border-red px-1 pb-3 text-sm font-semibold text-text"
+          >
+            Buy
+          </span>
+          <button
+            role="tab"
+            aria-selected="false"
+            disabled
+            className="-mb-px px-1 pb-3 text-sm font-semibold text-text-muted opacity-40 cursor-not-allowed"
+          >
+            Sell
+          </button>
+        </div>
         <Chip className="num mb-2">HC</Chip>
       </div>
 
