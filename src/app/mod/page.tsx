@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ReportQueue } from "@/components/admin/ReportQueue";
 import { ResolveQueue } from "@/components/admin/ResolveQueue";
 import { getReportQueue, getResolveQueue } from "@/lib/queries/admin";
+import { verifySession } from "@/lib/dal";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -10,16 +11,14 @@ export const metadata: Metadata = {
 };
 
 export default async function ModPage() {
+  const { userId } = await verifySession();
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
   const { data: isStaff } = await supabase.rpc("is_staff");
-  if (!isStaff || !user) redirect("/");
+  if (!isStaff) redirect("/");
 
   const [resolve, reports] = await Promise.all([
-    getResolveQueue(user.id),
-    getReportQueue(user.id),
+    getResolveQueue(userId),
+    getReportQueue(userId),
   ]);
 
   return (

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { verifySession } from "@/lib/dal";
 import { createClient } from "@/lib/supabase/server";
 import { OnboardingForm } from "./OnboardingForm";
 
@@ -7,17 +8,15 @@ export const metadata: Metadata = {
 };
 
 export default async function OnboardingPage() {
+  const { userId } = await verifySession();
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
   // Proxy guarantees a signed-in, un-onboarded visitor here; fetch the
   // handle the signup trigger generated.
   const { data: profile } = await supabase
     .from("profiles")
     .select("anon_handle")
-    .eq("id", user!.id)
+    .eq("id", userId)
     .single();
 
   return (

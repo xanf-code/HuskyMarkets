@@ -1,21 +1,23 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { applyForModerator } from "./mod";
 
-const { getUser, from, revalidatePath } = vi.hoisted(() => ({
-  getUser: vi.fn(),
+const { getSession, from, revalidatePath } = vi.hoisted(() => ({
+  getSession: vi.fn(),
   from: vi.fn(),
   revalidatePath: vi.fn(),
 }));
 
+vi.mock("@/lib/dal", () => ({ getSession }));
+
 vi.mock("@/lib/supabase/server", () => ({
-  createClient: async () => ({ auth: { getUser }, from }),
+  createClient: async () => ({ from }),
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath }));
 
 beforeEach(() => {
   vi.clearAllMocks();
-  getUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
+  getSession.mockResolvedValue({ userId: "user-1", email: null });
 });
 
 describe("applyForModerator", () => {

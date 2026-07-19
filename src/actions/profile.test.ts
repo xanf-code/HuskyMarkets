@@ -1,17 +1,25 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  ONBOARDED_COOKIE,
+  ONBOARDED_COOKIE_OPTIONS,
+} from "@/lib/onboarded-cookie";
 import { completeOnboarding, rerollAnonHandle } from "./profile";
 
-const { getUser, update, eq, rpc, revalidatePath } = vi.hoisted(() => ({
-  getUser: vi.fn(),
-  update: vi.fn(),
-  eq: vi.fn(),
-  rpc: vi.fn(),
-  revalidatePath: vi.fn(),
-}));
+const { getSession, update, eq, rpc, revalidatePath, cookieSet } = vi.hoisted(
+  () => ({
+    getSession: vi.fn(),
+    update: vi.fn(),
+    eq: vi.fn(),
+    rpc: vi.fn(),
+    revalidatePath: vi.fn(),
+    cookieSet: vi.fn(),
+  }),
+);
+
+vi.mock("@/lib/dal", () => ({ getSession }));
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({
-    auth: { getUser },
     from: () => ({ update }),
     rpc,
   }),
@@ -19,9 +27,13 @@ vi.mock("@/lib/supabase/server", () => ({
 
 vi.mock("next/cache", () => ({ revalidatePath }));
 
+vi.mock("next/headers", () => ({
+  cookies: async () => ({ set: cookieSet }),
+}));
+
 beforeEach(() => {
   vi.clearAllMocks();
-  getUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
+  getSession.mockResolvedValue({ userId: "user-1", email: null });
   update.mockReturnValue({ eq });
   eq.mockResolvedValue({ error: null });
 });
@@ -38,6 +50,11 @@ describe("completeOnboarding", () => {
     });
     expect(eq).toHaveBeenCalledWith("id", "user-1");
     expect(revalidatePath).toHaveBeenCalledWith("/", "layout");
+    expect(cookieSet).toHaveBeenCalledWith(
+      ONBOARDED_COOKIE,
+      "1",
+      ONBOARDED_COOKIE_OPTIONS,
+    );
   });
 
   it("stores the real name when the real display mode is chosen", async () => {
@@ -62,7 +79,7 @@ describe("completeOnboarding", () => {
   });
 
   it("fails when there is no signed-in user", async () => {
-    getUser.mockResolvedValue({ data: { user: null } });
+    getSession.mockResolvedValue(null);
 
     const result = await completeOnboarding({ displayMode: "anon" });
 
@@ -77,6 +94,15 @@ describe("completeOnboarding", () => {
 
     expect(result).toEqual({ ok: false, error: "boom" });
     expect(revalidatePath).not.toHaveBeenCalled();
+    expect(cookieSet).not.toHaveBeenCalled();
+  });
+
+  it("does not stamp the onboarded cookie when there is no signed-in user", async () => {
+    getSession.mockResolvedValue(null);
+
+    await completeOnboarding({ displayMode: "anon" });
+
+    expect(cookieSet).not.toHaveBeenCalled();
   });
 });
 

@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { Hanken_Grotesk, IBM_Plex_Mono, Source_Serif_4 } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 import { BalanceChip } from "@/components/layout/BalanceChip";
 import { DailyBonusClaimer } from "@/components/layout/DailyBonusClaimer";
 import { Header } from "@/components/layout/Header";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { ToastProvider } from "@/components/ui/Toast";
-import { createClient } from "@/lib/supabase/server";
+import { getSession } from "@/lib/dal";
 
 const sourceSerif = Source_Serif_4({
   subsets: ["latin"],
@@ -37,10 +39,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const session = await getSession();
+  const user = session ? { id: session.userId } : null;
 
   return (
     <html
@@ -51,7 +51,15 @@ export default async function RootLayout({
         <ToastProvider>
           <Header
             authenticated={Boolean(user)}
-            balance={user ? <BalanceChip /> : null}
+            balance={
+              user ? (
+                <Suspense
+                  fallback={<Skeleton className="h-8 w-24 rounded-pill" />}
+                >
+                  <BalanceChip />
+                </Suspense>
+              ) : null
+            }
           />
           {user ? <DailyBonusClaimer /> : null}
           <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-10">

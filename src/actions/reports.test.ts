@@ -1,14 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { submitReport } from "./reports";
 
-const { getUser, from, revalidatePath } = vi.hoisted(() => ({
-  getUser: vi.fn(),
+const { getSession, from, revalidatePath } = vi.hoisted(() => ({
+  getSession: vi.fn(),
   from: vi.fn(),
   revalidatePath: vi.fn(),
 }));
 
+vi.mock("@/lib/dal", () => ({ getSession }));
+
 vi.mock("@/lib/supabase/server", () => ({
-  createClient: async () => ({ auth: { getUser }, from }),
+  createClient: async () => ({ from }),
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath }));
@@ -17,7 +19,7 @@ const MARKET_ID = "6f9619ff-8b86-4d01-b42d-00cf4fc964ff";
 
 beforeEach(() => {
   vi.clearAllMocks();
-  getUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
+  getSession.mockResolvedValue({ userId: "user-1", email: null });
 });
 
 describe("submitReport", () => {

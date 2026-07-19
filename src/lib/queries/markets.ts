@@ -3,6 +3,7 @@
 // (campus-scale data — dozens of open markets, not thousands).
 
 import type { Category, MarketSort } from "@/lib/constants";
+import { getSession } from "@/lib/dal";
 import { marketVolume } from "@/lib/format";
 import { impliedYes } from "@/lib/payout";
 import { createClient } from "@/lib/supabase/server";
@@ -158,27 +159,21 @@ export async function getMarketDetail(
     .maybeSingle();
   if (!market) return null;
 
-  const [
-    { data: history },
-    { data: bets },
-    {
-      data: { user },
-    },
-    { data: balance },
-  ] = await Promise.all([
-    supabase
-      .from("price_history")
-      .select("implied_yes, recorded_at")
-      .eq("market_id", id)
-      .order("recorded_at", { ascending: true }),
-    supabase
-      .from("bets")
-      .select("id, user_id, side, amount, price_at_bet, created_at")
-      .eq("market_id", id)
-      .order("created_at", { ascending: false }),
-    supabase.auth.getUser(),
-    supabase.rpc("get_my_balance"),
-  ]);
+  const [{ data: history }, { data: bets }, session, { data: balance }] =
+    await Promise.all([
+      supabase
+        .from("price_history")
+        .select("implied_yes, recorded_at")
+        .eq("market_id", id)
+        .order("recorded_at", { ascending: true }),
+      supabase
+        .from("bets")
+        .select("id, user_id, side, amount, price_at_bet, created_at")
+        .eq("market_id", id)
+        .order("created_at", { ascending: false }),
+      getSession(),
+      supabase.rpc("get_my_balance"),
+    ]);
 
   const allBets = bets ?? [];
   const nameIds = [
@@ -197,9 +192,9 @@ export async function getMarketDetail(
   );
 
   const position = { yes: 0, no: 0 };
-  if (user) {
+  if (session) {
     for (const bet of allBets) {
-      if (bet.user_id === user.id) position[bet.side] += bet.amount;
+      if (bet.user_id === session.userId) position[bet.side] += bet.amount;
     }
   }
 

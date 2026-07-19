@@ -1,6 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getAuthRedirect } from "@/lib/auth";
+import {
+  ONBOARDED_COOKIE,
+  ONBOARDED_COOKIE_OPTIONS,
+  decideOnboardedCookie,
+} from "@/lib/onboarded-cookie";
 import type { Database } from "@/lib/database.types";
 
 export async function proxy(request: NextRequest) {
@@ -27,29 +32,58 @@ export async function proxy(request: NextRequest) {
     },
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Optimistic, local-only auth: getClaims verifies the JWT locally (falling
+  // back to one network verify only while legacy HS256 keys are in use) and
+  // refreshes the session through the setAll adapter above.
+  const { data } = await supabase.auth.getClaims();
+  const userId = data?.claims.sub ?? null;
+  const isAuthenticated = Boolean(userId);
 
-  let onboarded = false;
-  if (user) {
+  const hasCookie = Boolean(request.cookies.get(ONBOARDED_COOKIE)?.value);
+
+  // One-time backfill: only query when we genuinely don't know (authenticated
+  // but no stamp yet). Steady state after the key migration: zero db calls.
+  let dbOnboarded: boolean | undefined;
+  if (isAuthenticated && !hasCookie) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("onboarded")
-      .eq("id", user.id)
+      .eq("id", userId!)
       .maybeSingle();
-    onboarded = Boolean(profile?.onboarded);
+    dbOnboarded = Boolean(profile?.onboarded);
+  }
+
+  const isOnboarded = hasCookie || dbOnboarded === true;
+
+  // All cookie mutations happen AFTER the last supabase call — the setAll
+  // adapter reassigns `response`, which would otherwise drop these writes.
+  const decision = decideOnboardedCookie({
+    isAuthenticated,
+    hasCookie,
+    dbOnboarded,
+  });
+  if (decision === "set") {
+    response.cookies.set(ONBOARDED_COOKIE, "1", ONBOARDED_COOKIE_OPTIONS);
+  } else if (decision === "clear") {
+    response.cookies.delete(ONBOARDED_COOKIE);
   }
 
   const redirectTo = getAuthRedirect(
     request.nextUrl.pathname,
-    Boolean(user),
-    onboarded,
+    isAuthenticated,
+    isOnboarded,
   );
   if (redirectTo) {
     const url = request.nextUrl.clone();
     url.pathname = redirectTo;
-    return NextResponse.redirect(url);
+    const redirectResponse = NextResponse.redirect(url);
+    // Bug fix: NextResponse.redirect() starts a fresh response, so copy every
+    // cookie written above (refreshed session cookies + the onboarding stamp)
+    // onto it, otherwise they are silently dropped.
+    response.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie);
+    });
+    return redirectResponse;
   }
 
   return response;

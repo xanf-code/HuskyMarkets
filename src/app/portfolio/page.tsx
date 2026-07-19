@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { PortfolioTabs } from "@/components/portfolio/PortfolioTabs";
-import { createClient } from "@/lib/supabase/server";
+import { verifySession } from "@/lib/dal";
 import { getPortfolio } from "@/lib/queries/portfolio";
 
 export const metadata: Metadata = {
@@ -8,12 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default async function PortfolioPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { userId } = await verifySession();
 
-  const portfolio = await getPortfolio(user!.id);
+  const portfolio = await getPortfolio(userId);
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 py-8 sm:py-12">

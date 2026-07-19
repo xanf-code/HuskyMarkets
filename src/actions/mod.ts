@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { getSession } from "@/lib/dal";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResult } from "./profile";
 
@@ -21,14 +22,12 @@ export async function applyForModerator(
     return { ok: false, error: parsed.error.issues[0].message };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "Not signed in." };
+  const session = await getSession();
+  if (!session) return { ok: false, error: "Not signed in." };
 
+  const supabase = await createClient();
   const { error } = await supabase.from("mod_applications").insert({
-    user_id: user.id,
+    user_id: session.userId,
     statement: parsed.data.statement,
   });
 

@@ -6,14 +6,16 @@ import {
   type MarketListItem,
 } from "./markets";
 
-const { from, getUser, rpc } = vi.hoisted(() => ({
+const { from, getSession, rpc } = vi.hoisted(() => ({
   from: vi.fn(),
-  getUser: vi.fn(),
+  getSession: vi.fn(),
   rpc: vi.fn(),
 }));
 
+vi.mock("@/lib/dal", () => ({ getSession }));
+
 vi.mock("@/lib/supabase/server", () => ({
-  createClient: async () => ({ from, auth: { getUser }, rpc }),
+  createClient: async () => ({ from, rpc }),
 }));
 
 function item(overrides: Partial<MarketListItem>): MarketListItem {

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { flagContent } from "@/lib/content-flags";
 import { CATEGORIES } from "@/lib/constants";
+import { getSession } from "@/lib/dal";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResult } from "./profile";
 
@@ -59,16 +60,14 @@ export async function createMarket(
     };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "Not signed in." };
+  const session = await getSession();
+  if (!session) return { ok: false, error: "Not signed in." };
 
+  const supabase = await createClient();
   const { data: market, error } = await supabase
     .from("markets")
     .insert({
-      creator_id: user.id,
+      creator_id: session.userId,
       title,
       description: description || null,
       category,
@@ -87,7 +86,7 @@ export async function createMarket(
     // system has no identity of its own and reports RLS requires self.
     await supabase.from("reports").insert({
       market_id: market.id,
-      reporter_id: user.id,
+      reporter_id: session.userId,
       reason: "auto: possible targeting of an individual",
     });
   }

@@ -1,7 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { z } from "zod";
+import { getSession } from "@/lib/dal";
+import {
+  ONBOARDED_COOKIE,
+  ONBOARDED_COOKIE_OPTIONS,
+} from "@/lib/onboarded-cookie";
 import { createClient } from "@/lib/supabase/server";
 
 export type ActionResult<T = object> =
@@ -30,12 +36,10 @@ export async function completeOnboarding(
     return { ok: false, error: parsed.error.issues[0].message };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "Not signed in." };
+  const session = await getSession();
+  if (!session) return { ok: false, error: "Not signed in." };
 
+  const supabase = await createClient();
   const { error } = await supabase
     .from("profiles")
     .update({
@@ -43,9 +47,13 @@ export async function completeOnboarding(
       real_name: parsed.data.realName ?? null,
       onboarded: true,
     })
-    .eq("id", user.id);
+    .eq("id", session.userId);
 
   if (error) return { ok: false, error: error.message };
+
+  // Stamp the presence-based onboarding cookie so future requests skip the
+  // per-request profiles.onboarded lookup in the proxy.
+  (await cookies()).set(ONBOARDED_COOKIE, "1", ONBOARDED_COOKIE_OPTIONS);
 
   revalidatePath("/", "layout");
   return { ok: true };

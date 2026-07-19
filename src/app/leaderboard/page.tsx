@@ -6,17 +6,14 @@ import {
   getHallOfFame,
   getSemesterBoard,
 } from "@/lib/queries/leaderboard";
-import { createClient } from "@/lib/supabase/server";
+import { verifySession } from "@/lib/dal";
 
 export const metadata: Metadata = {
   title: "Leaderboard · HuskyMarkets",
 };
 
 export default async function LeaderboardPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { userId } = await verifySession();
 
   const semester = await getCurrentSemester();
   const [semesterEntries, accuracyEntries, hallOfFame] = await Promise.all([
@@ -38,7 +35,7 @@ export default async function LeaderboardPage() {
         semesterEntries={semesterEntries}
         accuracyEntries={accuracyEntries}
         hallOfFame={hallOfFame}
-        currentUserId={user?.id}
+        currentUserId={userId}
         semesterName={semester?.name}
       />
     </div>

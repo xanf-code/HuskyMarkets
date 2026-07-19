@@ -4,6 +4,7 @@ import { formatHC } from "@/lib/format";
 import { Chip } from "@/components/ui/Chip";
 import { StatBlock } from "@/components/ui/StatBlock";
 import { BAILOUT_THRESHOLD } from "@/lib/constants";
+import { verifySession } from "@/lib/dal";
 import { getProfileStats } from "@/lib/queries/leaderboard";
 import { createClient } from "@/lib/supabase/server";
 import { BailoutButton } from "./BailoutButton";
@@ -14,24 +15,22 @@ export const metadata: Metadata = {
 };
 
 export default async function ProfilePage() {
+  const { userId } = await verifySession();
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
   const [{ data: profile }, { data: balanceData }, stats, { data: pendingApp }] =
     await Promise.all([
       supabase
         .from("profiles")
         .select("email, real_name, anon_handle, display_mode, role")
-        .eq("id", user!.id)
+        .eq("id", userId)
         .single(),
       supabase.rpc("get_my_balance"),
-      getProfileStats(user!.id),
+      getProfileStats(userId),
       supabase
         .from("mod_applications")
         .select("id")
-        .eq("user_id", user!.id)
+        .eq("user_id", userId)
         .eq("status", "pending")
         .maybeSingle(),
     ]);

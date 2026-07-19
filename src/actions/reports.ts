@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { getSession } from "@/lib/dal";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResult } from "./profile";
 
@@ -20,15 +21,13 @@ export async function submitReport(input: unknown): Promise<ActionResult> {
     return { ok: false, error: parsed.error.issues[0].message };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "Not signed in." };
+  const session = await getSession();
+  if (!session) return { ok: false, error: "Not signed in." };
 
+  const supabase = await createClient();
   const { error } = await supabase.from("reports").insert({
     market_id: parsed.data.marketId,
-    reporter_id: user.id,
+    reporter_id: session.userId,
     reason: parsed.data.reason,
   });
 

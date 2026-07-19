@@ -2,14 +2,16 @@ import { render } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BalanceChip } from "./BalanceChip";
 
-const { rpc, getUser, liveBalance } = vi.hoisted(() => ({
+const { rpc, getSession, liveBalance } = vi.hoisted(() => ({
   rpc: vi.fn(),
-  getUser: vi.fn(),
+  getSession: vi.fn(),
   liveBalance: vi.fn(),
 }));
 
+vi.mock("@/lib/dal", () => ({ getSession }));
+
 vi.mock("@/lib/supabase/server", () => ({
-  createClient: async () => ({ rpc, auth: { getUser } }),
+  createClient: async () => ({ rpc }),
 }));
 
 vi.mock("./LiveBalance", () => ({
@@ -21,7 +23,7 @@ vi.mock("./LiveBalance", () => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
-  getUser.mockResolvedValue({ data: { user: { id: "u1" } } });
+  getSession.mockResolvedValue({ userId: "u1", email: null });
 });
 
 describe("BalanceChip", () => {
