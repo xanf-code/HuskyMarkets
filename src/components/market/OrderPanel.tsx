@@ -3,16 +3,23 @@
 import { useEffect, useState } from "react";
 import { placeBet } from "@/actions/bets";
 import { Button } from "@/components/ui/Button";
+import { Chip } from "@/components/ui/Chip";
 import { useToast } from "@/components/ui/Toast";
 import { CAP_PER_MARKET } from "@/lib/constants";
 import type { Database } from "@/lib/database.types";
-import { formatCents, formatHC } from "@/lib/format";
+import { formatCents, formatHC, formatPercent } from "@/lib/format";
 import { estimatePayout, impliedYes } from "@/lib/payout";
 
 type MarketStatus = Database["public"]["Enums"]["market_status"];
 type Side = "yes" | "no";
 
 const QUICK_AMOUNTS = [25, 50, 100];
+
+const CLOSE_DATE = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+});
 
 interface OrderPanelProps {
   marketId: string;
@@ -25,6 +32,8 @@ interface OrderPanelProps {
   balance: number;
   /** Prefill from `?side=yes|no` deep link. */
   initialSide?: Side;
+  /** Optional market question, rendered as a small context line above the outcome. */
+  question?: string;
   /** Reports a successful fill so live consumers (hero price, chart, stats) update optimistically. */
   onFill?: (fill: { yesPool: number; noPool: number }) => void;
 }
@@ -126,7 +135,7 @@ export function OrderPanel(props: OrderPanelProps) {
         aria-pressed={selected}
         onClick={() => setSide(value)}
         disabled={!open}
-        className={`num flex-1 cursor-pointer rounded-md border px-4 py-3.5 text-base font-semibold transition-all duration-200 ease-standard focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-40 ${semantic}`}
+        className={`num flex-1 cursor-pointer rounded-pill border px-4 py-3.5 text-base font-semibold transition-all duration-200 ease-standard focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-40 ${semantic}`}
       >
         {label} {formatCents(price)}
       </button>
@@ -144,14 +153,50 @@ export function OrderPanel(props: OrderPanelProps) {
       aria-label="Place a bet"
       className="card-surface flex flex-col gap-4 p-4 sm:p-5"
     >
+      {/* Order-mode header. Buying is the only supported flow, so Buy is
+          pinned active and Sell renders disabled, mirroring the Tabs styling. */}
+      <div className="flex items-center justify-between border-b border-hairline">
+        <div role="tablist" aria-label="Order mode" className="flex gap-6">
+          <button
+            type="button"
+            role="tab"
+            aria-selected="true"
+            className="-mb-px cursor-default border-b-2 border-red px-1 pb-3 text-sm font-semibold text-text"
+          >
+            Buy
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected="false"
+            disabled
+            title="Selling is not available"
+            className="-mb-px border-b-2 border-transparent px-1 pb-3 text-sm font-semibold text-text-tertiary disabled:cursor-not-allowed"
+          >
+            Sell
+          </button>
+        </div>
+        <Chip className="num mb-2">HC</Chip>
+      </div>
+
+      <div className="flex flex-col gap-1">
+        {props.question ? (
+          <p className="text-xs text-text-muted">{props.question}</p>
+        ) : null}
+        <p className="text-2xl leading-tight font-bold text-text">
+          {side === "yes" ? "Yes" : "No"}
+        </p>
+      </div>
+
       <div className="flex gap-2">
         {sideButton("yes", "Yes", yesPrice)}
         {sideButton("no", "No", noPrice)}
       </div>
 
-      <label className="block">
-        <span className="mb-2 block text-sm font-semibold text-text">
-          Stake (HC)
+      <label className="flex items-center justify-between gap-3 rounded-lg border border-hairline bg-card px-4 py-3 transition-colors duration-200 ease-standard focus-within:border-red">
+        <span className="flex shrink-0 flex-col">
+          <span className="text-sm font-semibold text-text">Amount</span>
+          <span className="text-xs text-text-muted">HC</span>
         </span>
         <input
           type="number"
@@ -161,8 +206,9 @@ export function OrderPanel(props: OrderPanelProps) {
           value={amountInput}
           onChange={(event) => setAmountInput(event.target.value)}
           disabled={!open}
-          aria-label="Stake (HC)"
-          className="num w-full rounded-md border border-hairline bg-card px-4 py-3 text-base text-text transition-colors duration-200 ease-standard focus:border-red focus:outline-none disabled:opacity-50"
+          aria-label="Amount (HC)"
+          placeholder="0"
+          className="num w-full min-w-0 flex-1 border-none bg-transparent text-right text-3xl font-semibold text-text [appearance:textfield] placeholder:text-text-tertiary focus:outline-none disabled:opacity-50 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
         />
       </label>
 
@@ -188,16 +234,33 @@ export function OrderPanel(props: OrderPanelProps) {
         </button>
       </div>
 
-      {valid ? (
-        <p className="num text-sm text-text">
-          Bet {formatHC(amount)} on {side === "yes" ? "Yes" : "No"} → est.{" "}
-          {formatHC(estimate)} if {side === "yes" ? "Yes" : "No"}
-        </p>
-      ) : null}
-
-      <p className="num text-xs text-text-muted">
-        Cap remaining: {formatHC(capRemaining)} · Balance: {formatHC(balance)}
-      </p>
+      <dl className="flex flex-col gap-2.5 border-t border-hairline pt-4 text-sm">
+        <div className="flex items-baseline justify-between">
+          <dt className="text-text-muted">Odds</dt>
+          <dd className="num font-semibold text-text">
+            {formatPercent(sidePrice)} chance
+          </dd>
+        </div>
+        <div className="flex items-baseline justify-between">
+          <dt className="text-text-muted">Balance</dt>
+          <dd className="num text-text">{formatHC(balance)}</dd>
+        </div>
+        <div className="flex items-baseline justify-between">
+          <dt className="text-text-muted">Cap remaining</dt>
+          <dd className="num text-text">{formatHC(capRemaining)}</dd>
+        </div>
+        <div className="flex items-end justify-between">
+          <dt className="flex flex-col gap-0.5">
+            <span className="font-semibold text-text">Max payout</span>
+            <span className="text-xs text-text-tertiary">
+              Closes {CLOSE_DATE.format(new Date(props.closeAt))}
+            </span>
+          </dt>
+          <dd className="num text-2xl font-bold text-text">
+            {valid ? formatHC(estimate) : "—"}
+          </dd>
+        </div>
+      </dl>
 
       {error ? (
         <p role="alert" className="text-sm text-market-no">

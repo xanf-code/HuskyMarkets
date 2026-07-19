@@ -87,7 +87,7 @@ export function SemesterForm({ semesters }: { semesters: SemesterRow[] }) {
               <div>
                 <p className="font-semibold text-text">{s.name}</p>
                 <p className="num mt-1 text-xs text-text-muted">
-                  {toLocalInput(s.startsAt)} → {toLocalInput(s.endsAt)}
+                  {toLocalInput(s.startsAt)} &ndash; {toLocalInput(s.endsAt)}
                 </p>
               </div>
               <Button size="sm" variant="secondary" onClick={() => onClose(s.id, s.name)}>

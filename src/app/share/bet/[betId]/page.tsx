@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { buttonStyles } from "@/components/ui/Button";
 import { formatCents, formatHC } from "@/lib/format";
 import { getShareCard } from "@/lib/queries/share";
 
@@ -38,7 +39,9 @@ export default async function ShareBetPage({ params }: ShareBetPageProps) {
       </h1>
       <p className="num mt-6 text-3xl font-semibold text-text sm:text-5xl">
         {formatHC(card.stake)}{" "}
-        <span className="text-text-muted">→</span>{" "}
+        <span className="text-xl font-normal text-text-muted sm:text-3xl">
+          to
+        </span>{" "}
         <span className="text-market-yes">{formatHC(card.payout)}</span>
       </p>
       <p className="mt-4 text-sm text-text-muted">
@@ -47,11 +50,8 @@ export default async function ShareBetPage({ params }: ShareBetPageProps) {
         HuskyMarkets.
       </p>
       <div className="mt-10 border-t border-hairline pt-6">
-        <Link
-          href={`/market/${card.marketId}`}
-          className="text-sm font-semibold text-red focus-visible:outline-red"
-        >
-          View the market →
+        <Link href={`/market/${card.marketId}`} className={buttonStyles()}>
+          View the market
         </Link>
       </div>
     </div>

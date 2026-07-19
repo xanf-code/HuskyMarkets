@@ -114,6 +114,7 @@ export default async function MarketPage({
             position={detail.position}
             balance={detail.balance}
             initialSide={initialSide}
+            question={market.title}
           />
           {detail.position.yes + detail.position.no > 0 ? (
             <p className="num mt-3 text-xs text-text-muted">

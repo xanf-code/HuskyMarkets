@@ -17,12 +17,12 @@ describe("Header", () => {
     expect(screen.getByText(/1,050 HC/)).toBeInTheDocument();
   });
 
-  it("renders nothing for an unauthenticated visitor", () => {
-    const { container } = render(
-      <Header authenticated={false} balance={<div>1,050 HC</div>} />,
-    );
+  it("shows a Log in link for an unauthenticated visitor", () => {
+    render(<Header authenticated={false} />);
 
-    expect(container).toBeEmptyDOMElement();
+    const loginLink = screen.getByRole("link", { name: /log in/i });
+    expect(loginLink).toBeInTheDocument();
+    expect(loginLink).toHaveAttribute("href", "/login");
     expect(screen.queryByText(/1,050 HC/)).not.toBeInTheDocument();
     expect(
       screen.queryByRole("navigation", { name: /primary/i }),

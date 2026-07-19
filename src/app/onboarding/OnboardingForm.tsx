@@ -145,7 +145,6 @@ export function OnboardingForm({ initialHandle }: OnboardingFormProps) {
 
       <Button
         type="submit"
-        withArrow
         disabled={submitting}
         className="w-full sm:w-auto"
       >

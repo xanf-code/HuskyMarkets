@@ -109,6 +109,7 @@ interface LiveOrderPanelProps {
   position: { yes: number; no: number };
   balance: number;
   initialSide?: "yes" | "no";
+  question?: string;
 }
 
 export function LiveOrderPanel(props: LiveOrderPanelProps) {
@@ -123,6 +124,7 @@ export function LiveOrderPanel(props: LiveOrderPanelProps) {
       position={props.position}
       balance={props.balance}
       initialSide={props.initialSide}
+      question={props.question}
       onFill={applyFill}
     />
   );

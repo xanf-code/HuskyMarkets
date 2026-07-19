@@ -39,6 +39,21 @@ beforeEach(() => {
 });
 
 describe("OrderPanel", () => {
+  it("renders a Buy tab as the active order mode with Sell disabled", () => {
+    renderPanel();
+    const buy = screen.getByRole("tab", { name: "Buy" });
+    const sell = screen.getByRole("tab", { name: "Sell" });
+    expect(buy).toHaveAttribute("aria-selected", "true");
+    expect(sell).toBeDisabled();
+  });
+
+  it("renders the market question as a context line when provided", () => {
+    renderPanel({ question: "Will the Huskies win on Saturday?" });
+    expect(
+      screen.getByText("Will the Huskies win on Saturday?"),
+    ).toBeInTheDocument();
+  });
+
   it("shows both prices and defaults to Yes with market-semantic styles", () => {
     renderPanel();
     const yes = screen.getByRole("button", { name: /Yes 67¢/ });
@@ -57,14 +72,25 @@ describe("OrderPanel", () => {
     ).toBeInTheDocument();
   });
 
-  it("estimates the payout live, mirroring the SQL math", async () => {
+  it("shows the odds as an implied chance for the selected side", async () => {
     const user = userEvent.setup();
     renderPanel();
+    expect(screen.getByText("67% chance")).toBeInTheDocument();
 
-    await user.type(screen.getByLabelText(/stake/i), "100");
+    await user.click(screen.getByRole("button", { name: /No 33¢/ }));
+    expect(screen.getByText("33% chance")).toBeInTheDocument();
+  });
+
+  it("shows the max payout live, mirroring the SQL math", async () => {
+    const user = userEvent.setup();
+    const { container } = renderPanel();
+
+    await user.type(screen.getByLabelText(/amount/i), "100");
 
     // total 400, vig 20, after 380 → floor(100·380/300) = 126
-    expect(screen.getByText(/est\. 126 HC if Yes/)).toBeInTheDocument();
+    expect(screen.getByText("126 HC")).toBeInTheDocument();
+    // Generic arrow glyphs are banned from the UI.
+    expect(container.textContent).not.toContain("→");
   });
 
   it("quick-fills amounts, with Max capped by cap remaining and balance", async () => {
@@ -72,18 +98,18 @@ describe("OrderPanel", () => {
     renderPanel();
 
     await user.click(screen.getByRole("button", { name: "50" }));
-    expect(screen.getByLabelText(/stake/i)).toHaveValue(50);
+    expect(screen.getByLabelText(/amount/i)).toHaveValue(50);
 
     // cap remaining 400 (100 already staked), balance 400 → Max = 400
     await user.click(screen.getByRole("button", { name: "Max" }));
-    expect(screen.getByLabelText(/stake/i)).toHaveValue(400);
+    expect(screen.getByLabelText(/amount/i)).toHaveValue(400);
   });
 
   it("submits the bet and applies the fill optimistically", async () => {
     const user = userEvent.setup();
     renderPanel();
 
-    await user.type(screen.getByLabelText(/stake/i), "100");
+    await user.type(screen.getByLabelText(/amount/i), "100");
     await user.click(screen.getByRole("button", { name: /Buy Yes · 67¢/i }));
 
     expect(placeBet).toHaveBeenCalledWith({
@@ -105,7 +131,7 @@ describe("OrderPanel", () => {
     const user = userEvent.setup();
     renderPanel();
 
-    await user.type(screen.getByLabelText(/stake/i), "100");
+    await user.type(screen.getByLabelText(/amount/i), "100");
     await user.click(screen.getByRole("button", { name: /Buy Yes · 67¢/i }));
 
     expect(
@@ -139,7 +165,7 @@ describe("OrderPanel", () => {
     const user = userEvent.setup();
     renderPanel({ onFill });
 
-    await user.type(screen.getByLabelText(/stake/i), "100");
+    await user.type(screen.getByLabelText(/amount/i), "100");
     await user.click(screen.getByRole("button", { name: /Buy Yes · 67¢/i }));
 
     await screen.findByRole("button", { name: /Yes 75¢/ });
@@ -155,7 +181,7 @@ describe("OrderPanel", () => {
     const user = userEvent.setup();
     renderPanel({ balance: 30 });
 
-    await user.type(screen.getByLabelText(/stake/i), "100");
+    await user.type(screen.getByLabelText(/amount/i), "100");
 
     expect(screen.getByRole("button", { name: /Buy Yes · 67¢/i })).toBeDisabled();
   });

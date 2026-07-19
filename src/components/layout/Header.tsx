@@ -21,10 +21,33 @@ interface HeaderProps {
 export function Header({ authenticated, balance }: HeaderProps) {
   const pathname = usePathname();
 
-  // App chrome (nav + balance) is only meaningful once signed in. Unauthenticated
-  // visitors only ever see public pages (login, tos, shared bets), which supply
-  // their own headings, so render nothing rather than leaking the signed-in shell.
-  if (!authenticated) return null;
+  // Unauthenticated visitors see a minimal header with a Log in link so they can
+  // always find their way to the login page.
+  if (!authenticated) {
+    return (
+      <header className="sticky top-0 z-40 border-b border-hairline bg-card/95 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
+          <Link
+            href="/"
+            className="flex shrink-0 items-baseline gap-1.5 whitespace-nowrap focus-visible:outline-red"
+          >
+            <span className="brand-serif text-xl text-text sm:text-2xl">
+              Husky
+            </span>
+            <span className="text-xl font-bold text-red sm:text-2xl">
+              Markets
+            </span>
+          </Link>
+          <Link
+            href="/login"
+            className="rounded-md border border-border-strong bg-card px-4 py-2 text-sm font-semibold text-text transition-colors duration-200 ease-standard hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+          >
+            Log in
+          </Link>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="sticky top-0 z-40 border-b border-hairline bg-card/95 backdrop-blur-sm">

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { formatHC } from "@/lib/format";
+import { buttonStyles } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { StatBlock } from "@/components/ui/StatBlock";
 import { BAILOUT_THRESHOLD } from "@/lib/constants";
@@ -56,24 +57,24 @@ export default async function ProfilePage() {
         </h1>
         <p className="mt-2 text-sm text-text-muted">{profile?.email}</p>
         {profile?.role === "admin" || profile?.role === "moderator" ? (
-          <p className="mt-3 flex flex-wrap gap-3 text-sm">
+          <div className="mt-4 flex flex-wrap gap-3">
             {profile.role === "admin" ? (
               <Link
                 href="/admin"
-                className="font-semibold text-red focus-visible:outline-red"
+                className={buttonStyles({ variant: "secondary", size: "sm" })}
               >
-                Admin console →
+                Admin console
               </Link>
             ) : null}
             {profile.role === "moderator" || profile.role === "admin" ? (
               <Link
                 href="/mod"
-                className="font-semibold text-red focus-visible:outline-red"
+                className={buttonStyles({ variant: "secondary", size: "sm" })}
               >
-                Moderator dashboard →
+                Moderator dashboard
               </Link>
             ) : null}
-          </p>
+          </div>
         ) : null}
       </div>
 

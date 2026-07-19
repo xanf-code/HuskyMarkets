@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { buttonStyles } from "@/components/ui/Button";
 import { formatHC } from "@/lib/format";
 import type { ResolvedPosition } from "@/lib/queries/portfolio";
 
@@ -38,14 +39,14 @@ export function ResolvedHistory({ rows }: { rows: ResolvedPosition[] }) {
             </p>
           </div>
           <p className="num mt-3 text-sm text-text-muted">
-            {formatHC(r.stake)} → {formatHC(r.payout)}
+            {formatHC(r.stake)} to {formatHC(r.payout)}
           </p>
           {r.won && r.shareBetId ? (
             <Link
               href={`/share/bet/${r.shareBetId}`}
-              className="mt-3 inline-block text-sm font-semibold text-red focus-visible:outline-red"
+              className={`mt-3 ${buttonStyles({ variant: "secondary", size: "sm" })}`}
             >
-              Share →
+              Share
             </Link>
           ) : null}
         </li>

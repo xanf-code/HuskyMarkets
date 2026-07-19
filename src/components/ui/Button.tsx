@@ -6,7 +6,19 @@ type Size = "sm" | "md" | "lg";
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
   size?: Size;
-  withArrow?: boolean;
+}
+
+export interface ButtonStyleOptions {
+  variant?: Variant;
+  size?: Size;
+}
+
+/** Compose the design-system button classes for non-button elements (e.g. links). */
+export function buttonStyles({
+  variant = "primary",
+  size = "md",
+}: ButtonStyleOptions = {}): string {
+  return `${base} ${variants[variant]} ${sizes[size]}`;
 }
 
 const base =
@@ -32,7 +44,6 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     {
       variant = "primary",
       size = "md",
-      withArrow = false,
       className = "",
       children,
       type = "button",
@@ -44,11 +55,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         type={type}
-        className={`${base} ${variants[variant]} ${sizes[size]} ${className}`}
+        className={`${buttonStyles({ variant, size })} ${className}`}
         {...rest}
       >
         <span>{children}</span>
-        {withArrow ? <span aria-hidden="true">&rarr;</span> : null}
       </button>
     );
   },

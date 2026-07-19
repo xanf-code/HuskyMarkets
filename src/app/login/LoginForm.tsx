@@ -81,7 +81,6 @@ export function LoginForm() {
       ) : null}
       <Button
         type="submit"
-        withArrow
         disabled={loading}
         className="w-full sm:w-auto"
       >
