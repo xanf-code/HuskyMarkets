@@ -572,8 +572,43 @@ export type Database = {
       claim_bailout: { Args: never; Returns: boolean }
       claim_daily_bonus: { Args: never; Returns: boolean }
       gen_anon_handle: { Args: never; Returns: string }
+      get_accuracy_leaderboard: {
+        Args: { p_semester_id: string }
+        Returns: {
+          display_name: string
+          losses: number
+          rank: number
+          user_id: string
+          volume: number
+          win_rate: number
+          wins: number
+        }[]
+      }
       get_balance: { Args: { p_user_id: string }; Returns: number }
+      get_current_semester: {
+        Args: never
+        Returns: {
+          ends_at: string
+          id: string
+          name: string
+          starts_at: string
+        }[]
+      }
       get_my_balance: { Args: never; Returns: number }
+      get_profile_stats: { Args: { p_user: string }; Returns: Json }
+      get_semester_leaderboard: {
+        Args: { p_limit?: number; p_semester_id: string }
+        Returns: {
+          display_name: string
+          rank: number
+          score: number
+          user_id: string
+        }[]
+      }
+      handle_report: {
+        Args: { p_action: string; p_note?: string; p_report_id: string }
+        Returns: undefined
+      }
       is_admin: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
       lock_market: { Args: { p_market_id: string }; Returns: undefined }
@@ -590,6 +625,16 @@ export type Database = {
         Args: { p_market_id: string; p_outcome: string }
         Returns: Json
       }
+      review_mod_application: {
+        Args: { p_application_id: string; p_decision: string }
+        Returns: undefined
+      }
+      revoke_moderator: { Args: { p_user_id: string }; Returns: undefined }
+      set_market_hidden: {
+        Args: { p_hidden: boolean; p_market_id: string }
+        Returns: undefined
+      }
+      snapshot_semester: { Args: { p_semester_id: string }; Returns: number }
     }
     Enums: {
       application_status: "pending" | "approved" | "rejected"

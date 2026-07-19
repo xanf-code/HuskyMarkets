@@ -4,6 +4,7 @@ import { Countdown } from "@/components/market/Countdown";
 import { MarketStats } from "@/components/market/MarketStats";
 import { OrderPanel } from "@/components/market/OrderPanel";
 import { ProbabilityChart } from "@/components/market/ProbabilityChart";
+import { ReportDialog } from "@/components/market/ReportDialog";
 import { Chip } from "@/components/ui/Chip";
 import { CATEGORIES } from "@/lib/constants";
 import { formatCents, marketVolume } from "@/lib/format";
@@ -132,15 +133,7 @@ export default async function MarketPage({ params }: MarketPageProps) {
                 <dd className="mt-1">{categoryLabel}</dd>
               </div>
             </dl>
-            {/* ReportDialog lands in Phase 6; the affordance ships now. */}
-            <button
-              type="button"
-              disabled
-              title="Reporting arrives soon"
-              className="eyebrow self-start border border-hairline px-3 py-2 text-text-muted opacity-50"
-            >
-              Report market
-            </button>
+            <ReportDialog marketId={market.id} />
           </div>
         </section>
 

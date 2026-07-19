@@ -23,3 +23,7 @@ export type Category = (typeof CATEGORIES)[number]["value"];
 
 export const MARKET_SORTS = ["closing", "volume", "newest"] as const;
 export type MarketSort = (typeof MARKET_SORTS)[number];
+
+/** Hard content rule — rendered verbatim on /create above the form. */
+export const CONTENT_RULE =
+  "No markets targeting named individual students or private individuals' personal lives, relationships, health, or conduct. Markets about public-role figures and aggregate outcomes are allowed.";

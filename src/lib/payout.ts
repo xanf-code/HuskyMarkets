@@ -28,3 +28,18 @@ export function estimatePayout(
   const afterVig = total - vig;
   return Math.floor((amount * afterVig) / (sidePool + amount));
 }
+
+/**
+ * Current implied value of an *existing* open stake already inside the pools.
+ * Same integer floors as resolve_market (no re-adding the stake).
+ */
+export function positionValue(
+  stake: number,
+  sidePool: number,
+  totalPool: number,
+): number {
+  if (stake <= 0 || sidePool <= 0) return 0;
+  const vig = Math.floor((totalPool * 5) / 100);
+  const afterVig = totalPool - vig;
+  return Math.floor((stake * afterVig) / sidePool);
+}

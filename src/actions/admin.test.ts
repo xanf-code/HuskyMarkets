@@ -1,0 +1,104 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  handleReportAction,
+  resolveMarketAction,
+  reviewModApplication,
+  setMarketHidden,
+} from "./admin";
+
+const { rpc, revalidatePath } = vi.hoisted(() => ({
+  rpc: vi.fn(),
+  revalidatePath: vi.fn(),
+}));
+
+vi.mock("@/lib/supabase/server", () => ({
+  createClient: async () => ({ rpc }),
+}));
+
+vi.mock("next/cache", () => ({ revalidatePath }));
+
+const MARKET_ID = "6f9619ff-8b86-4d01-b42d-00cf4fc964ff";
+const REPORT_ID = "7f9619ff-8b86-4d01-b42d-00cf4fc964ff";
+const APP_ID = "8f9619ff-8b86-4d01-b42d-00cf4fc964ff";
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  rpc.mockResolvedValue({ data: null, error: null });
+});
+
+describe("resolveMarketAction", () => {
+  it("calls resolve_market and revalidates queues", async () => {
+    const result = await resolveMarketAction({
+      marketId: MARKET_ID,
+      outcome: "yes",
+    });
+    expect(result).toEqual({ ok: true });
+    expect(rpc).toHaveBeenCalledWith("resolve_market", {
+      p_market_id: MARKET_ID,
+      p_outcome: "yes",
+    });
+    expect(revalidatePath).toHaveBeenCalledWith("/admin/resolve");
+    expect(revalidatePath).toHaveBeenCalledWith("/mod");
+  });
+
+  it("maps conflict-of-interest errors", async () => {
+    rpc.mockResolvedValue({
+      data: null,
+      error: { message: "conflict of interest: you created this market" },
+    });
+    const result = await resolveMarketAction({
+      marketId: MARKET_ID,
+      outcome: "no",
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/created this market/i);
+  });
+});
+
+describe("handleReportAction", () => {
+  it("calls handle_report with dismiss or action", async () => {
+    await handleReportAction({ reportId: REPORT_ID, action: "dismiss" });
+    expect(rpc).toHaveBeenCalledWith("handle_report", {
+      p_report_id: REPORT_ID,
+      p_action: "dismiss",
+      p_note: undefined,
+    });
+  });
+});
+
+describe("reviewModApplication", () => {
+  it("calls review_mod_application", async () => {
+    const result = await reviewModApplication({
+      applicationId: APP_ID,
+      decision: "approve",
+    });
+    expect(result).toEqual({ ok: true });
+    expect(rpc).toHaveBeenCalledWith("review_mod_application", {
+      p_application_id: APP_ID,
+      p_decision: "approve",
+    });
+  });
+
+  it("surfaces admin-only rejection", async () => {
+    rpc.mockResolvedValue({
+      data: null,
+      error: { message: "admin only" },
+    });
+    const result = await reviewModApplication({
+      applicationId: APP_ID,
+      decision: "reject",
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/admins/i);
+  });
+});
+
+describe("setMarketHidden", () => {
+  it("calls set_market_hidden", async () => {
+    await setMarketHidden({ marketId: MARKET_ID, hidden: true });
+    expect(rpc).toHaveBeenCalledWith("set_market_hidden", {
+      p_market_id: MARKET_ID,
+      p_hidden: true,
+    });
+  });
+});

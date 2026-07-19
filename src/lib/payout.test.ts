@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { estimatePayout, impliedYes } from "./payout";
+import { estimatePayout, impliedYes, positionValue } from "./payout";
 
 describe("impliedYes", () => {
   it("prices a balanced market at 50", () => {
@@ -51,5 +51,26 @@ describe("estimatePayout", () => {
   it("returns 0 for a non-positive amount", () => {
     expect(estimatePayout(0, 100, 200)).toBe(0);
     expect(estimatePayout(-5, 100, 200)).toBe(0);
+  });
+});
+
+describe("positionValue", () => {
+  // Stake is already inside the pools (unlike estimatePayout which adds it).
+  // Mirrors resolve_market: vig = floor(total*5/100), payout = floor(stake*after/side).
+  it("values an existing 100 YES stake in a 450/300 market at settlement math", () => {
+    // total 750, vig 37, after 713 → floor(100 * 713 / 450) = 158
+    expect(positionValue(100, 450, 750)).toBe(158);
+  });
+
+  it("matches estimatePayout for a fresh bet once that bet is in the pools", () => {
+    // Order panel before: estimatePayout(100, 100, 200) = 142
+    // After fill pools are 200/100; positionValue(100, 200, 300) = 142
+    expect(estimatePayout(100, 100, 200)).toBe(142);
+    expect(positionValue(100, 200, 300)).toBe(142);
+  });
+
+  it("returns 0 when stake or side pool is non-positive", () => {
+    expect(positionValue(0, 200, 300)).toBe(0);
+    expect(positionValue(100, 0, 300)).toBe(0);
   });
 });
