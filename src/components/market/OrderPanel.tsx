@@ -153,29 +153,10 @@ export function OrderPanel(props: OrderPanelProps) {
       aria-label="Place a bet"
       className="card-surface flex flex-col gap-4 p-4 sm:p-5"
     >
-      {/* Order-mode header. Buying is the only supported flow, so Buy is
-          pinned active and Sell renders disabled, mirroring the Tabs styling. */}
       <div className="flex items-center justify-between border-b border-hairline">
-        <div role="tablist" aria-label="Order mode" className="flex gap-6">
-          <button
-            type="button"
-            role="tab"
-            aria-selected="true"
-            className="-mb-px cursor-default border-b-2 border-red px-1 pb-3 text-sm font-semibold text-text"
-          >
-            Buy
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected="false"
-            disabled
-            title="Selling is not available"
-            className="-mb-px border-b-2 border-transparent px-1 pb-3 text-sm font-semibold text-text-tertiary disabled:cursor-not-allowed"
-          >
-            Sell
-          </button>
-        </div>
+        <span className="-mb-px border-b-2 border-red px-1 pb-3 text-sm font-semibold text-text">
+          Buy
+        </span>
         <Chip className="num mb-2">HC</Chip>
       </div>
 
