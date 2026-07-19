@@ -52,14 +52,17 @@ export function SemesterForm({ semesters }: { semesters: SemesterRow[] }) {
   return (
     <div className="flex flex-col gap-8">
       {error ? (
-        <p role="alert" className="text-sm text-red-bright">
+        <p role="alert" className="text-sm text-market-no">
           {error}
         </p>
       ) : null}
       {message ? <p className="text-sm text-text-muted">{message}</p> : null}
 
-      <form onSubmit={onCreate} className="flex flex-col gap-4 border border-hairline p-4 sm:p-6">
-        <h2 className="font-serif text-xl text-text">Add semester</h2>
+      <form
+        onSubmit={onCreate}
+        className="card-surface flex flex-col gap-4 p-4 sm:p-6"
+      >
+        <h2 className="text-xl font-semibold text-text">Add semester</h2>
         <Input id="name" name="name" label="Name" required placeholder="Fall 2026" />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Input id="startsAt" name="startsAt" label="Starts" type="datetime-local" required />
@@ -70,24 +73,30 @@ export function SemesterForm({ semesters }: { semesters: SemesterRow[] }) {
         </Button>
       </form>
 
-      <ul className="flex flex-col gap-px border border-hairline bg-hairline">
-        {semesters.map((s) => (
-          <li
-            key={s.id}
-            className="flex flex-wrap items-center justify-between gap-3 bg-page px-4 py-4 sm:px-5"
-          >
-            <div>
-              <p className="font-semibold text-text">{s.name}</p>
-              <p className="num mt-1 text-xs text-text-muted">
-                {toLocalInput(s.startsAt)} → {toLocalInput(s.endsAt)}
-              </p>
-            </div>
-            <Button size="sm" variant="secondary" onClick={() => onClose(s.id, s.name)}>
-              Close semester
-            </Button>
-          </li>
-        ))}
-      </ul>
+      {semesters.length === 0 ? (
+        <p className="rounded-md bg-muted px-4 py-8 text-center text-sm text-text-muted">
+          No semesters configured yet.
+        </p>
+      ) : (
+        <ul className="card-surface divide-y divide-hairline overflow-hidden">
+          {semesters.map((s) => (
+            <li
+              key={s.id}
+              className="flex flex-wrap items-center justify-between gap-3 bg-card px-4 py-4 sm:px-5"
+            >
+              <div>
+                <p className="font-semibold text-text">{s.name}</p>
+                <p className="num mt-1 text-xs text-text-muted">
+                  {toLocalInput(s.startsAt)} → {toLocalInput(s.endsAt)}
+                </p>
+              </div>
+              <Button size="sm" variant="secondary" onClick={() => onClose(s.id, s.name)}>
+                Close semester
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

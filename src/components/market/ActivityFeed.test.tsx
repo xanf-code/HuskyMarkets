@@ -21,12 +21,12 @@ describe("ActivityFeed", () => {
     const line = screen.getByRole("listitem");
     expect(line).toHaveTextContent("HungryHusky42");
     expect(line).toHaveTextContent("50 HC");
-    expect(line).toHaveTextContent("YES");
+    expect(line).toHaveTextContent("Yes");
     expect(line).toHaveTextContent("61¢");
     expect(line).toHaveTextContent("2m ago");
   });
 
-  it("shows a flat empty state when there are no bets", () => {
+  it("shows a plain empty state when there are no bets", () => {
     render(<ActivityFeed activity={[]} />);
     expect(screen.getByText(/no bets yet/i)).toBeInTheDocument();
   });

@@ -12,10 +12,10 @@ export function Chip({
 }: ChipProps) {
   return (
     <span
-      className={`eyebrow inline-flex items-center border px-2.5 py-1 ${
+      className={`inline-flex items-center rounded-pill px-2.5 py-1 text-xs font-medium ${
         active
-          ? "border-red text-red-bright"
-          : "border-hairline text-text-muted"
+          ? "bg-red/10 text-red"
+          : "bg-muted text-text-muted"
       } ${className}`}
       {...rest}
     >

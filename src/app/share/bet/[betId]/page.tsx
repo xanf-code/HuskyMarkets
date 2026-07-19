@@ -26,26 +26,30 @@ export default async function ShareBetPage({ params }: ShareBetPageProps) {
   const card = await getShareCard(betId);
   if (!card) notFound();
 
+  const sideClass = card.side === "yes" ? "text-market-yes" : "text-market-no";
+
   return (
     <div className="mx-auto flex min-h-[70vh] w-full max-w-2xl flex-col justify-center">
-      <p className="num text-lg font-medium text-red-bright sm:text-xl">
+      <p className={`num text-lg font-semibold sm:text-xl ${sideClass}`}>
         Called it at {formatCents(card.priceAtBet)}
       </p>
-      <h1 className="mt-3 font-serif text-2xl leading-snug text-text sm:text-4xl">
+      <h1 className="mt-3 text-2xl font-semibold leading-snug text-text sm:text-4xl">
         {card.marketTitle}
       </h1>
-      <p className="num mt-6 text-3xl font-medium text-text sm:text-5xl">
+      <p className="num mt-6 text-3xl font-semibold text-text sm:text-5xl">
         {formatHC(card.stake)}{" "}
         <span className="text-text-muted">→</span>{" "}
-        <span className="text-red-bright">{formatHC(card.payout)}</span>
+        <span className="text-market-yes">{formatHC(card.payout)}</span>
       </p>
       <p className="mt-4 text-sm text-text-muted">
-        {card.displayName} backed {card.side.toUpperCase()} on HuskyMarkets.
+        {card.displayName} backed{" "}
+        <span className={sideClass}>{card.side.toUpperCase()}</span> on
+        HuskyMarkets.
       </p>
       <div className="mt-10 border-t border-hairline pt-6">
         <Link
           href={`/market/${card.marketId}`}
-          className="eyebrow inline-block text-red-bright focus-visible:outline-red"
+          className="text-sm font-semibold text-red focus-visible:outline-red"
         >
           View the market →
         </Link>

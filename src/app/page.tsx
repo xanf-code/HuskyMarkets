@@ -33,15 +33,7 @@ export default async function Home({ searchParams }: HomeProps) {
   });
 
   return (
-    <div className="flex flex-col gap-6 sm:gap-8">
-      <div>
-        <p className="eyebrow text-red-bright">
-          Virtual HuskyCoin · Northeastern only
-        </p>
-        <h1 className="mt-2 font-serif text-3xl text-text sm:text-4xl">
-          Markets
-        </h1>
-      </div>
+    <div className="flex flex-col gap-5 sm:gap-6">
       <Suspense>
         <MarketFilters />
       </Suspense>

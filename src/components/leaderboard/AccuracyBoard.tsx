@@ -9,8 +9,8 @@ interface AccuracyBoardProps {
 export function AccuracyBoard({ entries, currentUserId }: AccuracyBoardProps) {
   if (entries.length === 0) {
     return (
-      <p className="num text-sm text-text-muted">
-        &gt; need ≥10 resolved bets to appear_
+      <p className="rounded-md bg-muted px-4 py-8 text-center text-sm text-text-muted">
+        Need at least 10 resolved bets to appear on the accuracy board.
       </p>
     );
   }
@@ -21,17 +21,17 @@ export function AccuracyBoard({ entries, currentUserId }: AccuracyBoardProps) {
         Ranked by win rate on markets resolved this semester. Minimum 10
         resolved bets.
       </p>
-      <ol className="flex flex-col gap-px border border-hairline bg-hairline">
+      <ol className="card-surface divide-y divide-hairline overflow-hidden">
         {entries.map((e) => {
           const mine = e.userId === currentUserId;
           return (
             <li
               key={e.userId}
               className={`flex flex-wrap items-baseline gap-x-4 gap-y-1 px-4 py-3 sm:px-5 ${
-                mine ? "bg-ink" : "bg-page"
+                mine ? "bg-muted" : "bg-card"
               }`}
             >
-              <span className="font-serif text-2xl text-red-bright tabular-nums w-10 shrink-0">
+              <span className="num w-10 shrink-0 text-2xl font-semibold text-red tabular-nums">
                 {e.rank}
               </span>
               <span
@@ -42,7 +42,13 @@ export function AccuracyBoard({ entries, currentUserId }: AccuracyBoardProps) {
                 {e.displayName}
               </span>
               <span className="num text-sm text-text">
-                {(e.winRate * 100).toFixed(1)}% · {e.wins}W/{e.losses}L ·{" "}
+                <span className="text-market-yes">
+                  {(e.winRate * 100).toFixed(1)}%
+                </span>
+                {" · "}
+                <span className="text-market-yes">{e.wins}W</span>/
+                <span className="text-market-no">{e.losses}L</span>
+                {" · "}
                 {formatHC(e.volume)}
               </span>
             </li>

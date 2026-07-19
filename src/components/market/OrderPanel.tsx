@@ -23,6 +23,8 @@ interface OrderPanelProps {
   /** Signed-in user's existing stake on this market, per side. */
   position: { yes: number; no: number };
   balance: number;
+  /** Prefill from `?side=yes|no` deep link. */
+  initialSide?: Side;
   /** Reports a successful fill so live consumers (hero price, chart, stats) update optimistically. */
   onFill?: (fill: { yesPool: number; noPool: number }) => void;
 }
@@ -32,7 +34,7 @@ export function OrderPanel(props: OrderPanelProps) {
   const [pools, setPools] = useState({ yes: props.yesPool, no: props.noPool });
   const [staked, setStaked] = useState(props.position.yes + props.position.no);
   const [balance, setBalance] = useState(props.balance);
-  const [side, setSide] = useState<Side>("yes");
+  const [side, setSide] = useState<Side>(props.initialSide ?? "yes");
   const [amountInput, setAmountInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -73,6 +75,8 @@ export function OrderPanel(props: OrderPanelProps) {
 
   const open = props.status === "open" && !pastClose;
   const yesPrice = impliedYes(pools.yes, pools.no);
+  const noPrice = 100 - yesPrice;
+  const sidePrice = side === "yes" ? yesPrice : noPrice;
   const capRemaining = Math.max(CAP_PER_MARKET - staked, 0);
   const maxStake = Math.min(capRemaining, balance);
 
@@ -86,7 +90,7 @@ export function OrderPanel(props: OrderPanelProps) {
     if (!valid || pending) return;
     setPending(true);
     setError(null);
-    const priceNow = side === "yes" ? yesPrice : 100 - yesPrice;
+    const priceNow = sidePrice;
     const result = await placeBet({ marketId: props.marketId, side, amount });
     setPending(false);
 
@@ -101,34 +105,48 @@ export function OrderPanel(props: OrderPanelProps) {
     setStaked((current) => current + amount);
     setAmountInput("");
     toast.push(
-      `Filled: ${formatHC(amount)} on ${side.toUpperCase()} @ ${formatCents(priceNow)}`,
+      `Filled ${formatHC(amount)} on ${side === "yes" ? "Yes" : "No"} @ ${formatCents(priceNow)}`,
     );
   }
 
-  const sideButton = (value: Side, label: string, price: number) => (
-    <button
-      type="button"
-      aria-pressed={side === value}
-      onClick={() => setSide(value)}
-      disabled={!open}
-      className={`num flex-1 cursor-pointer border px-4 py-4 text-lg font-medium transition-colors duration-200 ease-standard focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-50 ${
-        side === value
-          ? "border-red bg-red/10 text-red-bright"
-          : "border-hairline text-text-muted hover:text-text"
-      }`}
-    >
-      {label} {formatCents(price)}
-    </button>
-  );
+  const sideButton = (value: Side, label: string, price: number) => {
+    const selected = side === value;
+    const semantic =
+      value === "yes"
+        ? selected
+          ? "border-market-yes bg-market-yes text-white"
+          : "border-market-yes/40 bg-market-yes-bg text-market-yes hover:border-market-yes"
+        : selected
+          ? "border-market-no bg-market-no text-white"
+          : "border-market-no/40 bg-market-no-bg text-market-no hover:border-market-no";
+
+    return (
+      <button
+        type="button"
+        aria-pressed={selected}
+        onClick={() => setSide(value)}
+        disabled={!open}
+        className={`num flex-1 cursor-pointer rounded-md border px-4 py-3.5 text-base font-semibold transition-all duration-200 ease-standard focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-40 ${semantic}`}
+      >
+        {label} {formatCents(price)}
+      </button>
+    );
+  };
+
+  const submitLabel = open
+    ? pending
+      ? "Placing…"
+      : `Buy ${side === "yes" ? "Yes" : "No"} · ${formatCents(sidePrice)}`
+    : "Market closed";
 
   return (
     <section
       aria-label="Place a bet"
-      className="flex flex-col gap-4 border border-hairline bg-ink p-4 sm:p-5"
+      className="card-surface flex flex-col gap-4 p-4 sm:p-5"
     >
       <div className="flex gap-2">
-        {sideButton("yes", "YES", yesPrice)}
-        {sideButton("no", "NO", 100 - yesPrice)}
+        {sideButton("yes", "Yes", yesPrice)}
+        {sideButton("no", "No", noPrice)}
       </div>
 
       <label className="block">
@@ -144,7 +162,7 @@ export function OrderPanel(props: OrderPanelProps) {
           onChange={(event) => setAmountInput(event.target.value)}
           disabled={!open}
           aria-label="Stake (HC)"
-          className="num w-full border border-hairline bg-transparent px-4 py-3 text-base text-text transition-colors duration-200 ease-standard focus:border-red focus:outline-none disabled:opacity-50"
+          className="num w-full rounded-md border border-hairline bg-card px-4 py-3 text-base text-text transition-colors duration-200 ease-standard focus:border-red focus:outline-none disabled:opacity-50"
         />
       </label>
 
@@ -155,7 +173,7 @@ export function OrderPanel(props: OrderPanelProps) {
             type="button"
             onClick={() => setAmountInput(String(Math.min(quick, maxStake)))}
             disabled={!open || maxStake === 0}
-            className="num cursor-pointer border border-hairline px-3 py-2 text-sm text-text-muted transition-colors duration-200 ease-standard hover:text-text focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-50"
+            className="num cursor-pointer rounded-pill border border-hairline bg-muted px-3 py-1.5 text-sm text-text-muted transition-colors duration-200 ease-standard hover:border-border-strong hover:text-text focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-50"
           >
             {quick}
           </button>
@@ -164,7 +182,7 @@ export function OrderPanel(props: OrderPanelProps) {
           type="button"
           onClick={() => setAmountInput(String(maxStake))}
           disabled={!open || maxStake === 0}
-          className="num cursor-pointer border border-hairline px-3 py-2 text-sm text-text-muted transition-colors duration-200 ease-standard hover:text-text focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-50"
+          className="num cursor-pointer rounded-pill border border-hairline bg-muted px-3 py-1.5 text-sm text-text-muted transition-colors duration-200 ease-standard hover:border-border-strong hover:text-text focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-50"
         >
           Max
         </button>
@@ -172,8 +190,8 @@ export function OrderPanel(props: OrderPanelProps) {
 
       {valid ? (
         <p className="num text-sm text-text">
-          Bet {formatHC(amount)} on {side.toUpperCase()} → est.{" "}
-          {formatHC(estimate)} if {side.toUpperCase()}
+          Bet {formatHC(amount)} on {side === "yes" ? "Yes" : "No"} → est.{" "}
+          {formatHC(estimate)} if {side === "yes" ? "Yes" : "No"}
         </p>
       ) : null}
 
@@ -182,7 +200,7 @@ export function OrderPanel(props: OrderPanelProps) {
       </p>
 
       {error ? (
-        <p role="alert" className="text-sm text-red-bright">
+        <p role="alert" className="text-sm text-market-no">
           {error}
         </p>
       ) : null}
@@ -192,7 +210,7 @@ export function OrderPanel(props: OrderPanelProps) {
         disabled={!open || !valid || pending}
         className="w-full"
       >
-        {open ? (pending ? "Placing…" : "Place bet") : "Market closed"}
+        {submitLabel}
       </Button>
     </section>
   );

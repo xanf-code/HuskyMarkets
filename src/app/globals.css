@@ -1,14 +1,24 @@
 @import "tailwindcss";
 
 @theme {
-  --color-page: #000000;
+  --color-page: #f5f6f8;
+  --color-card: #ffffff;
+  --color-muted: #eef0f3;
+  --color-inverse: #0b0f0e;
   --color-ink: #0a0a0a;
   --color-red: #d41b2c;
   --color-red-hover: #b01524;
   --color-red-bright: #e31837;
-  --color-text: #ffffff;
-  --color-text-muted: rgba(255, 255, 255, 0.72);
-  --color-hairline: rgba(255, 255, 255, 0.28);
+  --color-text: #0a0a0a;
+  --color-text-muted: #5c6370;
+  --color-text-tertiary: #8b929e;
+  --color-hairline: #e3e6eb;
+  --color-border-strong: #c9ced6;
+  --color-market-yes: #00ce8e;
+  --color-market-yes-bg: #e8fff6;
+  --color-market-no: #ff3b5c;
+  --color-market-no-bg: #ffe8ec;
+  --color-market-neutral: #8b929e;
   --color-focus-ring: rgba(212, 27, 44, 0.35);
 
   --font-serif: var(--font-source-serif), Georgia, "Times New Roman", serif;
@@ -19,19 +29,37 @@
   --duration-fast: 120ms;
   --duration-normal: 200ms;
 
-  --radius-sm: 2px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.06);
+  --shadow-card-hover: 0 2px 4px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
+/* Tabular sans for prices — not mono. */
 @utility num {
-  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
 
+/* Rare breaking badges only — not default UI chrome. */
 @utility eyebrow {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+@utility brand-serif {
+  font-family: var(--font-serif);
+}
+
+@utility card-surface {
+  background: var(--color-card);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
 }
 
 body {

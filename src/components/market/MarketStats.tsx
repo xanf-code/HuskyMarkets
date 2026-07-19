@@ -20,11 +20,13 @@ export function MarketStats({
   ];
 
   return (
-    <dl className="grid grid-cols-1 gap-px border border-hairline bg-hairline sm:grid-cols-3">
+    <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3">
       {stats.map((stat) => (
-        <div key={stat.label} className="bg-page px-4 py-3">
-          <dt className="eyebrow text-text-muted">{stat.label}</dt>
-          <dd className="num mt-1 text-lg text-text">{stat.value}</dd>
+        <div key={stat.label} className="card-surface px-4 py-3">
+          <dt className="text-xs font-medium text-text-muted">{stat.label}</dt>
+          <dd className="num mt-1 text-lg font-semibold text-text">
+            {stat.value}
+          </dd>
         </div>
       ))}
     </dl>

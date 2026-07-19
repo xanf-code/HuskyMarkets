@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { SemesterBoard } from "./SemesterBoard";
 
 describe("SemesterBoard", () => {
-  it("highlights the current user and renders serif ranks", () => {
+  it("highlights the current user and renders ranks", () => {
     render(
       <SemesterBoard
         currentUserId="u2"

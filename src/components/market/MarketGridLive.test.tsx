@@ -65,7 +65,8 @@ describe("MarketGridLive", () => {
 
   it("patches the matching card's price and volume on UPDATE", () => {
     render(<MarketGridLive initial={[market("m1", "Snow before finals?")]} />);
-    expect(screen.getByText("YES 67¢")).toBeInTheDocument();
+    expect(screen.getByText("67%")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /yes\s+67¢/i })).toBeInTheDocument();
 
     act(() => {
       handlers.get("markets:UPDATE")!({
@@ -73,7 +74,8 @@ describe("MarketGridLive", () => {
       });
     });
 
-    expect(screen.getByText("YES 25¢")).toBeInTheDocument();
+    expect(screen.getByText("25%")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /yes\s+25¢/i })).toBeInTheDocument();
     expect(screen.getByText(/200 HC vol/)).toBeInTheDocument();
   });
 

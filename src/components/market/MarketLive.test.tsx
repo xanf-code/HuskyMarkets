@@ -65,10 +65,11 @@ beforeEach(() => {
 });
 
 describe("MarketLive", () => {
-  it("renders the hero price from live pools", () => {
+  it("renders the hero probability from live pools", () => {
     renderLive(<LivePrice />);
 
-    expect(screen.getByText("YES 67¢")).toBeInTheDocument();
+    expect(screen.getByText("67%")).toBeInTheDocument();
+    expect(screen.getByText("Yes 67¢")).toBeInTheDocument();
   });
 
   it("renders live pools and volume in the stats", () => {

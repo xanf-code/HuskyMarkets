@@ -1,11 +1,9 @@
 "use client";
 
 import { Line, LineChart, ResponsiveContainer, YAxis } from "recharts";
+import { theme } from "@/lib/theme";
 
-/**
- * Tiny trend line for market cards: recent implied-YES prices, no axes,
- * no interaction — the red stroke on black is the whole story.
- */
+/** Tiny trend line for market cards: recent implied-YES prices, no axes. */
 export function Sparkline({ points }: { points: number[] }) {
   const data = points.map((price, i) => ({ i, price }));
 
@@ -20,7 +18,7 @@ export function Sparkline({ points }: { points: number[] }) {
           <Line
             type="stepAfter"
             dataKey="price"
-            stroke="#e31837"
+            stroke={theme.colors.marketYes}
             strokeWidth={1.5}
             dot={false}
             isAnimationActive={false}

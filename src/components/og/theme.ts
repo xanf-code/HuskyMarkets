@@ -2,11 +2,14 @@
 // bundled font names registered in src/lib/og-fonts.ts.
 
 export const OG_COLORS = {
-  bg: "#000000",
-  text: "#ffffff",
-  muted: "rgba(255, 255, 255, 0.72)",
-  hairline: "rgba(255, 255, 255, 0.28)",
-  red: "#E31837",
+  bg: "#F5F6F8",
+  card: "#FFFFFF",
+  text: "#0A0A0A",
+  muted: "#5C6370",
+  hairline: "#E3E6EB",
+  red: "#D41B2C",
+  marketYes: "#00CE8E",
+  marketNo: "#FF3B5C",
 } as const;
 
 export const OG_FONT = {

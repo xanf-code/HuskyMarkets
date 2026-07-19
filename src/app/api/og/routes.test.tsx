@@ -58,7 +58,9 @@ describe("GET /api/og/market/[id]", () => {
     expect(getMarketCard).toHaveBeenCalledWith("m1");
     const [element, options] = vi.mocked(ImageResponse).mock.calls[0];
     expect(element.type).toBe(MarketOgCard);
-    expect(element.props.card).toEqual(marketCard);
+    expect((element as { props: { card: unknown } }).props.card).toEqual(
+      marketCard,
+    );
     expect(options).toMatchObject({ width: 1200, height: 630, fonts: FONTS });
   });
 
@@ -78,7 +80,9 @@ describe("GET /api/og/bet/[betId]", () => {
     expect(getShareCard).toHaveBeenCalledWith("b1");
     const [element, options] = vi.mocked(ImageResponse).mock.calls[0];
     expect(element.type).toBe(BetOgCard);
-    expect(element.props.card).toEqual(shareCard);
+    expect((element as { props: { card: unknown } }).props.card).toEqual(
+      shareCard,
+    );
     expect(options).toMatchObject({ width: 1200, height: 630, fonts: FONTS });
   });
 

@@ -25,9 +25,8 @@ export default async function AdminLayout({
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 py-8 sm:py-12">
       <div>
-        <p className="eyebrow text-red-bright">Admin</p>
-        <h1 className="mt-3 font-serif text-3xl text-text sm:text-4xl">
-          Console
+        <h1 className="text-3xl font-semibold text-text sm:text-4xl">
+          Admin console
         </h1>
       </div>
       <nav
@@ -39,7 +38,7 @@ export default async function AdminLayout({
             <Link
               key={item.href}
               href={item.href}
-              className="shrink-0 border-b-2 border-transparent py-3 text-sm font-semibold text-text-muted hover:text-text focus-visible:outline-red"
+              className="shrink-0 border-b-2 border-transparent py-3 text-sm font-semibold text-text-muted transition-colors hover:text-text focus-visible:outline-red"
             >
               {item.label}
             </Link>

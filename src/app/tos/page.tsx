@@ -27,8 +27,7 @@ export default function TosPage() {
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-8 py-8 sm:py-16">
       <div>
-        <p className="eyebrow text-red-bright">The fine print</p>
-        <h1 className="mt-3 font-serif text-3xl text-text sm:text-4xl">
+        <h1 className="text-3xl font-semibold text-text sm:text-4xl">
           Terms of Service
         </h1>
         <p className="mt-2 text-sm text-text-muted">
@@ -37,8 +36,8 @@ export default function TosPage() {
       </div>
       <ol className="space-y-6">
         {TERMS.map((term, index) => (
-          <li key={term.heading} className="border-l-2 border-red pl-4 sm:pl-6">
-            <h2 className="font-serif text-xl text-text">
+          <li key={term.heading} className="border-l-4 border-red pl-4 sm:pl-6">
+            <h2 className="text-xl font-semibold text-text">
               {index + 1}. {term.heading}
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-text-muted">

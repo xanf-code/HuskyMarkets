@@ -5,29 +5,32 @@ import type { ResolvedPosition } from "@/lib/queries/portfolio";
 export function ResolvedHistory({ rows }: { rows: ResolvedPosition[] }) {
   if (rows.length === 0) {
     return (
-      <p className="num text-sm text-text-muted">&gt; no resolved bets yet_</p>
+      <p className="rounded-md bg-muted px-4 py-8 text-center text-sm text-text-muted">
+        No resolved bets yet.
+      </p>
     );
   }
 
   return (
-    <ul className="flex flex-col gap-px border border-hairline bg-hairline">
+    <ul className="flex flex-col gap-3">
       {rows.map((r) => (
-        <li key={r.marketId} className="bg-page p-4 sm:p-5">
+        <li key={r.marketId} className="card-surface p-4 sm:p-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
               <Link
                 href={`/market/${r.marketId}`}
-                className="font-serif text-lg text-text hover:text-red-bright focus-visible:outline-red"
+                className="text-base font-semibold text-text hover:text-red focus-visible:outline-red"
               >
                 {r.marketTitle}
               </Link>
               <p className="mt-1 text-sm text-text-muted">
-                Outcome {r.outcome.toUpperCase()} · you {r.side.toUpperCase()}
+                Outcome {r.outcome === "yes" ? "Yes" : "No"} · you{" "}
+                {r.side === "yes" ? "Yes" : "No"}
               </p>
             </div>
             <p
               className={`num text-lg font-semibold ${
-                r.won ? "text-red-bright" : "text-text"
+                r.won ? "text-market-yes" : "text-text-muted"
               }`}
             >
               {r.pnl > 0 ? "+" : ""}
@@ -40,7 +43,7 @@ export function ResolvedHistory({ rows }: { rows: ResolvedPosition[] }) {
           {r.won && r.shareBetId ? (
             <Link
               href={`/share/bet/${r.shareBetId}`}
-              className="eyebrow mt-3 inline-block text-red-bright focus-visible:outline-red"
+              className="mt-3 inline-block text-sm font-semibold text-red focus-visible:outline-red"
             >
               Share →
             </Link>

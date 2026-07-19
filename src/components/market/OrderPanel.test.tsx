@@ -39,14 +39,22 @@ beforeEach(() => {
 });
 
 describe("OrderPanel", () => {
-  it("shows both prices and defaults to YES", () => {
+  it("shows both prices and defaults to Yes with market-semantic styles", () => {
+    renderPanel();
+    const yes = screen.getByRole("button", { name: /Yes 67¢/ });
+    const no = screen.getByRole("button", { name: /No 33¢/ });
+    expect(yes).toHaveAttribute("aria-pressed", "true");
+    expect(no).toHaveAttribute("aria-pressed", "false");
+    expect(yes.className).toMatch(/market-yes/);
+    expect(no.className).toMatch(/market-no/);
+    expect(yes.className).not.toMatch(/bg-red/);
+  });
+
+  it("labels the submit with the selected side and price", () => {
     renderPanel();
     expect(
-      screen.getByRole("button", { name: /YES 67¢/ }),
-    ).toHaveAttribute("aria-pressed", "true");
-    expect(
-      screen.getByRole("button", { name: /NO 33¢/ }),
-    ).toHaveAttribute("aria-pressed", "false");
+      screen.getByRole("button", { name: /Buy Yes · 67¢/i }),
+    ).toBeInTheDocument();
   });
 
   it("estimates the payout live, mirroring the SQL math", async () => {
@@ -56,7 +64,7 @@ describe("OrderPanel", () => {
     await user.type(screen.getByLabelText(/stake/i), "100");
 
     // total 400, vig 20, after 380 → floor(100·380/300) = 126
-    expect(screen.getByText(/est\. 126 HC if YES/)).toBeInTheDocument();
+    expect(screen.getByText(/est\. 126 HC if Yes/)).toBeInTheDocument();
   });
 
   it("quick-fills amounts, with Max capped by cap remaining and balance", async () => {
@@ -76,7 +84,7 @@ describe("OrderPanel", () => {
     renderPanel();
 
     await user.type(screen.getByLabelText(/stake/i), "100");
-    await user.click(screen.getByRole("button", { name: /place bet/i }));
+    await user.click(screen.getByRole("button", { name: /Buy Yes · 67¢/i }));
 
     expect(placeBet).toHaveBeenCalledWith({
       marketId: "m1",
@@ -85,7 +93,7 @@ describe("OrderPanel", () => {
     });
     // fill moves the displayed price to the RPC's post-bet 75¢
     expect(
-      await screen.findByRole("button", { name: /YES 75¢/ }),
+      await screen.findByRole("button", { name: /Yes 75¢/ }),
     ).toBeInTheDocument();
   });
 
@@ -98,7 +106,7 @@ describe("OrderPanel", () => {
     renderPanel();
 
     await user.type(screen.getByLabelText(/stake/i), "100");
-    await user.click(screen.getByRole("button", { name: /place bet/i }));
+    await user.click(screen.getByRole("button", { name: /Buy Yes · 67¢/i }));
 
     expect(
       await screen.findByText(/enough HC for that bet/),
@@ -107,7 +115,7 @@ describe("OrderPanel", () => {
 
   it("syncs prices when live pool props arrive", () => {
     const { rerender } = renderPanel();
-    expect(screen.getByRole("button", { name: /YES 67¢/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Yes 67¢/ })).toBeInTheDocument();
 
     rerender(
       <ToastProvider>
@@ -123,7 +131,7 @@ describe("OrderPanel", () => {
       </ToastProvider>,
     );
 
-    expect(screen.getByRole("button", { name: /YES 25¢/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Yes 25¢/ })).toBeInTheDocument();
   });
 
   it("reports successful fills so live consumers update optimistically", async () => {
@@ -132,9 +140,9 @@ describe("OrderPanel", () => {
     renderPanel({ onFill });
 
     await user.type(screen.getByLabelText(/stake/i), "100");
-    await user.click(screen.getByRole("button", { name: /place bet/i }));
+    await user.click(screen.getByRole("button", { name: /Buy Yes · 67¢/i }));
 
-    await screen.findByRole("button", { name: /YES 75¢/ });
+    await screen.findByRole("button", { name: /Yes 75¢/ });
     expect(onFill).toHaveBeenCalledWith({ yesPool: 300, noPool: 100 });
   });
 
@@ -149,6 +157,17 @@ describe("OrderPanel", () => {
 
     await user.type(screen.getByLabelText(/stake/i), "100");
 
-    expect(screen.getByRole("button", { name: /place bet/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /Buy Yes · 67¢/i })).toBeDisabled();
+  });
+
+  it("honors an initial side from the deep link", () => {
+    renderPanel({ initialSide: "no" });
+    expect(screen.getByRole("button", { name: /No 33¢/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(
+      screen.getByRole("button", { name: /Buy No · 33¢/i }),
+    ).toBeInTheDocument();
   });
 });

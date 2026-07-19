@@ -50,10 +50,16 @@ export function MarketLiveProvider({
 
 export function LivePrice() {
   const { market } = useMarketLive();
+  const yes = impliedYes(market.yesPool, market.noPool);
   return (
-    <p className="num text-4xl font-medium text-red-bright sm:text-5xl">
-      YES {formatCents(impliedYes(market.yesPool, market.noPool))}
-    </p>
+    <div className="flex items-baseline gap-3">
+      <p className="num text-4xl font-semibold text-text sm:text-5xl">
+        {yes}%
+      </p>
+      <p className="num text-lg text-text-muted sm:text-xl">
+        Yes {formatCents(yes)}
+      </p>
+    </div>
   );
 }
 
@@ -74,8 +80,8 @@ export function LiveStatusBanner() {
   const banner = STATUS_BANNERS[market.status];
   if (!banner) return null;
   return (
-    <p className="num border border-hairline border-l-2 border-l-red px-4 py-3 text-sm text-text">
-      &gt; {banner}
+    <p className="rounded-md border border-hairline border-l-4 border-l-red bg-card px-4 py-3 text-sm text-text">
+      {banner}
     </p>
   );
 }
@@ -102,6 +108,7 @@ interface LiveOrderPanelProps {
   closeAt: string;
   position: { yes: number; no: number };
   balance: number;
+  initialSide?: "yes" | "no";
 }
 
 export function LiveOrderPanel(props: LiveOrderPanelProps) {
@@ -115,6 +122,7 @@ export function LiveOrderPanel(props: LiveOrderPanelProps) {
       noPool={market.noPool}
       position={props.position}
       balance={props.balance}
+      initialSide={props.initialSide}
       onFill={applyFill}
     />
   );

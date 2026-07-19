@@ -21,16 +21,42 @@ const market: MarketListItem = {
 };
 
 describe("MarketCard", () => {
-  it("links to the market detail page", () => {
+  it("links the card to the market detail page", () => {
     render(<MarketCard market={market} />);
-    expect(screen.getByRole("link")).toHaveAttribute("href", "/market/m1");
+    expect(
+      screen.getByRole("link", { name: /will it snow in boston/i }),
+    ).toHaveAttribute("href", "/market/m1");
   });
 
-  it("shows the price, volume, category, and sparkline", () => {
+  it("shows dual Yes/No price affordances that deep-link a side", () => {
     render(<MarketCard market={market} />);
-    expect(screen.getByText("YES 60¢")).toBeInTheDocument();
-    expect(screen.getByText(/550 HC/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /yes\s+60¢/i })).toHaveAttribute(
+      "href",
+      "/market/m1?side=yes",
+    );
+    expect(screen.getByRole("link", { name: /no\s+40¢/i })).toHaveAttribute(
+      "href",
+      "/market/m1?side=no",
+    );
+  });
+
+  it("leads with a probability percentage, not a single red YES price", () => {
+    render(<MarketCard market={market} />);
+    expect(screen.getByText("60%")).toBeInTheDocument();
+    expect(screen.getByRole("progressbar")).toHaveAttribute(
+      "aria-valuenow",
+      "60",
+    );
+  });
+
+  it("shows category, volume, and sparkline without serif title chrome", () => {
+    const { container } = render(<MarketCard market={market} />);
     expect(screen.getByText("Weather")).toBeInTheDocument();
+    expect(screen.getByText(/550 HC/)).toBeInTheDocument();
     expect(screen.getByTestId("sparkline")).toBeInTheDocument();
+    const title = screen.getByRole("heading", { level: 3 });
+    expect(title).toHaveTextContent(market.title);
+    expect(title.className).not.toMatch(/font-serif/);
+    expect(container.querySelector(".eyebrow")).toBeNull();
   });
 });

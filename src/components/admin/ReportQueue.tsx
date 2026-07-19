@@ -27,28 +27,30 @@ export function ReportQueue({ items }: { items: ReportQueueItem[] }) {
 
   if (items.length === 0) {
     return (
-      <p className="num text-sm text-text-muted">&gt; report queue empty_</p>
+      <p className="rounded-md bg-muted px-4 py-8 text-center text-sm text-text-muted">
+        Report queue is empty.
+      </p>
     );
   }
 
   return (
     <div className="flex flex-col gap-4">
       {error ? (
-        <p role="alert" className="text-sm text-red-bright">
+        <p role="alert" className="text-sm text-market-no">
           {error}
         </p>
       ) : null}
-      <ul className="flex flex-col gap-px border border-hairline bg-hairline">
+      <ul className="card-surface divide-y divide-hairline overflow-hidden">
         {items.map((r) => (
-          <li key={r.id} className="bg-page p-4 sm:p-5">
+          <li key={r.id} className="bg-card p-4 sm:p-5">
             <Link
               href={`/market/${r.marketId}`}
-              className="font-serif text-lg text-text hover:text-red-bright focus-visible:outline-red"
+              className="text-lg font-semibold text-text hover:text-red focus-visible:outline-red"
             >
               {r.marketTitle}
             </Link>
             <p className="mt-2 text-sm text-text">{r.reason}</p>
-            <p className="num mt-1 text-xs text-text-muted">
+            <p className="mt-1 text-xs text-text-muted">
               {r.reporterName} · {timeAgo(r.createdAt)}
             </p>
             <div className="mt-4 flex flex-wrap gap-2">

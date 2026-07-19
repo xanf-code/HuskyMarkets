@@ -23,17 +23,26 @@ function item(id: string, title: string): MarketListItem {
 }
 
 describe("MarketGrid", () => {
-  it("renders a card per market", () => {
-    render(
+  it("renders a card per market in a gapped grid, not a hairline mosaic", () => {
+    const { container } = render(
       <MarketGrid
-        markets={[item("a", "First test market title"), item("b", "Second test market title")]}
+        markets={[
+          item("a", "First test market title"),
+          item("b", "Second test market title"),
+        ]}
       />,
     );
-    expect(screen.getAllByRole("link")).toHaveLength(2);
+    expect(screen.getAllByRole("article")).toHaveLength(2);
+    const grid = container.firstElementChild;
+    expect(grid?.className).toMatch(/gap-/);
+    expect(grid?.className).not.toMatch(/gap-px/);
   });
 
-  it("shows a terminal-flat empty state when nothing matches", () => {
+  it("shows a plain empty state when nothing matches", () => {
     render(<MarketGrid markets={[]} />);
-    expect(screen.getByText(/no open markets/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/no markets match these filters/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/>/)).not.toBeInTheDocument();
   });
 });

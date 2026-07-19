@@ -38,7 +38,7 @@ export function ReportDialog({ marketId }: ReportDialogProps) {
           setDone(false);
           setError(null);
         }}
-        className="eyebrow self-start border border-hairline px-3 py-2 text-text-muted transition-colors hover:border-text hover:text-text focus-visible:outline-red"
+        className="self-start rounded-md border border-hairline px-3 py-2 text-sm font-semibold text-text-muted transition-colors hover:border-border-strong hover:text-text focus-visible:outline-red"
       >
         Report market
       </button>
@@ -64,11 +64,11 @@ export function ReportDialog({ marketId }: ReportDialogProps) {
                 rows={4}
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                className="w-full border border-hairline bg-transparent px-4 py-3 text-base text-text focus:border-red focus:outline-none"
+                className="w-full rounded-md border border-hairline bg-card px-4 py-3 text-base text-text focus:border-red focus:outline-none"
               />
             </label>
             {error ? (
-              <p role="alert" className="text-sm text-red-bright">
+              <p role="alert" className="text-sm text-market-no">
                 {error}
               </p>
             ) : null}

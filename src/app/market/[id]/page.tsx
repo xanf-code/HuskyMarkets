@@ -28,13 +28,18 @@ const ET_DATETIME = new Intl.DateTimeFormat("en-US", {
 
 interface MarketPageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+interface MarketMetadataProps {
+  params: Promise<{ id: string }>;
 }
 
 // Uses the anon-safe share-card RPC so metadata resolves for any client that
 // can reach the page; the page body still requires a session via the proxy.
 export async function generateMetadata({
   params,
-}: MarketPageProps): Promise<Metadata> {
+}: MarketMetadataProps): Promise<Metadata> {
   const { id } = await params;
   const card = await getMarketCard(id);
   if (!card) return { title: "Market — HuskyMarkets" };
@@ -45,8 +50,15 @@ export async function generateMetadata({
   };
 }
 
-export default async function MarketPage({ params }: MarketPageProps) {
+export default async function MarketPage({
+  params,
+  searchParams,
+}: MarketPageProps) {
   const { id } = await params;
+  const query = await searchParams;
+  const sideParam = Array.isArray(query.side) ? query.side[0] : query.side;
+  const initialSide =
+    sideParam === "yes" || sideParam === "no" ? sideParam : undefined;
   const detail = await getMarketDetail(id);
   if (!detail) notFound();
 
@@ -75,7 +87,7 @@ export default async function MarketPage({ params }: MarketPageProps) {
               <Chip>{categoryLabel}</Chip>
               <Countdown closeAt={market.close_at} />
             </div>
-            <h1 className="mt-3 font-serif text-2xl leading-snug text-text sm:text-4xl">
+            <h1 className="mt-3 text-2xl font-semibold leading-snug text-text sm:text-4xl">
               {market.title}
             </h1>
             {market.description ? (
@@ -101,11 +113,12 @@ export default async function MarketPage({ params }: MarketPageProps) {
             closeAt={market.close_at}
             position={detail.position}
             balance={detail.balance}
+            initialSide={initialSide}
           />
           {detail.position.yes + detail.position.no > 0 ? (
             <p className="num mt-3 text-xs text-text-muted">
-              Your position: {detail.position.yes} HC YES ·{" "}
-              {detail.position.no} HC NO
+              Your position: {detail.position.yes} HC Yes ·{" "}
+              {detail.position.no} HC No
             </p>
           ) : null}
         </div>
@@ -113,32 +126,32 @@ export default async function MarketPage({ params }: MarketPageProps) {
         <div className="flex flex-col gap-6 lg:col-start-1 lg:row-start-2">
           <LiveStats bettorCount={detail.bettorCount} />
 
-          <section aria-label="Rules" className="border border-hairline">
-            <h2 className="eyebrow border-b border-hairline px-4 py-3 text-text-muted">
+          <section aria-label="Rules" className="card-surface overflow-hidden">
+            <h2 className="border-b border-hairline bg-muted/50 px-4 py-3 text-sm font-semibold text-text">
               Rules
             </h2>
             <div className="flex flex-col gap-3 px-4 py-4 text-sm">
               <p className="text-text">{market.resolution_criteria}</p>
               <dl className="grid grid-cols-1 gap-2 text-text-muted sm:grid-cols-2">
                 <div>
-                  <dt className="eyebrow">Closes</dt>
-                  <dd className="num mt-1">
+                  <dt className="text-xs font-medium">Closes</dt>
+                  <dd className="num mt-1 text-text">
                     {ET_DATETIME.format(new Date(market.close_at))}
                   </dd>
                 </div>
                 <div>
-                  <dt className="eyebrow">Resolves by</dt>
-                  <dd className="num mt-1">
+                  <dt className="text-xs font-medium">Resolves by</dt>
+                  <dd className="num mt-1 text-text">
                     {ET_DATETIME.format(new Date(market.resolve_at))}
                   </dd>
                 </div>
                 <div>
-                  <dt className="eyebrow">Created by</dt>
-                  <dd className="mt-1">{detail.creatorName}</dd>
+                  <dt className="text-xs font-medium">Created by</dt>
+                  <dd className="mt-1 text-text">{detail.creatorName}</dd>
                 </div>
                 <div>
-                  <dt className="eyebrow">Category</dt>
-                  <dd className="mt-1">{categoryLabel}</dd>
+                  <dt className="text-xs font-medium">Category</dt>
+                  <dd className="mt-1 text-text">{categoryLabel}</dd>
                 </div>
               </dl>
               <ReportDialog marketId={market.id} />
@@ -146,7 +159,9 @@ export default async function MarketPage({ params }: MarketPageProps) {
           </section>
 
           <section aria-label="Activity">
-            <h2 className="eyebrow mb-3 text-text-muted">Recent activity</h2>
+            <h2 className="mb-3 text-sm font-semibold text-text">
+              Recent activity
+            </h2>
             <LiveActivity />
           </section>
         </div>

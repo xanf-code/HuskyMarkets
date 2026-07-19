@@ -46,8 +46,8 @@ export function MarketFilters() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex gap-2 overflow-x-auto pb-1">
+    <div className="flex flex-col gap-3 rounded-lg bg-muted/80 p-3 sm:gap-4 sm:p-4">
+      <div className="flex gap-2 overflow-x-auto pb-0.5">
         {CATEGORIES.map((category) => {
           const active = activeCategory === category.value;
           return (
@@ -56,10 +56,10 @@ export function MarketFilters() {
               type="button"
               onClick={() => toggleCategory(category.value)}
               aria-pressed={active}
-              className={`eyebrow shrink-0 cursor-pointer border px-3 py-2 transition-colors duration-200 ease-standard focus-visible:outline-red ${
+              className={`shrink-0 cursor-pointer rounded-pill px-3 py-1.5 text-sm font-medium transition-colors duration-200 ease-standard focus-visible:outline-red ${
                 active
-                  ? "border-red text-red-bright"
-                  : "border-hairline text-text-muted hover:text-text"
+                  ? "bg-red/10 text-red"
+                  : "bg-card text-text-muted hover:text-text"
               }`}
             >
               {category.label}
@@ -75,11 +75,11 @@ export function MarketFilters() {
             defaultValue={searchParams.get("q") ?? ""}
             placeholder="Search markets…"
             aria-label="Search markets"
-            className="w-full border border-hairline bg-transparent px-4 py-2.5 text-sm text-text placeholder:text-text-muted/60 transition-colors duration-200 ease-standard focus:border-red focus:outline-none"
+            className="w-full rounded-md border border-hairline bg-card px-3.5 py-2.5 text-sm text-text placeholder:text-text-tertiary transition-colors duration-200 ease-standard focus:border-red focus:outline-none"
           />
         </form>
         <label className="flex items-center gap-2 text-sm text-text-muted">
-          <span className="eyebrow">Sort</span>
+          <span className="font-medium">Sort</span>
           <select
             value={activeSort}
             onChange={(event) =>
@@ -88,7 +88,7 @@ export function MarketFilters() {
                 else params.set("sort", event.target.value);
               })
             }
-            className="cursor-pointer border border-hairline bg-transparent px-3 py-2.5 text-sm text-text focus:border-red focus:outline-none [&>option]:bg-ink [&>option]:text-text"
+            className="cursor-pointer rounded-md border border-hairline bg-card px-3 py-2.5 text-sm text-text focus:border-red focus:outline-none"
           >
             {MARKET_SORTS.map((sort) => (
               <option key={sort} value={sort}>

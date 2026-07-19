@@ -20,7 +20,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         <select
           ref={ref}
           id={id}
-          className={`w-full cursor-pointer appearance-none border border-hairline bg-transparent px-4 py-3 pr-12 text-base text-text transition-colors duration-200 ease-standard focus:border-red focus:outline-none sm:px-5 sm:py-4 [&>option]:bg-ink [&>option]:text-text ${className}`}
+          className={`w-full cursor-pointer appearance-none rounded-md border border-hairline bg-card px-3.5 py-2.5 pr-12 text-base text-text transition-colors duration-200 ease-standard focus:border-red focus:outline-none sm:px-4 sm:py-3 [&>option]:bg-card [&>option]:text-text ${className}`}
           {...rest}
         >
           {placeholder ? (
@@ -48,7 +48,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           strokeWidth="2"
           strokeLinecap="round"
           aria-hidden="true"
-          className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-red-bright"
+          className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-text-muted"
         >
           <path d="M6 9l6 6 6-6" />
         </svg>

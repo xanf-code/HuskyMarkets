@@ -3,6 +3,7 @@ import {
   formatCents,
   formatCountdown,
   formatHC,
+  formatPercent,
   marketVolume,
   timeAgo,
 } from "./format";
@@ -19,6 +20,13 @@ describe("formatCents", () => {
   it("renders an implied price as cents", () => {
     expect(formatCents(63)).toBe("63¢");
     expect(formatCents(1)).toBe("1¢");
+  });
+});
+
+describe("formatPercent", () => {
+  it("renders an implied probability as a percentage", () => {
+    expect(formatPercent(62)).toBe("62%");
+    expect(formatPercent(1)).toBe("1%");
   });
 });
 

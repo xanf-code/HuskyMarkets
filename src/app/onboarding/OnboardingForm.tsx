@@ -59,7 +59,7 @@ export function OnboardingForm({ initialHandle }: OnboardingFormProps) {
   }
 
   const optionBase =
-    "flex flex-col gap-1 border p-4 transition-colors duration-200 ease-standard sm:p-5";
+    "flex flex-col gap-1 rounded-lg border bg-card p-4 transition-colors duration-200 ease-standard sm:p-5";
 
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-6">
@@ -70,7 +70,7 @@ export function OnboardingForm({ initialHandle }: OnboardingFormProps) {
 
         <div
           className={`${optionBase} ${
-            mode === "anon" ? "border-red" : "border-hairline hover:border-text"
+            mode === "anon" ? "border-red" : "border-hairline hover:border-border-strong"
           }`}
         >
           <label className="flex cursor-pointer items-center gap-3">
@@ -88,7 +88,7 @@ export function OnboardingForm({ initialHandle }: OnboardingFormProps) {
             Trade under a generated handle. You can switch later.
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-3 pl-7">
-            <span className="num border border-hairline px-3 py-1.5 text-sm text-red-bright">
+            <span className="num rounded-md bg-muted px-3 py-1.5 text-sm font-semibold text-red">
               {handle}
             </span>
             <Button
@@ -105,7 +105,7 @@ export function OnboardingForm({ initialHandle }: OnboardingFormProps) {
 
         <div
           className={`${optionBase} ${
-            mode === "real" ? "border-red" : "border-hairline hover:border-text"
+            mode === "real" ? "border-red" : "border-hairline hover:border-border-strong"
           }`}
         >
           <label className="flex cursor-pointer items-center gap-3">
@@ -138,7 +138,7 @@ export function OnboardingForm({ initialHandle }: OnboardingFormProps) {
       </fieldset>
 
       {error ? (
-        <p role="alert" className="text-sm text-red-bright">
+        <p role="alert" className="text-sm text-market-no">
           {error}
         </p>
       ) : null}

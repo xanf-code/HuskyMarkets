@@ -4,8 +4,8 @@ import type { HallOfFameEntry } from "@/lib/queries/leaderboard";
 export function HallOfFame({ entries }: { entries: HallOfFameEntry[] }) {
   if (entries.length === 0) {
     return (
-      <p className="num text-sm text-text-muted">
-        &gt; no frozen semesters yet_
+      <p className="rounded-md bg-muted px-4 py-8 text-center text-sm text-text-muted">
+        No frozen semesters yet.
       </p>
     );
   }
@@ -21,22 +21,22 @@ export function HallOfFame({ entries }: { entries: HallOfFameEntry[] }) {
     <div className="flex flex-col gap-8">
       {[...bySemester.entries()].map(([id, rows]) => (
         <section key={id}>
-          <h2 className="font-serif text-xl text-text">
+          <h2 className="text-xl font-semibold text-text">
             {rows[0].semesterName}
           </h2>
-          <ol className="mt-3 flex flex-col gap-px border border-hairline bg-hairline">
+          <ol className="card-surface mt-3 divide-y divide-hairline overflow-hidden">
             {rows.map((e) => (
               <li
                 key={`${e.semesterId}-${e.rank}`}
-                className="flex items-baseline gap-4 bg-page px-4 py-3 sm:px-5"
+                className="flex items-baseline gap-4 bg-card px-4 py-3 sm:px-5"
               >
-                <span className="font-serif text-2xl text-red-bright tabular-nums w-10 shrink-0">
+                <span className="num w-10 shrink-0 text-2xl font-semibold text-red tabular-nums">
                   {e.rank}
                 </span>
                 <span className="min-w-0 flex-1 truncate text-sm sm:text-base text-text">
                   {e.displayName}
                 </span>
-                <span className="num shrink-0 text-sm font-semibold">
+                <span className="num shrink-0 text-sm font-semibold text-text">
                   {formatHC(e.score)}
                 </span>
               </li>

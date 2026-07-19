@@ -3,6 +3,9 @@ import type { ShareCard } from "@/lib/queries/share";
 import { OG_COLORS, OG_FONT } from "./theme";
 
 export function BetOgCard({ card }: { card: ShareCard }) {
+  const sideColor =
+    card.side === "yes" ? OG_COLORS.marketYes : OG_COLORS.marketNo;
+
   return (
     <div
       style={{
@@ -25,58 +28,69 @@ export function BetOgCard({ card }: { card: ShareCard }) {
       >
         <span
           style={{
-            fontFamily: OG_FONT.mono,
-            fontSize: 30,
-            fontWeight: 500,
-            color: OG_COLORS.red,
+            fontSize: 28,
+            fontWeight: 600,
+            color: sideColor,
+            fontVariantNumeric: "tabular-nums",
           }}
         >
           {`Called it at ${formatCents(card.priceAtBet)}`}
         </span>
-        <span style={{ fontSize: 24, fontWeight: 600, color: OG_COLORS.text }}>
+        <span
+          style={{
+            fontSize: 24,
+            fontWeight: 600,
+            fontFamily: OG_FONT.serif,
+            color: OG_COLORS.red,
+          }}
+        >
           HuskyMarkets
         </span>
       </div>
 
       <div
         style={{
-          width: 120,
-          height: 8,
-          backgroundColor: OG_COLORS.red,
           marginTop: 40,
-        }}
-      />
-
-      <div
-        style={{
-          marginTop: 32,
-          fontFamily: OG_FONT.serif,
-          fontSize: 56,
-          lineHeight: 1.15,
-          display: "-webkit-box",
-          WebkitBoxOrient: "vertical",
-          WebkitLineClamp: 2,
-          overflow: "hidden",
-        }}
-      >
-        {card.marketTitle}
-      </div>
-
-      <div
-        style={{
-          marginTop: "auto",
+          backgroundColor: OG_COLORS.card,
+          border: `1px solid ${OG_COLORS.hairline}`,
+          borderRadius: 12,
+          padding: "48px 56px",
+          boxShadow: "0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.06)",
+          flex: 1,
           display: "flex",
-          alignItems: "baseline",
-          gap: 24,
-          fontFamily: OG_FONT.mono,
-          fontSize: 72,
-          fontWeight: 500,
-          lineHeight: 1,
+          flexDirection: "column",
         }}
       >
-        <span>{formatHC(card.stake)}</span>
-        <span style={{ color: OG_COLORS.muted, fontSize: 56 }}>→</span>
-        <span style={{ color: OG_COLORS.red }}>{formatHC(card.payout)}</span>
+        <div
+          style={{
+            fontSize: 52,
+            fontWeight: 600,
+            lineHeight: 1.15,
+            display: "-webkit-box",
+            WebkitBoxOrient: "vertical",
+            WebkitLineClamp: 2,
+            overflow: "hidden",
+          }}
+        >
+          {card.marketTitle}
+        </div>
+
+        <div
+          style={{
+            marginTop: "auto",
+            display: "flex",
+            alignItems: "baseline",
+            gap: 24,
+            fontSize: 68,
+            fontWeight: 600,
+            lineHeight: 1,
+            fontVariantNumeric: "tabular-nums",
+          }}
+        >
+          <span>{formatHC(card.stake)}</span>
+          <span style={{ color: OG_COLORS.muted, fontSize: 52 }}>→</span>
+          <span style={{ color: OG_COLORS.marketYes }}>{formatHC(card.payout)}</span>
+        </div>
       </div>
 
       <div
@@ -84,15 +98,15 @@ export function BetOgCard({ card }: { card: ShareCard }) {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          borderTop: `2px solid ${OG_COLORS.hairline}`,
-          marginTop: 48,
-          paddingTop: 28,
-          fontSize: 26,
+          borderTop: `1px solid ${OG_COLORS.hairline}`,
+          marginTop: 40,
+          paddingTop: 24,
+          fontSize: 24,
           color: OG_COLORS.muted,
         }}
       >
         <span>{card.displayName}</span>
-        <span style={{ fontFamily: OG_FONT.mono }}>
+        <span style={{ color: sideColor, fontWeight: 600 }}>
           {`${card.side.toUpperCase()} · huskymarkets`}
         </span>
       </div>

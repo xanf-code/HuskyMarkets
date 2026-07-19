@@ -8,10 +8,11 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { theme } from "@/lib/theme";
 
 const TICK_STYLE = {
-  fill: "rgba(255,255,255,0.72)",
-  fontFamily: "var(--font-plex-mono), monospace",
+  fill: theme.colors.textMuted,
+  fontFamily: theme.fonts.sans,
   fontSize: 11,
 };
 
@@ -29,9 +30,9 @@ interface ProbabilityChartProps {
 export function ProbabilityChart({ history }: ProbabilityChartProps) {
   if (history.length === 0) {
     return (
-      <div className="flex h-56 items-center border border-hairline px-4 sm:h-72">
-        <p className="num text-sm text-text-muted">
-          &gt; awaiting first price snapshot_
+      <div className="card-surface flex h-56 items-center justify-center px-4 sm:h-72">
+        <p className="text-center text-sm text-text-muted">
+          Awaiting the first price snapshot.
         </p>
       </div>
     );
@@ -43,10 +44,10 @@ export function ProbabilityChart({ history }: ProbabilityChartProps) {
   }));
 
   return (
-    <div className="h-56 w-full sm:h-72" aria-hidden="true">
+    <div className="card-surface h-56 w-full overflow-hidden sm:h-72" aria-hidden="true">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -24 }}>
-          <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
+          <CartesianGrid stroke={theme.colors.hairline} vertical={false} />
           <XAxis
             dataKey="t"
             type="number"
@@ -54,7 +55,7 @@ export function ProbabilityChart({ history }: ProbabilityChartProps) {
             tickFormatter={(t: number) => TIME.format(new Date(t))}
             tick={TICK_STYLE}
             tickLine={false}
-            axisLine={{ stroke: "rgba(255,255,255,0.28)" }}
+            axisLine={{ stroke: theme.colors.hairline }}
             minTickGap={48}
           />
           <YAxis
@@ -68,9 +69,9 @@ export function ProbabilityChart({ history }: ProbabilityChartProps) {
           <Area
             type="stepAfter"
             dataKey="price"
-            stroke="#e31837"
+            stroke={theme.colors.marketYes}
             strokeWidth={2}
-            fill="rgba(227,24,55,0.12)"
+            fill={`${theme.colors.marketYes}1F`}
             isAnimationActive={false}
           />
         </AreaChart>

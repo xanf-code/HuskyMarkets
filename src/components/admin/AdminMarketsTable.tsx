@@ -21,23 +21,31 @@ export function AdminMarketsTable({ markets }: { markets: AdminMarketRow[] }) {
     router.refresh();
   }
 
+  if (markets.length === 0) {
+    return (
+      <p className="rounded-md bg-muted px-4 py-8 text-center text-sm text-text-muted">
+        No markets to manage.
+      </p>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4">
       {error ? (
-        <p role="alert" className="text-sm text-red-bright">
+        <p role="alert" className="text-sm text-market-no">
           {error}
         </p>
       ) : null}
-      <ul className="flex flex-col gap-px border border-hairline bg-hairline">
+      <ul className="card-surface divide-y divide-hairline overflow-hidden">
         {markets.map((m) => (
           <li
             key={m.id}
-            className="flex flex-wrap items-center justify-between gap-3 bg-page px-4 py-3 sm:px-5"
+            className="flex flex-wrap items-center justify-between gap-3 bg-card px-4 py-3 sm:px-5"
           >
             <div className="min-w-0 flex-1">
               <Link
                 href={`/market/${m.id}`}
-                className="font-semibold text-text hover:text-red-bright focus-visible:outline-red"
+                className="font-semibold text-text hover:text-red focus-visible:outline-red"
               >
                 {m.title}
               </Link>

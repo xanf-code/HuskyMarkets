@@ -42,11 +42,11 @@ export function LoginForm() {
 
   if (sentTo) {
     return (
-      <div className="border border-hairline p-6">
-        <p className="font-serif text-2xl text-text">Check your email</p>
+      <div className="card-surface p-6">
+        <p className="text-2xl font-semibold text-text">Check your email</p>
         <p className="mt-2 text-sm text-text-muted">
           We sent a magic link to{" "}
-          <span className="font-mono text-text">{sentTo}</span>. Open it on
+          <span className="font-semibold text-text">{sentTo}</span>. Open it on
           this device to sign in.
         </p>
       </div>
@@ -71,11 +71,11 @@ export function LoginForm() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           placeholder="you@northeastern.edu"
-          className="w-full border border-hairline bg-transparent px-5 py-4 text-base text-text placeholder:text-text-muted/60 transition-colors duration-200 ease-standard focus:border-red focus:outline-none"
+          className="w-full rounded-md border border-hairline bg-card px-4 py-3 text-base text-text placeholder:text-text-tertiary transition-colors duration-200 ease-standard focus:border-red focus:outline-none sm:px-5"
         />
       </div>
       {error ? (
-        <p role="alert" className="text-sm text-red-bright">
+        <p role="alert" className="text-sm text-market-no">
           {error}
         </p>
       ) : null}

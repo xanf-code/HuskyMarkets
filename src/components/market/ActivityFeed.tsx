@@ -4,14 +4,14 @@ import type { ActivityItem } from "@/lib/queries/markets";
 export function ActivityFeed({ activity }: { activity: ActivityItem[] }) {
   if (activity.length === 0) {
     return (
-      <p className="num text-sm text-text-muted">
-        &gt; no bets yet — be the first_
+      <p className="rounded-md bg-muted px-4 py-6 text-center text-sm text-text-muted">
+        No bets yet — be the first.
       </p>
     );
   }
 
   return (
-    <ul className="divide-y divide-hairline border border-hairline">
+    <ul className="card-surface divide-y divide-hairline overflow-hidden">
       {activity.map((bet) => (
         <li
           key={bet.id}
@@ -23,10 +23,10 @@ export function ActivityFeed({ activity }: { activity: ActivityItem[] }) {
           <span className="text-text-muted">on</span>
           <span
             className={`num font-medium ${
-              bet.side === "yes" ? "text-red-bright" : "text-text"
+              bet.side === "yes" ? "text-market-yes" : "text-market-no"
             }`}
           >
-            {bet.side.toUpperCase()}
+            {bet.side === "yes" ? "Yes" : "No"}
           </span>
           <span className="num text-text-muted">
             @ {formatCents(bet.price)}

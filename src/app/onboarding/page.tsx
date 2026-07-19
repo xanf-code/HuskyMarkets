@@ -23,8 +23,7 @@ export default async function OnboardingPage() {
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-6 py-8 sm:py-16">
       <div>
-        <p className="eyebrow text-red-bright">One last step</p>
-        <h1 className="mt-3 font-serif text-3xl text-text sm:text-4xl">
+        <h1 className="text-3xl font-semibold text-text sm:text-4xl">
           Choose your identity
         </h1>
         <p className="mt-2 text-sm text-text-muted">

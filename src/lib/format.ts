@@ -13,6 +13,11 @@ export function formatCents(price: number): string {
   return `${price}¢`;
 }
 
+/** Primary card/detail probability label: "62%". */
+export function formatPercent(price: number): string {
+  return `${price}%`;
+}
+
 /** Real money wagered: pools minus the 100/100 house seed. */
 export function marketVolume(yesPool: number, noPool: number): number {
   return Math.max(yesPool + noPool - 2 * HOUSE_SEED, 0);

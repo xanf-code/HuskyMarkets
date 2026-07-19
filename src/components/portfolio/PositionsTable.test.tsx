@@ -32,8 +32,8 @@ describe("PositionsTable", () => {
     expect(screen.getByText("237 HC")).toBeInTheDocument();
   });
 
-  it("shows an empty terminal state", () => {
+  it("shows a plain empty state when there are no positions", () => {
     render(<PositionsTable positions={[]} />);
-    expect(screen.getByText(/> no open positions_/)).toBeInTheDocument();
+    expect(screen.getByText(/no open positions/i)).toBeInTheDocument();
   });
 });

@@ -28,55 +28,67 @@ export function MarketOgCard({ card }: { card: MarketCard }) {
       >
         <span
           style={{
-            fontSize: 24,
+            fontSize: 22,
             fontWeight: 600,
-            letterSpacing: "0.14em",
-            textTransform: "uppercase",
             color: OG_COLORS.muted,
+            backgroundColor: "#EEF0F3",
+            borderRadius: 999,
+            padding: "8px 18px",
           }}
         >
           {categoryLabel}
         </span>
-        <span style={{ fontSize: 24, fontWeight: 600, color: OG_COLORS.text }}>
+        <span
+          style={{
+            fontSize: 24,
+            fontWeight: 600,
+            fontFamily: OG_FONT.serif,
+            color: OG_COLORS.red,
+          }}
+        >
           HuskyMarkets
         </span>
       </div>
 
       <div
         style={{
-          width: 120,
-          height: 8,
-          backgroundColor: OG_COLORS.red,
           marginTop: 40,
-        }}
-      />
-
-      <div
-        style={{
-          marginTop: 32,
-          fontFamily: OG_FONT.serif,
-          fontSize: 64,
-          lineHeight: 1.15,
-          display: "-webkit-box",
-          WebkitBoxOrient: "vertical",
-          WebkitLineClamp: 2,
-          overflow: "hidden",
+          backgroundColor: OG_COLORS.card,
+          border: `1px solid ${OG_COLORS.hairline}`,
+          borderRadius: 12,
+          padding: "48px 56px",
+          boxShadow: "0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.06)",
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
         }}
       >
-        {card.title}
-      </div>
+        <div
+          style={{
+            fontSize: 56,
+            fontWeight: 600,
+            lineHeight: 1.15,
+            display: "-webkit-box",
+            WebkitBoxOrient: "vertical",
+            WebkitLineClamp: 2,
+            overflow: "hidden",
+          }}
+        >
+          {card.title}
+        </div>
 
-      <div
-        style={{
-          marginTop: "auto",
-          fontFamily: OG_FONT.mono,
-          fontSize: 128,
-          fontWeight: 500,
-          color: OG_COLORS.red,
-          lineHeight: 1,
-        }}
-      >
-        {`YES ${formatCents(card.yesPrice)}`}
+        <div
+          style={{
+            marginTop: "auto",
+            fontSize: 112,
+            fontWeight: 600,
+            color: OG_COLORS.marketYes,
+            lineHeight: 1,
+            fontVariantNumeric: "tabular-nums",
+          }}
+        >
+          {`YES ${formatCents(card.yesPrice)}`}
+        </div>
       </div>
 
       <div
@@ -84,12 +96,12 @@ export function MarketOgCard({ card }: { card: MarketCard }) {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          borderTop: `2px solid ${OG_COLORS.hairline}`,
-          marginTop: 48,
-          paddingTop: 28,
-          fontFamily: OG_FONT.mono,
-          fontSize: 26,
+          borderTop: `1px solid ${OG_COLORS.hairline}`,
+          marginTop: 40,
+          paddingTop: 24,
+          fontSize: 24,
           color: OG_COLORS.muted,
+          fontVariantNumeric: "tabular-nums",
         }}
       >
         <span>

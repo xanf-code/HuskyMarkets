@@ -81,7 +81,7 @@ export function LiveBalance({ initialBalance, userId }: LiveBalanceProps) {
   }, [userId]);
 
   return (
-    <div className="num border border-hairline px-3 py-1.5 text-sm text-text">
+    <div className="num rounded-pill bg-muted px-3 py-1.5 text-sm font-medium text-text">
       {formatHC(balance)}
     </div>
   );

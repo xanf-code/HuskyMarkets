@@ -51,8 +51,8 @@ export function CreateMarketForm() {
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6" noValidate>
-      <aside className="border border-hairline border-l-2 border-l-red px-4 py-4 text-sm text-text">
-        <p className="eyebrow text-red-bright">Content rule</p>
+      <aside className="card-surface border-l-4 border-l-red px-4 py-4 text-sm text-text">
+        <p className="text-sm font-semibold text-text">Content rule</p>
         <p className="mt-2 leading-relaxed">{CONTENT_RULE}</p>
       </aside>
 
@@ -75,7 +75,7 @@ export function CreateMarketForm() {
           name="description"
           rows={3}
           maxLength={2000}
-          className="w-full border border-hairline bg-transparent px-4 py-3 text-base text-text focus:border-red focus:outline-none sm:px-5 sm:py-4"
+          className="w-full rounded-md border border-hairline bg-card px-4 py-3 text-base text-text focus:border-red focus:outline-none sm:px-5 sm:py-4"
         />
       </label>
 
@@ -115,7 +115,7 @@ export function CreateMarketForm() {
           required
           minLength={20}
           rows={4}
-          className="w-full border border-hairline bg-transparent px-4 py-3 text-base text-text focus:border-red focus:outline-none sm:px-5 sm:py-4"
+          className="w-full rounded-md border border-hairline bg-card px-4 py-3 text-base text-text focus:border-red focus:outline-none sm:px-5 sm:py-4"
           placeholder="Resolves YES if MBTA Tracker shows Green Line on-time rate ≥ 90% for Friday service day."
         />
       </label>
@@ -134,7 +134,7 @@ export function CreateMarketForm() {
       </label>
 
       {error ? (
-        <p role="alert" className="text-sm text-red-bright">
+        <p role="alert" className="text-sm text-market-no">
           {error}
         </p>
       ) : null}

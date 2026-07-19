@@ -43,12 +43,12 @@ export function ModApplicationForm() {
           rows={4}
           value={statement}
           onChange={(e) => setStatement(e.target.value)}
-          className="w-full border border-hairline bg-transparent px-4 py-3 text-base text-text placeholder:text-text-muted/60 focus:border-red focus:outline-none sm:px-5 sm:py-4"
+          className="w-full rounded-md border border-hairline bg-card px-4 py-3 text-base text-text placeholder:text-text-tertiary focus:border-red focus:outline-none sm:px-5 sm:py-4"
           placeholder="Campus knowledge, fairness instincts, spare evenings…"
         />
       </label>
       {error ? (
-        <p role="alert" className="text-sm text-red-bright">
+        <p role="alert" className="text-sm text-market-no">
           {error}
         </p>
       ) : null}

@@ -9,8 +9,8 @@ interface SemesterBoardProps {
 export function SemesterBoard({ entries, currentUserId }: SemesterBoardProps) {
   if (entries.length === 0) {
     return (
-      <p className="num text-sm text-text-muted">
-        &gt; no eligible traders this semester yet_
+      <p className="rounded-md bg-muted px-4 py-8 text-center text-sm text-text-muted">
+        No eligible traders this semester yet.
       </p>
     );
   }
@@ -21,17 +21,17 @@ export function SemesterBoard({ entries, currentUserId }: SemesterBoardProps) {
         Bailout claimers are hidden for the current ET week and reappear next
         Monday.
       </p>
-      <ol className="flex flex-col gap-px border border-hairline bg-hairline">
+      <ol className="card-surface divide-y divide-hairline overflow-hidden">
         {entries.map((e) => {
           const mine = e.userId === currentUserId;
           return (
             <li
               key={e.userId}
               className={`flex items-baseline gap-4 px-4 py-3 sm:px-5 ${
-                mine ? "bg-ink" : "bg-page"
+                mine ? "bg-muted" : "bg-card"
               }`}
             >
-              <span className="font-serif text-2xl text-red-bright tabular-nums w-10 shrink-0">
+              <span className="num w-10 shrink-0 text-2xl font-semibold text-red">
                 {e.rank}
               </span>
               <span

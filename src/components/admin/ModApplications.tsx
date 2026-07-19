@@ -42,22 +42,26 @@ export function ModApplications({
   return (
     <div className="flex flex-col gap-8">
       {error ? (
-        <p role="alert" className="text-sm text-red-bright">
+        <p role="alert" className="text-sm text-market-no">
           {error}
         </p>
       ) : null}
 
       <section>
-        <h2 className="eyebrow mb-3 text-text-muted">Pending applications</h2>
+        <h2 className="mb-3 text-sm font-semibold text-text">
+          Pending applications
+        </h2>
         {applications.length === 0 ? (
-          <p className="num text-sm text-text-muted">&gt; none pending_</p>
+          <p className="rounded-md bg-muted px-4 py-8 text-center text-sm text-text-muted">
+            No pending applications.
+          </p>
         ) : (
-          <ul className="flex flex-col gap-px border border-hairline bg-hairline">
+          <ul className="card-surface divide-y divide-hairline overflow-hidden">
             {applications.map((a) => (
-              <li key={a.id} className="bg-page p-4 sm:p-5">
+              <li key={a.id} className="bg-card p-4 sm:p-5">
                 <p className="font-semibold text-text">{a.displayName}</p>
                 <p className="mt-2 text-sm text-text-muted">{a.statement}</p>
-                <p className="num mt-1 text-xs text-text-muted">
+                <p className="mt-1 text-xs text-text-muted">
                   {timeAgo(a.createdAt)}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -79,19 +83,23 @@ export function ModApplications({
       </section>
 
       <section>
-        <h2 className="eyebrow mb-3 text-text-muted">Current moderators</h2>
+        <h2 className="mb-3 text-sm font-semibold text-text">
+          Current moderators
+        </h2>
         {moderators.length === 0 ? (
-          <p className="num text-sm text-text-muted">&gt; no moderators_</p>
+          <p className="rounded-md bg-muted px-4 py-8 text-center text-sm text-text-muted">
+            No moderators assigned yet.
+          </p>
         ) : (
-          <ul className="flex flex-col gap-px border border-hairline bg-hairline">
+          <ul className="card-surface divide-y divide-hairline overflow-hidden">
             {moderators.map((m) => (
               <li
                 key={m.id}
-                className="flex flex-wrap items-center justify-between gap-3 bg-page px-4 py-3 sm:px-5"
+                className="flex flex-wrap items-center justify-between gap-3 bg-card px-4 py-3 sm:px-5"
               >
                 <div>
                   <p className="font-semibold text-text">{m.displayName}</p>
-                  <p className="num text-xs text-text-muted">{m.email}</p>
+                  <p className="text-xs text-text-muted">{m.email}</p>
                 </div>
                 <Button
                   size="sm"

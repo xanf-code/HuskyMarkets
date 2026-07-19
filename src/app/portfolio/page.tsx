@@ -18,8 +18,7 @@ export default async function PortfolioPage() {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 py-8 sm:py-12">
       <div>
-        <p className="eyebrow text-red-bright">Portfolio</p>
-        <h1 className="mt-3 font-serif text-3xl text-text sm:text-4xl">
+        <h1 className="text-3xl font-semibold text-text sm:text-4xl">
           Your book
         </h1>
         <p className="mt-2 text-sm text-text-muted">

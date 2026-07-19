@@ -10,21 +10,21 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const base =
-  "inline-flex items-center justify-center gap-3 font-semibold leading-none border transition-colors duration-200 ease-standard disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer";
+  "inline-flex items-center justify-center gap-2 font-semibold leading-none rounded-md border transition-colors duration-200 ease-standard disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer";
 
 const variants: Record<Variant, string> = {
   primary:
-    "bg-red text-text border-transparent hover:bg-red-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red",
+    "bg-red text-white border-transparent hover:bg-red-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red",
   secondary:
-    "bg-transparent text-text border-hairline hover:border-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red",
+    "bg-card text-text border-border-strong hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red",
   ghost:
-    "bg-transparent text-red-bright border-transparent px-0 hover:text-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red",
+    "bg-transparent text-red border-transparent px-0 hover:text-red-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red",
 };
 
 const sizes: Record<Size, string> = {
-  sm: "px-4 py-2.5 text-sm",
-  md: "px-7 py-4 text-base",
-  lg: "px-9 py-5 text-lg",
+  sm: "px-3 py-2 text-sm",
+  md: "px-4 py-2.5 text-sm",
+  lg: "px-5 py-3 text-base",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(

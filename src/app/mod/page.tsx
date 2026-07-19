@@ -25,9 +25,8 @@ export default async function ModPage() {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-10 py-8 sm:py-12">
       <div>
-        <p className="eyebrow text-red-bright">Moderator</p>
-        <h1 className="mt-3 font-serif text-3xl text-text sm:text-4xl">
-          Dashboard
+        <h1 className="text-3xl font-semibold text-text sm:text-4xl">
+          Moderator dashboard
         </h1>
         <p className="mt-2 text-sm text-text-muted">
           Markets you created or bet on are excluded — the server enforces the
@@ -36,12 +35,12 @@ export default async function ModPage() {
       </div>
 
       <section>
-        <h2 className="eyebrow mb-4 text-text-muted">Resolve queue</h2>
+        <h2 className="mb-4 text-sm font-semibold text-text">Resolve queue</h2>
         <ResolveQueue items={resolve} />
       </section>
 
       <section>
-        <h2 className="eyebrow mb-4 text-text-muted">Report queue</h2>
+        <h2 className="mb-4 text-sm font-semibold text-text">Report queue</h2>
         <ReportQueue items={reports} />
       </section>
     </div>
