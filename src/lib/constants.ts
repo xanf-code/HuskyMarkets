@@ -20,3 +20,6 @@ export const CATEGORIES = [
 ] as const;
 
 export type Category = (typeof CATEGORIES)[number]["value"];
+
+export const MARKET_SORTS = ["closing", "volume", "newest"] as const;
+export type MarketSort = (typeof MARKET_SORTS)[number];

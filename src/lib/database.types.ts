@@ -562,6 +562,13 @@ export type Database = {
       }
     }
     Functions: {
+      assert_can_moderate_market: {
+        Args: {
+          p_market: Database["public"]["Tables"]["markets"]["Row"]
+          p_uid: string
+        }
+        Returns: undefined
+      }
       claim_bailout: { Args: never; Returns: boolean }
       claim_daily_bonus: { Args: never; Returns: boolean }
       gen_anon_handle: { Args: never; Returns: string }
@@ -569,7 +576,20 @@ export type Database = {
       get_my_balance: { Args: never; Returns: number }
       is_admin: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
+      lock_market: { Args: { p_market_id: string }; Returns: undefined }
+      place_bet: {
+        Args: {
+          p_amount: number
+          p_market_id: string
+          p_side: Database["public"]["Enums"]["bet_side"]
+        }
+        Returns: Json
+      }
       reroll_anon_handle: { Args: never; Returns: string }
+      resolve_market: {
+        Args: { p_market_id: string; p_outcome: string }
+        Returns: Json
+      }
     }
     Enums: {
       application_status: "pending" | "approved" | "rejected"
