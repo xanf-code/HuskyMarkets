@@ -1,32 +1,50 @@
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BalanceChip } from "./BalanceChip";
 
-const { rpc } = vi.hoisted(() => ({ rpc: vi.fn() }));
+const { rpc, getUser, liveBalance } = vi.hoisted(() => ({
+  rpc: vi.fn(),
+  getUser: vi.fn(),
+  liveBalance: vi.fn(),
+}));
 
 vi.mock("@/lib/supabase/server", () => ({
-  createClient: async () => ({ rpc }),
+  createClient: async () => ({ rpc, auth: { getUser } }),
+}));
+
+vi.mock("./LiveBalance", () => ({
+  LiveBalance: (props: { initialBalance: number; userId: string | null }) => {
+    liveBalance(props);
+    return <div data-testid="live-balance" />;
+  },
 }));
 
 beforeEach(() => {
-  rpc.mockReset();
+  vi.clearAllMocks();
+  getUser.mockResolvedValue({ data: { user: { id: "u1" } } });
 });
 
 describe("BalanceChip", () => {
-  it("shows the ledger balance with thousands separators", async () => {
+  it("seeds the live chip with the ledger balance and user id", async () => {
     rpc.mockResolvedValue({ data: 1050, error: null });
 
     render(await BalanceChip());
 
     expect(rpc).toHaveBeenCalledWith("get_my_balance");
-    expect(screen.getByText("1,050 HC")).toBeInTheDocument();
+    expect(liveBalance).toHaveBeenCalledWith({
+      initialBalance: 1050,
+      userId: "u1",
+    });
   });
 
-  it("falls back to 0 HC when the balance cannot be read", async () => {
+  it("falls back to 0 when the balance cannot be read", async () => {
     rpc.mockResolvedValue({ data: null, error: { message: "boom" } });
 
     render(await BalanceChip());
 
-    expect(screen.getByText("0 HC")).toBeInTheDocument();
+    expect(liveBalance).toHaveBeenCalledWith({
+      initialBalance: 0,
+      userId: "u1",
+    });
   });
 });

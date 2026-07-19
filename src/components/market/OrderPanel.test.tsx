@@ -105,6 +105,39 @@ describe("OrderPanel", () => {
     ).toBeInTheDocument();
   });
 
+  it("syncs prices when live pool props arrive", () => {
+    const { rerender } = renderPanel();
+    expect(screen.getByRole("button", { name: /YES 67¢/ })).toBeInTheDocument();
+
+    rerender(
+      <ToastProvider>
+        <OrderPanel
+          marketId="m1"
+          status="open"
+          closeAt={new Date(Date.now() + 86_400_000).toISOString()}
+          yesPool={100}
+          noPool={300}
+          position={{ yes: 100, no: 0 }}
+          balance={400}
+        />
+      </ToastProvider>,
+    );
+
+    expect(screen.getByRole("button", { name: /YES 25¢/ })).toBeInTheDocument();
+  });
+
+  it("reports successful fills so live consumers update optimistically", async () => {
+    const onFill = vi.fn();
+    const user = userEvent.setup();
+    renderPanel({ onFill });
+
+    await user.type(screen.getByLabelText(/stake/i), "100");
+    await user.click(screen.getByRole("button", { name: /place bet/i }));
+
+    await screen.findByRole("button", { name: /YES 75¢/ });
+    expect(onFill).toHaveBeenCalledWith({ yesPool: 300, noPool: 100 });
+  });
+
   it("disables betting on closed markets", () => {
     renderPanel({ status: "closed" });
     expect(screen.getByRole("button", { name: /closed/i })).toBeDisabled();

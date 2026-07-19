@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { formatHC } from "@/components/layout/BalanceChip";
+import { formatHC } from "@/lib/format";
 import { Chip } from "@/components/ui/Chip";
 import { StatBlock } from "@/components/ui/StatBlock";
 import { BAILOUT_THRESHOLD } from "@/lib/constants";

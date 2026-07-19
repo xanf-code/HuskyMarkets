@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { MarketFilters } from "@/components/market/MarketFilters";
-import { MarketGrid } from "@/components/market/MarketGrid";
+import { MarketGridLive } from "@/components/market/MarketGridLive";
 import {
   CATEGORIES,
   MARKET_SORTS,
@@ -45,7 +45,7 @@ export default async function Home({ searchParams }: HomeProps) {
       <Suspense>
         <MarketFilters />
       </Suspense>
-      <MarketGrid markets={markets} />
+      <MarketGridLive initial={markets} />
     </div>
   );
 }

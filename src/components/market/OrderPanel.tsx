@@ -23,6 +23,8 @@ interface OrderPanelProps {
   /** Signed-in user's existing stake on this market, per side. */
   position: { yes: number; no: number };
   balance: number;
+  /** Reports a successful fill so live consumers (hero price, chart, stats) update optimistically. */
+  onFill?: (fill: { yesPool: number; noPool: number }) => void;
 }
 
 export function OrderPanel(props: OrderPanelProps) {
@@ -35,6 +37,29 @@ export function OrderPanel(props: OrderPanelProps) {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [pastClose, setPastClose] = useState(false);
+
+  // Realtime/refresh reconciliation: whenever the parent hands down new pool
+  // or balance values (realtime UPDATE, server revalidation), they win over
+  // the panel's optimistic copies. Guarded setState during render is React's
+  // sanctioned "adjust state when props change" pattern.
+  const [syncedProps, setSyncedProps] = useState({
+    yes: props.yesPool,
+    no: props.noPool,
+    balance: props.balance,
+  });
+  if (
+    props.yesPool !== syncedProps.yes ||
+    props.noPool !== syncedProps.no ||
+    props.balance !== syncedProps.balance
+  ) {
+    setSyncedProps({
+      yes: props.yesPool,
+      no: props.noPool,
+      balance: props.balance,
+    });
+    setPools({ yes: props.yesPool, no: props.noPool });
+    setBalance(props.balance);
+  }
 
   // Clock reads live in an effect (render must stay pure); the panel locks
   // itself within half a minute of the close time passing.
@@ -72,6 +97,7 @@ export function OrderPanel(props: OrderPanelProps) {
 
     setPools({ yes: result.yesPool, no: result.noPool });
     setBalance(result.newBalance);
+    props.onFill?.({ yesPool: result.yesPool, noPool: result.noPool });
     setStaked((current) => current + amount);
     setAmountInput("");
     toast.push(
