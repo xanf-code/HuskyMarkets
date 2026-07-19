@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { Countdown } from "@/components/market/Countdown";
 import {
   LiveActivity,
@@ -12,7 +13,9 @@ import {
 import { ReportDialog } from "@/components/market/ReportDialog";
 import { Chip } from "@/components/ui/Chip";
 import { CATEGORIES } from "@/lib/constants";
+import { formatCents, formatHC } from "@/lib/format";
 import { getMarketDetail } from "@/lib/queries/markets";
+import { getMarketCard } from "@/lib/queries/share";
 
 const ET_DATETIME = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -25,6 +28,21 @@ const ET_DATETIME = new Intl.DateTimeFormat("en-US", {
 
 interface MarketPageProps {
   params: Promise<{ id: string }>;
+}
+
+// Uses the anon-safe share-card RPC so metadata resolves for any client that
+// can reach the page; the page body still requires a session via the proxy.
+export async function generateMetadata({
+  params,
+}: MarketPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const card = await getMarketCard(id);
+  if (!card) return { title: "Market — HuskyMarkets" };
+  return {
+    title: `${card.title} — HuskyMarkets`,
+    description: `YES at ${formatCents(card.yesPrice)} · ${formatHC(card.volume)} wagered — HuskyMarkets`,
+    openGraph: { images: [`/api/og/market/${id}`] },
+  };
 }
 
 export default async function MarketPage({ params }: MarketPageProps) {

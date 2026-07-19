@@ -9,6 +9,7 @@ type BetSide = Database["public"]["Enums"]["bet_side"];
 type TxType = Database["public"]["Enums"]["tx_type"];
 
 export interface BetRow {
+  id: string;
   market_id: string;
   side: BetSide;
   amount: number;
@@ -51,6 +52,8 @@ export interface ResolvedPosition {
   payout: number;
   pnl: number;
   won: boolean;
+  /** Best-call winning bet (lowest price, earliest first); null unless won. */
+  shareBetId: string | null;
   resolvedAt: string;
 }
 
@@ -132,10 +135,17 @@ export function aggregateResolved(
     );
   }
 
-  // Aggregate total stake + dominant side per resolved market.
+  // Aggregate total stake + dominant side per resolved market, and remember
+  // the best-call bet on the winning side for share cards.
   const stakes = new Map<
     string,
-    { yes: number; no: number; yesPrice: number; noPrice: number }
+    {
+      yes: number;
+      no: number;
+      yesPrice: number;
+      noPrice: number;
+      best: { id: string; price: number; createdAt: string } | null;
+    }
   >();
   for (const bet of bets) {
     const market = byId.get(bet.market_id);
@@ -145,6 +155,7 @@ export function aggregateResolved(
       no: 0,
       yesPrice: 0,
       noPrice: 0,
+      best: null,
     };
     if (bet.side === "yes") {
       bucket.yes += bet.amount;
@@ -152,6 +163,21 @@ export function aggregateResolved(
     } else {
       bucket.no += bet.amount;
       bucket.noPrice += bet.amount * bet.price_at_bet;
+    }
+    const outcome = outcomeFromStatus(market.status);
+    if (outcome !== "void" && bet.side === outcome) {
+      const best = bucket.best;
+      if (
+        !best ||
+        bet.price_at_bet < best.price ||
+        (bet.price_at_bet === best.price && bet.created_at < best.createdAt)
+      ) {
+        bucket.best = {
+          id: bet.id,
+          price: bet.price_at_bet,
+          createdAt: bet.created_at,
+        };
+      }
     }
     stakes.set(bet.market_id, bucket);
   }
@@ -184,6 +210,7 @@ export function aggregateResolved(
       payout,
       pnl: payout - totalStake,
       won,
+      shareBetId: won ? (stake.best?.id ?? null) : null,
       resolvedAt: market.resolved_at ?? market.close_at,
     });
   }
@@ -205,7 +232,7 @@ export async function getPortfolio(userId: string): Promise<{
   const [{ data: bets }, { data: txs }] = await Promise.all([
     supabase
       .from("bets")
-      .select("market_id, side, amount, price_at_bet, created_at")
+      .select("id, market_id, side, amount, price_at_bet, created_at")
       .eq("user_id", userId)
       .order("created_at", { ascending: true }),
     supabase

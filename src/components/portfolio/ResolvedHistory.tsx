@@ -37,9 +37,9 @@ export function ResolvedHistory({ rows }: { rows: ResolvedPosition[] }) {
           <p className="num mt-3 text-sm text-text-muted">
             {formatHC(r.stake)} → {formatHC(r.payout)}
           </p>
-          {r.won ? (
+          {r.won && r.shareBetId ? (
             <Link
-              href={`/share/${r.marketId}`}
+              href={`/share/bet/${r.shareBetId}`}
               className="eyebrow mt-3 inline-block text-red-bright focus-visible:outline-red"
             >
               Share →

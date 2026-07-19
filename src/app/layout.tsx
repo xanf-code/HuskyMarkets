@@ -24,6 +24,9 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  ),
   title: "HuskyMarkets",
   description:
     "Prediction markets for Northeastern students — virtual HuskyCoin only.",

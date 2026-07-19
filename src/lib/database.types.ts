@@ -594,6 +594,17 @@ export type Database = {
           starts_at: string
         }[]
       }
+      get_market_card: {
+        Args: { p_market_id: string }
+        Returns: {
+          category: Database["public"]["Enums"]["market_category"]
+          close_at: string
+          no_pool: number
+          status: Database["public"]["Enums"]["market_status"]
+          title: string
+          yes_pool: number
+        }[]
+      }
       get_my_balance: { Args: never; Returns: number }
       get_profile_stats: { Args: { p_user: string }; Returns: Json }
       get_semester_leaderboard: {
@@ -603,6 +614,18 @@ export type Database = {
           rank: number
           score: number
           user_id: string
+        }[]
+      }
+      get_share_card: {
+        Args: { p_bet_id: string }
+        Returns: {
+          display_name: string
+          market_id: string
+          market_title: string
+          payout: number
+          price_at_bet: number
+          side: Database["public"]["Enums"]["bet_side"]
+          stake: number
         }[]
       }
       handle_report: {
