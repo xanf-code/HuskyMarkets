@@ -4,10 +4,12 @@ import type { MarketListItem } from "@/lib/queries/markets";
 import { MarketCard } from "./MarketCard";
 import { TrendingCarousel } from "./TrendingCarousel";
 
+const CARDS_PER_CATEGORY = 4;
+
 /**
- * Default home view: trending hero carousel, then a horizontally scrollable
- * row per category (Kalshi-style). Filtering/searching swaps this for the
- * live grid.
+ * Default home view: trending hero carousel, then a 2x2 grid per category
+ * (Kalshi-style). Each section shows up to 4 markets; the header link opens
+ * the filtered full list. Filtering/searching swaps this for the live grid.
  */
 export function HomeShowcase({ markets }: { markets: MarketListItem[] }) {
   if (markets.length === 0) {
@@ -25,7 +27,9 @@ export function HomeShowcase({ markets }: { markets: MarketListItem[] }) {
       <TrendingCarousel markets={markets} />
 
       {CATEGORIES.map((category) => {
-        const list = markets.filter((m) => m.category === category.value);
+        const list = markets
+          .filter((m) => m.category === category.value)
+          .slice(0, CARDS_PER_CATEGORY);
         if (list.length === 0) return null;
         return (
           <section
@@ -44,14 +48,9 @@ export function HomeShowcase({ markets }: { markets: MarketListItem[] }) {
                 </span>
               </h2>
             </Link>
-            <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 [&>article]:h-full">
               {list.map((market) => (
-                <div
-                  key={market.id}
-                  className="w-[17rem] shrink-0 snap-start sm:w-80 [&>article]:h-full"
-                >
-                  <MarketCard market={market} />
-                </div>
+                <MarketCard key={market.id} market={market} />
               ))}
             </div>
           </section>
