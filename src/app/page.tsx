@@ -41,7 +41,7 @@ export default async function Home({ searchParams }: HomeProps) {
     filters.category || filters.q ? await getMarketList({}) : markets;
 
   const showGroups = !filters.category && !filters.q;
-  const hasSidebar = !showGroups && getTopMovers(allMarkets).length > 0;
+  const hasMovers = !showGroups && getTopMovers(allMarkets).length > 0;
 
   return (
     <div className="flex flex-col gap-5 sm:gap-6">
@@ -50,24 +50,12 @@ export default async function Home({ searchParams }: HomeProps) {
           <MarketFilters />
         </Suspense>
       )}
-      <div
-        className={
-          hasSidebar
-            ? "grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-8"
-            : "min-w-0"
-        }
-      >
-        <div className="min-w-0">
-          {showGroups ? (
-            <HomeShowcase markets={markets} />
-          ) : (
-            <MarketGridLive initial={markets} />
-          )}
-        </div>
-        {hasSidebar && (
-          <div className="lg:sticky lg:top-6">
-            <HomeSidebar markets={allMarkets} />
-          </div>
+      {hasMovers && <HomeSidebar markets={allMarkets} />}
+      <div className="min-w-0">
+        {showGroups ? (
+          <HomeShowcase markets={markets} />
+        ) : (
+          <MarketGridLive initial={markets} />
         )}
       </div>
     </div>
