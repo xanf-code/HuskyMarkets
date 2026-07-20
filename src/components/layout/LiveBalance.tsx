@@ -59,15 +59,32 @@ export function LiveBalance({ initialBalance, userId }: LiveBalanceProps) {
           if (typeof data === "number") setBalance(data);
 
           if (tx.type !== "bet_payout" && tx.type !== "market_refund") return;
-          let market: { title: string; status: Tables<"markets">["status"] } | null =
-            null;
+          let market: {
+            title: string;
+            status: Tables<"markets">["status"];
+            winningLabel?: string | null;
+          } | null = null;
           if (tx.market_id) {
             const { data: row } = await supabase
               .from("markets")
-              .select("title, status")
+              .select("title, status, winning_outcome_id")
               .eq("id", tx.market_id)
               .maybeSingle();
-            market = row;
+            if (row) {
+              // The resolution toast names the winning outcome; one lookup
+              // against the outcomes table (labels aren't denormalized onto
+              // the markets row, D-5).
+              let winningLabel: string | null = null;
+              if (row.winning_outcome_id) {
+                const { data: outcome } = await supabase
+                  .from("market_outcomes")
+                  .select("label")
+                  .eq("id", row.winning_outcome_id)
+                  .maybeSingle();
+                winningLabel = outcome?.label ?? null;
+              }
+              market = { ...row, winningLabel };
+            }
           }
           const message = describePayout(tx, market);
           if (message) toastRef.current.push(message);

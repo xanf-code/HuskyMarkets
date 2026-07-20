@@ -87,7 +87,7 @@ export function MarketOgCard({ card }: { card: MarketCard }) {
             fontVariantNumeric: "tabular-nums",
           }}
         >
-          {`YES ${formatCents(card.yesPrice)}`}
+          {`${card.leading.label} ${formatCents(card.leading.price)}`}
         </div>
       </div>
 

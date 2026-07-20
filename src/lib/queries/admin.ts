@@ -26,6 +26,8 @@ export interface ResolveQueueItem {
   reportCount: number;
   autoFlagged: boolean;
   creatorId: string;
+  /** Selectable winning outcomes, in canonical sort_order (FR-28). */
+  outcomes: { id: string; label: string }[];
 }
 
 export interface ReportQueueItem {
@@ -86,7 +88,7 @@ export async function getResolveQueue(
   const { data: markets } = await supabase
     .from("markets")
     .select(
-      "id, title, status, close_at, auto_flagged, creator_id, hidden",
+      "id, title, status, close_at, auto_flagged, creator_id, hidden, market_outcomes!market_outcomes_market_id_fkey(id, label, sort_order)",
     )
     .in("status", ["open", "closed"])
     .eq("hidden", false)
@@ -127,6 +129,9 @@ export async function getResolveQueue(
       reportCount: reportCounts.get(m.id) ?? 0,
       autoFlagged: m.auto_flagged,
       creatorId: m.creator_id,
+      outcomes: [...(m.market_outcomes ?? [])]
+        .sort((a, b) => a.sort_order - b.sort_order)
+        .map((o) => ({ id: o.id, label: o.label })),
     }));
 
   return filterConflictMarkets(queued, excludeUserId, conflictIds);

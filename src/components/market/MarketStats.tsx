@@ -1,22 +1,24 @@
 import { formatHC } from "@/lib/format";
+import type { OutcomeState } from "@/lib/outcomes";
 
 interface MarketStatsProps {
-  yesPool: number;
-  noPool: number;
+  outcomes: OutcomeState[];
   volume: number;
   bettorCount: number;
 }
 
 export function MarketStats({
-  yesPool,
-  noPool,
+  outcomes,
   volume,
   bettorCount,
 }: MarketStatsProps) {
   const stats = [
     { label: "Volume", value: formatHC(volume) },
     { label: "Bettors", value: String(bettorCount) },
-    { label: "Yes / No pool", value: `${yesPool} / ${noPool}` },
+    {
+      label: "Pools",
+      value: outcomes.map((o) => `${o.label} ${o.pool}`).join(" / "),
+    },
   ];
 
   return (

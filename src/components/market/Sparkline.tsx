@@ -1,14 +1,30 @@
 "use client";
 
 import { Line, LineChart, ResponsiveContainer, YAxis } from "recharts";
-import { theme } from "@/lib/theme";
+import { outcomeColor } from "@/lib/theme";
 
-/** Tiny trend line for market cards: recent implied-YES prices, no axes. */
-export function Sparkline({ points }: { points: number[] }) {
+interface SparklineProps {
+  points: number[];
+  /**
+   * Label of the outcome this sparkline tracks (the market's leading
+   * outcome, A-2). Named explicitly because the leader can change as pools
+   * move — the trend line must always say whose trend it is (AR-8).
+   */
+  label: string;
+  /** Outcome sort_order; picks the series color from the shared palette. */
+  colorIndex: number;
+}
+
+/** Tiny trend line for market cards: recent implied prices, no axes. */
+export function Sparkline({ points, label, colorIndex }: SparklineProps) {
   const data = points.map((price, i) => ({ i, price }));
 
   return (
-    <div className="h-10 w-full" aria-hidden="true">
+    <div
+      className="h-10 w-full"
+      role="img"
+      aria-label={`${label} price trend`}
+    >
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
           data={data}
@@ -18,7 +34,7 @@ export function Sparkline({ points }: { points: number[] }) {
           <Line
             type="stepAfter"
             dataKey="price"
-            stroke={theme.colors.marketYes}
+            stroke={outcomeColor(colorIndex)}
             strokeWidth={1.5}
             dot={false}
             isAnimationActive={false}

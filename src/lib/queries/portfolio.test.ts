@@ -12,54 +12,50 @@ const openMarket: MarketRow = {
   title: "Will the Green Line delay?",
   status: "open",
   close_at: "2026-07-20T20:00:00Z",
-  yes_pool: 450,
-  no_pool: 300,
   resolved_at: null,
+  winning_outcome_id: null,
+  outcomes: [
+    { id: "o-yes", label: "Yes", sort_order: 0, pool: 450 },
+    { id: "o-no", label: "No", sort_order: 1, pool: 300 },
+  ],
 };
 
-const resolvedYes: MarketRow = {
-  id: "m-yes",
+const resolvedMarket: MarketRow = {
+  id: "m-res",
   title: "Snow before finals?",
-  status: "resolved_yes",
+  status: "resolved",
   close_at: "2026-07-01T20:00:00Z",
-  yes_pool: 400,
-  no_pool: 200,
   resolved_at: "2026-07-02T12:00:00Z",
+  winning_outcome_id: "o-yes",
+  outcomes: [
+    { id: "o-yes", label: "Yes", sort_order: 0, pool: 400 },
+    { id: "o-no", label: "No", sort_order: 1, pool: 200 },
+  ],
 };
+
+const bet = (overrides: Partial<BetRow>): BetRow => ({
+  id: "b-id",
+  market_id: "m-open",
+  outcome_id: "o-yes",
+  amount: 100,
+  price_at_bet: 50,
+  created_at: "2026-07-10T10:00:00Z",
+  ...overrides,
+});
 
 describe("aggregateOpenPositions", () => {
-  it("sums stakes per market+side and computes avg price + implied value", () => {
+  it("groups stakes per market+outcome and computes avg price + implied value", () => {
     const bets: BetRow[] = [
-      {
-        id: "b-id",
-        market_id: "m-open",
-        side: "yes",
-        amount: 100,
-        price_at_bet: 50,
-        created_at: "2026-07-10T10:00:00Z",
-      },
-      {
-        id: "b-id",
-        market_id: "m-open",
-        side: "yes",
-        amount: 50,
-        price_at_bet: 64,
-        created_at: "2026-07-11T10:00:00Z",
-      },
-      {
-        id: "b-id",
-        market_id: "m-open",
-        side: "no",
-        amount: 25,
-        price_at_bet: 40,
-        created_at: "2026-07-11T11:00:00Z",
-      },
+      bet({ amount: 100, price_at_bet: 50 }),
+      bet({ amount: 50, price_at_bet: 64 }),
+      bet({ outcome_id: "o-no", amount: 25, price_at_bet: 40 }),
     ];
 
     const positions = aggregateOpenPositions(bets, [openMarket]);
 
     expect(positions).toHaveLength(2);
-    const yes = positions.find((p) => p.side === "yes")!;
+    const yes = positions.find((p) => p.outcomeId === "o-yes")!;
+    expect(yes.outcomeLabel).toBe("Yes");
     expect(yes.stake).toBe(150);
     // weighted avg: (100*50 + 50*64) / 150 = 54.666… → 55
     expect(yes.avgPrice).toBe(55);
@@ -68,48 +64,41 @@ describe("aggregateOpenPositions", () => {
     expect(yes.marketTitle).toBe("Will the Green Line delay?");
     expect(yes.closeAt).toBe("2026-07-20T20:00:00Z");
 
-    const no = positions.find((p) => p.side === "no")!;
+    const no = positions.find((p) => p.outcomeId === "o-no")!;
+    expect(no.outcomeLabel).toBe("No");
     expect(no.stake).toBe(25);
     expect(no.avgPrice).toBe(40);
   });
 
-  it("ignores bets on resolved markets", () => {
+  it("keeps hedged stakes on separate outcomes as distinct rows (FR-8/FR-20)", () => {
     const bets: BetRow[] = [
-      {
-        id: "b-id",
-        market_id: "m-yes",
-        side: "yes",
-        amount: 100,
-        price_at_bet: 50,
-        created_at: "2026-07-01T10:00:00Z",
-      },
+      bet({ outcome_id: "o-yes", amount: 100 }),
+      bet({ outcome_id: "o-no", amount: 100 }),
     ];
-    expect(aggregateOpenPositions(bets, [resolvedYes])).toEqual([]);
+
+    const positions = aggregateOpenPositions(bets, [openMarket]);
+
+    expect(positions).toHaveLength(2);
+  });
+
+  it("ignores bets on resolved markets", () => {
+    const bets: BetRow[] = [bet({ market_id: "m-res" })];
+    expect(aggregateOpenPositions(bets, [resolvedMarket])).toEqual([]);
   });
 });
 
 describe("aggregateResolved", () => {
-  it("computes stake → payout P&L for a winning YES position", () => {
-    const bets: BetRow[] = [
-      {
-        id: "b-id",
-        market_id: "m-yes",
-        side: "yes",
-        amount: 100,
-        price_at_bet: 50,
-        created_at: "2026-07-01T10:00:00Z",
-      },
-    ];
+  it("computes stake → payout P&L when the backed outcome won", () => {
+    const bets: BetRow[] = [bet({ market_id: "m-res", outcome_id: "o-yes" })];
     const payouts: PayoutRow[] = [
-      { market_id: "m-yes", type: "bet_payout", amount: 158 },
+      { market_id: "m-res", type: "bet_payout", amount: 158 },
     ];
 
-    const rows = aggregateResolved(bets, [resolvedYes], payouts);
+    const rows = aggregateResolved(bets, [resolvedMarket], payouts);
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({
-      marketId: "m-yes",
-      outcome: "yes",
-      side: "yes",
+      marketId: "m-res",
+      outcomeLabel: "Yes",
       stake: 100,
       payout: 158,
       pnl: 58,
@@ -117,21 +106,83 @@ describe("aggregateResolved", () => {
     });
   });
 
-  it("treats a voided market refund as zero P&L", () => {
+  it("estimates the bet-time payout from the recorded outcome price (FR-21)", () => {
+    // 100 HC at 50¢ → est. payout 200; 40 HC at 25¢ → est. 160. Sum: 360.
+    const bets: BetRow[] = [
+      bet({ market_id: "m-res", outcome_id: "o-yes", amount: 100, price_at_bet: 50 }),
+      bet({ id: "b-2", market_id: "m-res", outcome_id: "o-yes", amount: 40, price_at_bet: 25 }),
+    ];
+    const payouts: PayoutRow[] = [
+      { market_id: "m-res", type: "bet_payout", amount: 300 },
+    ];
+
+    const rows = aggregateResolved(bets, [resolvedMarket], payouts);
+    expect(rows[0].estimatedPayout).toBe(360);
+    expect(rows[0].payout).toBe(300);
+  });
+
+  it("computes hedged profit against ALL stakes, not just the winning one (FR-8/FR-9)", () => {
+    const threeWay: MarketRow = {
+      ...resolvedMarket,
+      id: "m-3",
+      winning_outcome_id: "o-c",
+      outcomes: [
+        { id: "o-a", label: "Alpha", sort_order: 0, pool: 300 },
+        { id: "o-b", label: "Beta", sort_order: 1, pool: 200 },
+        { id: "o-c", label: "Gamma", sort_order: 2, pool: 250 },
+      ],
+    };
+    // Hedged: 60 on the winner, 100 on a loser — total stake 160.
+    const bets: BetRow[] = [
+      bet({ market_id: "m-3", outcome_id: "o-c", amount: 60, price_at_bet: 33 }),
+      bet({ id: "b-hedge", market_id: "m-3", outcome_id: "o-a", amount: 100, price_at_bet: 40 }),
+    ];
+    const payouts: PayoutRow[] = [
+      { market_id: "m-3", type: "bet_payout", amount: 140 },
+    ];
+
+    const rows = aggregateResolved(bets, [threeWay], payouts);
+    expect(rows[0]).toMatchObject({ stake: 160, payout: 140, pnl: -20, won: true });
+    // Estimate derives only from winning-outcome bets: round(60*100/33) = 182.
+    expect(rows[0].estimatedPayout).toBe(182);
+  });
+
+  it("has no estimated payout for lost or voided positions", () => {
+    const lost: BetRow[] = [
+      bet({ market_id: "m-res", outcome_id: "o-no", amount: 50, price_at_bet: 45 }),
+    ];
+    expect(aggregateResolved(lost, [resolvedMarket], [])[0].estimatedPayout).toBeNull();
+
     const voided: MarketRow = {
-      ...resolvedYes,
+      ...resolvedMarket,
       id: "m-void",
       status: "voided",
+      winning_outcome_id: null,
+    };
+    const refunded: BetRow[] = [
+      bet({ market_id: "m-void", amount: 50, price_at_bet: 45 }),
+    ];
+    expect(
+      aggregateResolved(refunded, [voided], [
+        { market_id: "m-void", type: "market_refund", amount: 50 },
+      ])[0].estimatedPayout,
+    ).toBeNull();
+  });
+
+  it("returns empty rows for an empty portfolio", () => {
+    expect(aggregateResolved([], [], [])).toEqual([]);
+    expect(aggregateOpenPositions([], [])).toEqual([]);
+  });
+
+  it("treats a voided market refund as zero P&L", () => {
+    const voided: MarketRow = {
+      ...resolvedMarket,
+      id: "m-void",
+      status: "voided",
+      winning_outcome_id: null,
     };
     const bets: BetRow[] = [
-      {
-        id: "b-id",
-        market_id: "m-void",
-        side: "no",
-        amount: 80,
-        price_at_bet: 40,
-        created_at: "2026-07-01T10:00:00Z",
-      },
+      bet({ market_id: "m-void", outcome_id: "o-no", amount: 80, price_at_bet: 40 }),
     ];
     const payouts: PayoutRow[] = [
       { market_id: "m-void", type: "market_refund", amount: 80 },
@@ -143,22 +194,15 @@ describe("aggregateResolved", () => {
       payout: 80,
       pnl: 0,
       won: false,
-      outcome: "void",
+      outcomeLabel: "Void",
     });
   });
 
-  it("records a full stake loss when the other side won", () => {
+  it("records a full stake loss when another outcome won", () => {
     const bets: BetRow[] = [
-      {
-        id: "b-id",
-        market_id: "m-yes",
-        side: "no",
-        amount: 50,
-        price_at_bet: 45,
-        created_at: "2026-07-01T10:00:00Z",
-      },
+      bet({ market_id: "m-res", outcome_id: "o-no", amount: 50, price_at_bet: 45 }),
     ];
-    const rows = aggregateResolved(bets, [resolvedYes], []);
+    const rows = aggregateResolved(bets, [resolvedMarket], []);
     expect(rows[0]).toMatchObject({
       stake: 50,
       payout: 0,
@@ -167,45 +211,39 @@ describe("aggregateResolved", () => {
     });
   });
 
-  it("picks the best-call winning bet as shareBetId (lowest price, earliest first)", () => {
+  it("detects wins by outcome identity on 3+-outcome markets (FR-19)", () => {
+    const threeWay: MarketRow = {
+      ...resolvedMarket,
+      id: "m-3",
+      winning_outcome_id: "o-c",
+      outcomes: [
+        { id: "o-a", label: "Alpha", sort_order: 0, pool: 300 },
+        { id: "o-b", label: "Beta", sort_order: 1, pool: 200 },
+        { id: "o-c", label: "Gamma", sort_order: 2, pool: 250 },
+      ],
+    };
     const bets: BetRow[] = [
-      {
-        id: "b-late",
-        market_id: "m-yes",
-        side: "yes",
-        amount: 100,
-        price_at_bet: 40,
-        created_at: "2026-07-01T12:00:00Z",
-      },
-      {
-        id: "b-best",
-        market_id: "m-yes",
-        side: "yes",
-        amount: 50,
-        price_at_bet: 22,
-        created_at: "2026-07-01T13:00:00Z",
-      },
-      {
-        id: "b-tie-first",
-        market_id: "m-yes",
-        side: "yes",
-        amount: 10,
-        price_at_bet: 22,
-        created_at: "2026-07-01T11:00:00Z",
-      },
-      {
-        id: "b-losing-side",
-        market_id: "m-yes",
-        side: "no",
-        amount: 10,
-        price_at_bet: 5,
-        created_at: "2026-07-01T09:00:00Z",
-      },
+      bet({ market_id: "m-3", outcome_id: "o-c", amount: 40 }),
     ];
     const payouts: PayoutRow[] = [
-      { market_id: "m-yes", type: "bet_payout", amount: 200 },
+      { market_id: "m-3", type: "bet_payout", amount: 90 },
     ];
-    const rows = aggregateResolved(bets, [resolvedYes], payouts);
+
+    const rows = aggregateResolved(bets, [threeWay], payouts);
+    expect(rows[0]).toMatchObject({ outcomeLabel: "Gamma", won: true, payout: 90 });
+  });
+
+  it("picks the best-call winning bet as shareBetId (lowest price, earliest first)", () => {
+    const bets: BetRow[] = [
+      bet({ id: "b-late", market_id: "m-res", outcome_id: "o-yes", price_at_bet: 40, created_at: "2026-07-01T12:00:00Z" }),
+      bet({ id: "b-best", market_id: "m-res", outcome_id: "o-yes", amount: 50, price_at_bet: 22, created_at: "2026-07-01T13:00:00Z" }),
+      bet({ id: "b-tie-first", market_id: "m-res", outcome_id: "o-yes", amount: 10, price_at_bet: 22, created_at: "2026-07-01T11:00:00Z" }),
+      bet({ id: "b-losing", market_id: "m-res", outcome_id: "o-no", amount: 10, price_at_bet: 5, created_at: "2026-07-01T09:00:00Z" }),
+    ];
+    const payouts: PayoutRow[] = [
+      { market_id: "m-res", type: "bet_payout", amount: 200 },
+    ];
+    const rows = aggregateResolved(bets, [resolvedMarket], payouts);
     expect(rows[0].won).toBe(true);
     // tie on 22¢ goes to the earlier bet
     expect(rows[0].shareBetId).toBe("b-tie-first");
@@ -213,27 +251,18 @@ describe("aggregateResolved", () => {
 
   it("has no shareBetId for lost or voided positions", () => {
     const lost: BetRow[] = [
-      {
-        id: "b-lost",
-        market_id: "m-yes",
-        side: "no",
-        amount: 50,
-        price_at_bet: 45,
-        created_at: "2026-07-01T10:00:00Z",
-      },
+      bet({ id: "b-lost", market_id: "m-res", outcome_id: "o-no", amount: 50, price_at_bet: 45 }),
     ];
-    expect(aggregateResolved(lost, [resolvedYes], [])[0].shareBetId).toBeNull();
+    expect(aggregateResolved(lost, [resolvedMarket], [])[0].shareBetId).toBeNull();
 
-    const voided: MarketRow = { ...resolvedYes, id: "m-void", status: "voided" };
+    const voided: MarketRow = {
+      ...resolvedMarket,
+      id: "m-void",
+      status: "voided",
+      winning_outcome_id: null,
+    };
     const refunded: BetRow[] = [
-      {
-        id: "b-void",
-        market_id: "m-void",
-        side: "yes",
-        amount: 50,
-        price_at_bet: 45,
-        created_at: "2026-07-01T10:00:00Z",
-      },
+      bet({ id: "b-void", market_id: "m-void", amount: 50, price_at_bet: 45 }),
     ];
     expect(
       aggregateResolved(refunded, [voided], [

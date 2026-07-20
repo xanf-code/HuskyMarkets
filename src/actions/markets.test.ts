@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createMarket } from "./markets";
 
-const { getSession, from, revalidatePath } = vi.hoisted(() => ({
+const { getSession, rpc, from, revalidatePath } = vi.hoisted(() => ({
   getSession: vi.fn(),
+  rpc: vi.fn(),
   from: vi.fn(),
   revalidatePath: vi.fn(),
 }));
@@ -10,12 +11,11 @@ const { getSession, from, revalidatePath } = vi.hoisted(() => ({
 vi.mock("@/lib/dal", () => ({ getSession }));
 
 vi.mock("@/lib/supabase/server", () => ({
-  createClient: async () => ({ from }),
+  createClient: async () => ({ rpc, from }),
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath }));
 
-const marketInsert = vi.fn();
 const reportInsert = vi.fn();
 
 function validInput(overrides: Record<string, unknown> = {}) {
@@ -27,46 +27,109 @@ function validInput(overrides: Record<string, unknown> = {}) {
     resolveAt: new Date(Date.now() + 2 * 86_400_000).toISOString(),
     resolutionCriteria:
       "Resolves YES if NWS Boston records at least 0.1in of snow.",
+    outcomes: ["Yes", "No"],
+    catchAll: false,
     agreeRules: true,
     ...overrides,
   };
 }
 
+function mockConfigCap(cap: number) {
+  from.mockImplementation((table: string) => {
+    if (table === "app_config") {
+      return {
+        select: () => ({
+          eq: () => ({
+            single: async () => ({ data: { int_val: cap }, error: null }),
+          }),
+        }),
+      };
+    }
+    return { insert: reportInsert };
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   getSession.mockResolvedValue({ userId: "user-1", email: null });
-  marketInsert.mockReturnValue({
-    select: () => ({
-      single: async () => ({ data: { id: "market-1" }, error: null }),
-    }),
+  rpc.mockResolvedValue({
+    data: { market_id: "market-1", outcomes: [] },
+    error: null,
   });
   reportInsert.mockResolvedValue({ error: null });
-  from.mockImplementation((table: string) =>
-    table === "markets" ? { insert: marketInsert } : { insert: reportInsert },
-  );
+  // Default: app_config returns max_outcomes=6 (the seed value).
+  mockConfigCap(6);
 });
 
 describe("createMarket", () => {
-  it("inserts a clean market unflagged and revalidates the grid", async () => {
+  it("creates via the create_market RPC with the outcome labels", async () => {
     const result = await createMarket(validInput());
 
     expect(result).toEqual({ ok: true, marketId: "market-1" });
-    expect(marketInsert).toHaveBeenCalledWith(
+    expect(rpc).toHaveBeenCalledWith(
+      "create_market",
       expect.objectContaining({
-        creator_id: "user-1",
-        auto_flagged: false,
-        category: "weather",
+        p_title: "Will it snow in Boston before finals week?",
+        p_category: "weather",
+        p_outcomes: ["Yes", "No"],
+        p_catch_all: false,
+        p_auto_flagged: false,
       }),
     );
     expect(reportInsert).not.toHaveBeenCalled();
     expect(revalidatePath).toHaveBeenCalledWith("/");
   });
 
+  it("passes the catch-all toggle through to the RPC", async () => {
+    await createMarket(
+      validInput({ outcomes: ["A", "B", "C", "D", "E"], catchAll: true }),
+    );
+
+    expect(rpc).toHaveBeenCalledWith(
+      "create_market",
+      expect.objectContaining({ p_catch_all: true }),
+    );
+  });
+
+  it("rejects fewer than 2 or more than 6 outcomes before any network call", async () => {
+    expect((await createMarket(validInput({ outcomes: ["Only"] }))).ok).toBe(false);
+    expect(
+      (await createMarket(validInput({ outcomes: ["1", "2", "3", "4", "5", "6", "7"] }))).ok,
+    ).toBe(false);
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("rejects blank and over-long labels before any network call", async () => {
+    expect((await createMarket(validInput({ outcomes: ["Yes", "   "] }))).ok).toBe(false);
+    expect(
+      (await createMarket(validInput({ outcomes: ["Yes", "x".repeat(41)] }))).ok,
+    ).toBe(false);
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("rejects case-insensitively duplicated labels", async () => {
+    const result = await createMarket(validInput({ outcomes: ["Yes", "yes"] }));
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/unique/i);
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("rejects a creator label that collides with the catch-all", async () => {
+    const result = await createMarket(
+      validInput({ outcomes: ["Yes", "None of the above"], catchAll: true }),
+    );
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/catch-all/i);
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
   it("rejects before any network call when the rules box is unchecked", async () => {
     const result = await createMarket(validInput({ agreeRules: false }));
 
     expect(result.ok).toBe(false);
-    expect(marketInsert).not.toHaveBeenCalled();
+    expect(rpc).not.toHaveBeenCalled();
   });
 
   it("rejects a close time in the past", async () => {
@@ -76,7 +139,7 @@ describe("createMarket", () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error).toMatch(/future/i);
-    expect(marketInsert).not.toHaveBeenCalled();
+    expect(rpc).not.toHaveBeenCalled();
   });
 
   it("rejects a resolve time before the close time", async () => {
@@ -88,17 +151,27 @@ describe("createMarket", () => {
     );
 
     expect(result.ok).toBe(false);
-    expect(marketInsert).not.toHaveBeenCalled();
+    expect(rpc).not.toHaveBeenCalled();
   });
 
-  it("hard-blocks slur content with a message and no insert", async () => {
+  it("hard-blocks slur content with a message and no RPC call", async () => {
     const result = await createMarket(
       validInput({ title: "Will the retard in my lecture fail the midterm?" }),
     );
 
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error).toMatch(/community standards/i);
-    expect(marketInsert).not.toHaveBeenCalled();
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("hard-blocks slur content in an outcome label", async () => {
+    const result = await createMarket(
+      validInput({ outcomes: ["Yes", "The retard wins"] }),
+    );
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/community standards/i);
+    expect(rpc).not.toHaveBeenCalled();
   });
 
   it("creates flagged-but-allowed content with auto_flagged and an auto-report", async () => {
@@ -109,8 +182,9 @@ describe("createMarket", () => {
     );
 
     expect(result).toEqual({ ok: true, marketId: "market-1" });
-    expect(marketInsert).toHaveBeenCalledWith(
-      expect.objectContaining({ auto_flagged: true }),
+    expect(rpc).toHaveBeenCalledWith(
+      "create_market",
+      expect.objectContaining({ p_auto_flagged: true }),
     );
     expect(reportInsert).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -121,15 +195,81 @@ describe("createMarket", () => {
     );
   });
 
-  it("surfaces a database error", async () => {
-    marketInsert.mockReturnValue({
-      select: () => ({
-        single: async () => ({ data: null, error: { message: "boom" } }),
-      }),
-    });
+  it("flags on a person-targeting outcome label even when the title is clean", async () => {
+    const result = await createMarket(
+      validInput({ outcomes: ["Jake Thompson hooks up", "He does not"] }),
+    );
+
+    expect(result).toEqual({ ok: true, marketId: "market-1" });
+    expect(rpc).toHaveBeenCalledWith(
+      "create_market",
+      expect.objectContaining({ p_auto_flagged: true }),
+    );
+  });
+
+  it("requires a session", async () => {
+    getSession.mockResolvedValue(null);
+
+    const result = await createMarket(validInput());
+
+    expect(result).toEqual({ ok: false, error: "Not signed in." });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("surfaces an RPC error", async () => {
+    rpc.mockResolvedValue({ data: null, error: { message: "boom" } });
 
     const result = await createMarket(validInput());
 
     expect(result).toEqual({ ok: false, error: "boom" });
+  });
+});
+
+describe("createMarket — runtime cap from app_config (W1 / S7-3)", () => {
+  it("enforces cap=2 — 3 outcomes are rejected before any RPC call", async () => {
+    mockConfigCap(2);
+
+    const result = await createMarket(validInput({ outcomes: ["A", "B", "C"] }));
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/at most 2/);
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("accepts exactly 2 outcomes when cap=2", async () => {
+    mockConfigCap(2);
+
+    const result = await createMarket(validInput({ outcomes: ["A", "B"] }));
+
+    expect(result.ok).toBe(true);
+    expect(rpc).toHaveBeenCalled();
+  });
+
+  it("falls back to MAX_OUTCOMES when app_config query returns no row", async () => {
+    from.mockImplementation((table: string) => {
+      if (table === "app_config") {
+        return {
+          select: () => ({
+            eq: () => ({
+              single: async () => ({ data: null, error: { message: "no rows" } }),
+            }),
+          }),
+        };
+      }
+      return { insert: reportInsert };
+    });
+
+    // 7 outcomes still rejected under the fallback cap of 6.
+    const over = await createMarket(
+      validInput({ outcomes: ["1", "2", "3", "4", "5", "6", "7"] }),
+    );
+    expect(over.ok).toBe(false);
+    expect(rpc).not.toHaveBeenCalled();
+
+    // 6 outcomes succeed under the fallback cap.
+    const at = await createMarket(
+      validInput({ outcomes: ["1", "2", "3", "4", "5", "6"] }),
+    );
+    expect(at.ok).toBe(true);
   });
 });

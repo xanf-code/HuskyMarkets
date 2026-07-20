@@ -15,7 +15,10 @@ export function PositionsTable({ positions }: { positions: OpenPosition[] }) {
   return (
     <ul className="flex flex-col gap-3">
       {positions.map((p) => (
-        <li key={`${p.marketId}:${p.side}`} className="card-surface p-4 sm:p-5">
+        <li
+          key={`${p.marketId}:${p.outcomeId}`}
+          className="card-surface p-4 sm:p-5"
+        >
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
               <Link
@@ -24,17 +27,13 @@ export function PositionsTable({ positions }: { positions: OpenPosition[] }) {
               >
                 {p.marketTitle}
               </Link>
-              <p
-                className={`mt-1 text-sm font-semibold ${
-                  p.side === "yes" ? "text-market-yes" : "text-market-no"
-                }`}
-              >
-                {p.side === "yes" ? "Yes" : "No"}
+              <p className="mt-1 text-sm font-semibold text-text">
+                {p.outcomeLabel}
               </p>
             </div>
             <Countdown closeAt={p.closeAt} />
           </div>
-          <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+          <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
             <div>
               <dt className="text-xs font-medium text-text-muted">Stake</dt>
               <dd className="num mt-1">{formatHC(p.stake)}</dd>

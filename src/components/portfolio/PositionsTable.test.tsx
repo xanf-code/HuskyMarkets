@@ -16,7 +16,8 @@ describe("PositionsTable", () => {
           {
             marketId: "m1",
             marketTitle: "Green Line delay?",
-            side: "yes",
+            outcomeId: "o-yes",
+            outcomeLabel: "Yes",
             stake: 150,
             avgPrice: 55,
             impliedValue: 237,

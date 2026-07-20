@@ -14,14 +14,20 @@ export function ResolveQueue({ items }: { items: ResolveQueueItem[] }) {
 
   async function act(
     marketId: string,
-    kind: "yes" | "no" | "void" | "lock",
+    kind: { action: "resolve"; winningOutcomeId: string } | { action: "void" } | { action: "lock" },
   ) {
     setError(null);
-    setBusy(`${marketId}:${kind}`);
+    setBusy(`${marketId}:${kind.action}`);
     const result =
-      kind === "lock"
+      kind.action === "lock"
         ? await lockMarketAction({ marketId })
-        : await resolveMarketAction({ marketId, outcome: kind });
+        : kind.action === "void"
+          ? await resolveMarketAction({ marketId, action: "void" })
+          : await resolveMarketAction({
+              marketId,
+              action: "resolve",
+              winningOutcomeId: kind.winningOutcomeId,
+            });
     setBusy(null);
     if (!result.ok) {
       setError(result.error);
@@ -60,23 +66,33 @@ export function ResolveQueue({ items }: { items: ResolveQueueItem[] }) {
               {m.autoFlagged ? " · auto-flagged" : ""}
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
-              {(["yes", "no", "void"] as const).map((outcome) => (
+              {m.outcomes.map((outcome) => (
                 <Button
-                  key={outcome}
+                  key={outcome.id}
                   size="sm"
-                  variant={outcome === "void" ? "secondary" : "primary"}
+                  variant="primary"
                   disabled={busy !== null}
-                  onClick={() => act(m.id, outcome)}
+                  onClick={() =>
+                    act(m.id, { action: "resolve", winningOutcomeId: outcome.id })
+                  }
                 >
-                  {outcome.toUpperCase()}
+                  {outcome.label}
                 </Button>
               ))}
+              <Button
+                size="sm"
+                variant="secondary"
+                disabled={busy !== null}
+                onClick={() => act(m.id, { action: "void" })}
+              >
+                Void
+              </Button>
               {m.status === "open" ? (
                 <Button
                   size="sm"
                   variant="ghost"
                   disabled={busy !== null}
-                  onClick={() => act(m.id, "lock")}
+                  onClick={() => act(m.id, { action: "lock" })}
                 >
                   Lock
                 </Button>

@@ -39,9 +39,10 @@ const market = (id: string, title: string): MarketListItem => ({
   category: "weather",
   closeAt: new Date(Date.now() + 86_400_000).toISOString(),
   createdAt: "2026-07-10T00:00:00Z",
-  yesPool: 200,
-  noPool: 100,
-  impliedYes: 67,
+  outcomes: [
+    { id: `${id}-yes`, label: "Yes", sortOrder: 0, pool: 200, implied: 67 },
+    { id: `${id}-no`, label: "No", sortOrder: 1, pool: 100, implied: 33 },
+  ],
   volume: 100,
   spark: [50, 67],
 });
@@ -52,7 +53,7 @@ beforeEach(() => {
 });
 
 describe("MarketGridLive", () => {
-  it("subscribes once to an unfiltered markets:list UPDATE channel", () => {
+  it("subscribes once to markets and market_outcomes UPDATE channels", () => {
     render(<MarketGridLive initial={[market("m1", "Snow before finals?")]} />);
 
     expect(supabase.channel).toHaveBeenCalledWith("markets:list");
@@ -61,22 +62,28 @@ describe("MarketGridLive", () => {
       expect.objectContaining({ event: "UPDATE", table: "markets" }),
       expect.any(Function),
     );
+    expect(channel.on).toHaveBeenCalledWith(
+      "postgres_changes",
+      expect.objectContaining({ event: "UPDATE", table: "market_outcomes" }),
+      expect.any(Function),
+    );
   });
 
-  it("patches the matching card's price and volume on UPDATE", () => {
+  it("patches the matching card's price and volume on an outcome UPDATE", () => {
     render(<MarketGridLive initial={[market("m1", "Snow before finals?")]} />);
     expect(screen.getByText("67%")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /yes\s+67¢/i })).toBeInTheDocument();
 
     act(() => {
-      handlers.get("markets:UPDATE")!({
-        new: { id: "m1", yes_pool: 100, no_pool: 300, status: "open" },
+      handlers.get("market_outcomes:UPDATE")!({
+        new: { id: "m1-no", market_id: "m1", pool: 300 },
       });
     });
 
-    expect(screen.getByText("25%")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /yes\s+25¢/i })).toBeInTheDocument();
-    expect(screen.getByText(/200 HC vol/)).toBeInTheDocument();
+    // No now leads 300/500 → 60%; Yes 40¢
+    expect(screen.getByText("60%")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /yes\s+40¢/i })).toBeInTheDocument();
+    expect(screen.getByText(/300 HC vol/)).toBeInTheDocument();
   });
 
   it("drops a card when its market closes", () => {

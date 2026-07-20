@@ -3,9 +3,6 @@ import type { ShareCard } from "@/lib/queries/share";
 import { OG_COLORS, OG_FONT } from "./theme";
 
 export function BetOgCard({ card }: { card: ShareCard }) {
-  const sideColor =
-    card.side === "yes" ? OG_COLORS.marketYes : OG_COLORS.marketNo;
-
   return (
     <div
       style={{
@@ -30,7 +27,7 @@ export function BetOgCard({ card }: { card: ShareCard }) {
           style={{
             fontSize: 28,
             fontWeight: 600,
-            color: sideColor,
+            color: OG_COLORS.marketYes,
             fontVariantNumeric: "tabular-nums",
           }}
         >
@@ -106,8 +103,8 @@ export function BetOgCard({ card }: { card: ShareCard }) {
         }}
       >
         <span>{card.displayName}</span>
-        <span style={{ color: sideColor, fontWeight: 600 }}>
-          {`${card.side.toUpperCase()} · huskymarkets`}
+        <span style={{ color: OG_COLORS.marketYes, fontWeight: 600 }}>
+          {`${card.outcomeLabel} · huskymarkets`}
         </span>
       </div>
     </div>

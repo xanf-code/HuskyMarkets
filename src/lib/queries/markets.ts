@@ -1,11 +1,22 @@
 // Market list & detail queries. One batched fetch per page: the server
 // component calls these, the pure helpers below do the in-memory shaping
 // (campus-scale data — dozens of open markets, not thousands).
+//
+// ORDERING CONTRACT: outcome `sort_order` is the canonical display order on
+// every surface (order panel, resolve queue, cards, charts, OG images,
+// portfolio). Queries fetch it and helpers preserve it; no surface may
+// invent its own order.
 
 import type { Category, MarketSort } from "@/lib/constants";
 import { getSession } from "@/lib/dal";
 import { marketVolume } from "@/lib/format";
-import { impliedYes } from "@/lib/payout";
+import {
+  leadingOutcome,
+  sortByOutcomeOrder,
+  totalPool,
+  type OutcomeState,
+} from "@/lib/outcomes";
+import { impliedOutcome } from "@/lib/payout";
 import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/lib/database.types";
 
@@ -21,12 +32,22 @@ export interface MarketListItem {
   category: Category;
   closeAt: string;
   createdAt: string;
-  yesPool: number;
-  noPool: number;
-  impliedYes: number;
+  /** Every outcome, in canonical sort_order. Binary markets are N = 2. */
+  outcomes: OutcomeState[];
   volume: number;
-  /** Recent implied-YES points, oldest → newest, for the card sparkline. */
+  /**
+   * Recent implied-price points of the leading outcome (A-2), oldest →
+   * newest, for the card sparkline. Multi-outcome series land with the
+   * realtime cut-over; the sparkline always tracks the leader.
+   */
   spark: number[];
+}
+
+/** A single price-history sample for one outcome of one market. */
+export interface HistoryPoint {
+  recordedAt: string;
+  outcomeId: string;
+  price: number;
 }
 
 const SPARK_POINTS = 20;
@@ -62,21 +83,43 @@ export function filterAndSortMarkets(
 }
 
 /**
- * Rows arrive newest-first (as fetched); keep up to `perMarket` per market
- * and flip to chronological order for drawing.
+ * Rows arrive newest-first (as fetched); keep up to `perMarket` per
+ * market+outcome and flip to chronological order for drawing. Keyed
+ * `${market_id}:${outcome_id}` — outcome identity is part of the key (AR-1).
  */
 export function groupSparklines(
-  rows: readonly { market_id: string; implied_yes: number }[],
+  rows: readonly { market_id: string; outcome_id: string; implied: number }[],
   perMarket: number = SPARK_POINTS,
 ): Map<string, number[]> {
   const grouped = new Map<string, number[]>();
   for (const row of rows) {
-    const points = grouped.get(row.market_id) ?? [];
+    const key = `${row.market_id}:${row.outcome_id}`;
+    const points = grouped.get(key) ?? [];
     if (points.length < perMarket) {
-      grouped.set(row.market_id, [row.implied_yes, ...points]);
+      grouped.set(key, [row.implied, ...points]);
     }
   }
   return grouped;
+}
+
+interface OutcomeRow {
+  id: string;
+  label: string;
+  sort_order: number;
+  pool: number;
+}
+
+function toOutcomeStates(rows: readonly OutcomeRow[]): OutcomeState[] {
+  const total = rows.reduce((sum, o) => sum + o.pool, 0);
+  return sortByOutcomeOrder(
+    rows.map((o) => ({
+      id: o.id,
+      label: o.label,
+      sortOrder: o.sort_order,
+      pool: o.pool,
+      implied: impliedOutcome(o.pool, total),
+    })),
+  );
 }
 
 export async function getMarketList(
@@ -86,7 +129,9 @@ export async function getMarketList(
 
   const { data: markets, error } = await supabase
     .from("markets")
-    .select("id, title, category, close_at, created_at, yes_pool, no_pool")
+    .select(
+      "id, title, category, close_at, created_at, market_outcomes!market_outcomes_market_id_fkey(id, label, sort_order, pool)",
+    )
     .eq("status", "open")
     .eq("hidden", false);
 
@@ -95,26 +140,28 @@ export async function getMarketList(
   const ids = markets.map((m) => m.id);
   const { data: points } = await supabase
     .from("price_history")
-    .select("market_id, implied_yes")
+    .select("market_id, outcome_id, implied")
     .in("market_id", ids)
     .order("recorded_at", { ascending: false })
-    .limit(ids.length * SPARK_POINTS);
+    .limit(ids.length * SPARK_POINTS * 6);
 
   const sparks = groupSparklines(points ?? []);
 
   const items = markets.map((m) => {
-    const price = impliedYes(m.yes_pool, m.no_pool);
+    const outcomes = toOutcomeStates(m.market_outcomes ?? []);
+    const total = totalPool(outcomes);
+    const leader = leadingOutcome(outcomes);
     return {
       id: m.id,
       title: m.title,
       category: m.category as Category,
       closeAt: m.close_at,
       createdAt: m.created_at,
-      yesPool: m.yes_pool,
-      noPool: m.no_pool,
-      impliedYes: price,
-      volume: marketVolume(m.yes_pool, m.no_pool),
-      spark: sparks.get(m.id) ?? [price],
+      outcomes,
+      volume: marketVolume(total, outcomes.length),
+      spark: leader
+        ? (sparks.get(`${m.id}:${leader.id}`) ?? [leader.implied])
+        : [],
     };
   });
 
@@ -126,22 +173,31 @@ export async function getMarketList(
 export interface ActivityItem {
   id: string;
   displayName: string;
-  side: "yes" | "no";
+  outcomeId: string;
+  outcomeLabel: string;
   amount: number;
   price: number;
   createdAt: string;
 }
 
+export interface PositionEntry {
+  outcomeId: string;
+  label: string;
+  stake: number;
+}
+
 export interface MarketDetail {
   market: Tables<"markets">;
+  /** Every outcome, in canonical sort_order. */
+  outcomes: OutcomeState[];
   creatorName: string;
-  /** Full price history, oldest → newest. */
-  history: { recordedAt: string; price: number }[];
+  /** Full per-outcome price history, oldest → newest. */
+  history: HistoryPoint[];
   /** Latest bets, newest first, display-mode respected via public_profiles. */
   activity: ActivityItem[];
   bettorCount: number;
-  /** Signed-in user's stake on this market, per side. */
-  position: { yes: number; no: number };
+  /** Signed-in user's stake on this market, per outcome (hedging allowed). */
+  position: PositionEntry[];
   balance: number;
 }
 
@@ -152,23 +208,27 @@ export async function getMarketDetail(
 ): Promise<MarketDetail | null> {
   const supabase = await createClient();
 
-  const { data: market } = await supabase
+  const { data: row } = await supabase
     .from("markets")
-    .select("*")
+    .select("*, market_outcomes!market_outcomes_market_id_fkey(id, label, sort_order, pool)")
     .eq("id", id)
     .maybeSingle();
-  if (!market) return null;
+  if (!row) return null;
+
+  const { market_outcomes, ...market } = row;
+  const outcomes = toOutcomeStates(market_outcomes ?? []);
+  const labelById = new Map(outcomes.map((o) => [o.id, o.label]));
 
   const [{ data: history }, { data: bets }, session, { data: balance }] =
     await Promise.all([
       supabase
         .from("price_history")
-        .select("implied_yes, recorded_at")
+        .select("implied, recorded_at, outcome_id")
         .eq("market_id", id)
         .order("recorded_at", { ascending: true }),
       supabase
         .from("bets")
-        .select("id, user_id, side, amount, price_at_bet, created_at")
+        .select("id, user_id, outcome_id, amount, price_at_bet, created_at")
         .eq("market_id", id)
         .order("created_at", { ascending: false }),
       getSession(),
@@ -191,30 +251,44 @@ export async function getMarketDetail(
     (profiles ?? []).map((p) => [p.id, p.display_name ?? "Unknown Husky"]),
   );
 
-  const position = { yes: 0, no: 0 };
+  const stakeByOutcome = new Map<string, number>();
   if (session) {
     for (const bet of allBets) {
-      if (bet.user_id === session.userId) position[bet.side] += bet.amount;
+      if (bet.user_id === session.userId) {
+        stakeByOutcome.set(
+          bet.outcome_id,
+          (stakeByOutcome.get(bet.outcome_id) ?? 0) + bet.amount,
+        );
+      }
     }
   }
 
   return {
     market,
+    outcomes,
     creatorName: names.get(market.creator_id) ?? "Unknown Husky",
     history: (history ?? []).map((p) => ({
       recordedAt: p.recorded_at,
-      price: p.implied_yes,
+      outcomeId: p.outcome_id,
+      price: p.implied,
     })),
     activity: allBets.slice(0, ACTIVITY_LIMIT).map((b) => ({
       id: b.id,
       displayName: names.get(b.user_id) ?? "Unknown Husky",
-      side: b.side,
+      outcomeId: b.outcome_id,
+      outcomeLabel: labelById.get(b.outcome_id) ?? "—",
       amount: b.amount,
       price: b.price_at_bet,
       createdAt: b.created_at,
     })),
     bettorCount: new Set(allBets.map((b) => b.user_id)).size,
-    position,
+    position: outcomes
+      .filter((o) => stakeByOutcome.has(o.id))
+      .map((o) => ({
+        outcomeId: o.id,
+        label: o.label,
+        stake: stakeByOutcome.get(o.id)!,
+      })),
     balance: balance ?? 0,
   };
 }
