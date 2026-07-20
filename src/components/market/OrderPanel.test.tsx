@@ -38,21 +38,12 @@ beforeEach(() => {
   vi.clearAllMocks();
   placeBet.mockResolvedValue({
     ok: true,
-    betId: "b1",
     outcomes: FILLED,
     newBalance: 300,
   });
 });
 
 describe("OrderPanel", () => {
-  it("renders a Buy tab as the active order mode with Sell disabled", () => {
-    renderPanel();
-    const buy = screen.getByRole("tab", { name: "Buy" });
-    const sell = screen.getByRole("tab", { name: "Sell" });
-    expect(buy).toHaveAttribute("aria-selected", "true");
-    expect(sell).toBeDisabled();
-  });
-
   it("renders the market question as a context line when provided", () => {
     renderPanel({ question: "Will the Huskies win on Saturday?" });
     expect(
@@ -246,6 +237,6 @@ describe("OrderPanel", () => {
     await user.type(screen.getByLabelText(/amount/i), "100");
     await user.click(screen.getByRole("button", { name: /Buy Yes · 67¢/i }));
 
-    expect(await screen.findByText(/est\. 126 HC/i)).toBeInTheDocument();
+    expect(await screen.findByText(/est\. 126 HC/i, { exact: false })).toBeInTheDocument();
   });
 });

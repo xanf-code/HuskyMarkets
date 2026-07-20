@@ -27,13 +27,13 @@ export function PositionsTable({ positions }: { positions: OpenPosition[] }) {
               >
                 {p.marketTitle}
               </Link>
-              <p className="mt-1 text-sm font-semibold text-market-yes">
+              <p className="mt-1 text-sm font-semibold text-text">
                 {p.outcomeLabel}
               </p>
             </div>
             <Countdown closeAt={p.closeAt} />
           </div>
-          <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+          <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
             <div>
               <dt className="text-xs font-medium text-text-muted">Stake</dt>
               <dd className="num mt-1">{formatHC(p.stake)}</dd>

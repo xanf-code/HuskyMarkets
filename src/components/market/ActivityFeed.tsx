@@ -21,7 +21,7 @@ export function ActivityFeed({ activity }: { activity: ActivityItem[] }) {
           <span className="text-text-muted">bet</span>
           <span className="num text-text">{formatHC(bet.amount)}</span>
           <span className="text-text-muted">on</span>
-          <span className="num font-medium text-market-yes">
+          <span className="num font-medium text-text">
             {bet.outcomeLabel}
           </span>
           <span className="num text-text-muted">

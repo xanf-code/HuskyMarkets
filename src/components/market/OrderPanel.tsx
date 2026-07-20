@@ -116,7 +116,7 @@ export function OrderPanel(props: OrderPanelProps) {
     // Est. payout repeats at the moment of purchase, not just on the panel —
     // this is where the parimutuel expectation is actually set (FR-24).
     toast.push(
-      `Filled ${formatHC(amount)} on ${selected.label} @ ${formatCents(priceNow)} · est. ${formatHC(estimate)}`,
+      `Placed ${formatHC(amount)} on ${selected.label} · odds ${formatCents(priceNow)} · est. ${formatHC(estimate)}`,
     );
   }
 
@@ -132,23 +132,7 @@ export function OrderPanel(props: OrderPanelProps) {
       className="card-surface flex flex-col gap-4 p-4 sm:p-5"
     >
       <div className="flex items-center justify-between border-b border-hairline">
-        <div role="tablist" className="flex gap-4">
-          <span
-            role="tab"
-            aria-selected="true"
-            className="-mb-px border-b-2 border-red px-1 pb-3 text-sm font-semibold text-text"
-          >
-            Buy
-          </span>
-          <button
-            role="tab"
-            aria-selected="false"
-            disabled
-            className="-mb-px px-1 pb-3 text-sm font-semibold text-text-muted opacity-40 cursor-not-allowed"
-          >
-            Sell
-          </button>
-        </div>
+        <h2 className="pb-3 text-sm font-semibold text-text">Buy</h2>
         <Chip className="num mb-2">HC</Chip>
       </div>
 

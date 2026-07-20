@@ -47,7 +47,6 @@ describe("placeBet", () => {
     });
     expect(result).toEqual({
       ok: true,
-      betId: "bet-1",
       outcomes: [
         { id: OUTCOME_ID, label: "Yes", sortOrder: 0, pool: 300, implied: 67 },
         {

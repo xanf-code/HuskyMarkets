@@ -2,28 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   estimatePayout,
   impliedOutcome,
-  impliedYes,
   positionValue,
 } from "./payout";
-
-describe("impliedYes", () => {
-  it("prices a balanced market at 50", () => {
-    expect(impliedYes(100, 100)).toBe(50);
-  });
-
-  it("rounds to the nearest cent like the SQL snapshot formula", () => {
-    // round(100 * 170 / 270) = round(62.96) = 63
-    expect(impliedYes(170, 100)).toBe(63);
-  });
-
-  it("clamps a lopsided YES market to 99", () => {
-    expect(impliedYes(100_000, 100)).toBe(99);
-  });
-
-  it("clamps a lopsided NO market to 1", () => {
-    expect(impliedYes(100, 100_000)).toBe(1);
-  });
-});
 
 describe("estimatePayout", () => {
   // Mirrors resolve_market's integer math with this bet added to the pools:
@@ -163,9 +143,9 @@ describe("impliedOutcome", () => {
     }
   });
 
-  it("is backward-compatible: equals impliedYes for the YES pool in a binary market", () => {
-    expect(impliedOutcome(170, 270)).toBe(impliedYes(170, 100));
-    expect(impliedOutcome(100, 200)).toBe(impliedYes(100, 100));
-    expect(impliedOutcome(100_000, 100_100)).toBe(impliedYes(100_000, 100));
+  it("matches binary-market hand-calc values (regression)", () => {
+    expect(impliedOutcome(170, 270)).toBe(63);
+    expect(impliedOutcome(100, 200)).toBe(50);
+    expect(impliedOutcome(100_000, 100_100)).toBe(99);
   });
 });

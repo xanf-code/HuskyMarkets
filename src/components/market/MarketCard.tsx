@@ -4,6 +4,7 @@ import { CATEGORIES } from "@/lib/constants";
 import { formatCents, formatHC, formatPercent } from "@/lib/format";
 import { leadingOutcome } from "@/lib/outcomes";
 import type { MarketListItem } from "@/lib/queries/markets";
+import { outcomeColor } from "@/lib/theme";
 import { Countdown } from "./Countdown";
 import { Sparkline } from "./Sparkline";
 
@@ -46,8 +47,8 @@ export function MarketCard({ market }: { market: MarketListItem }) {
             className="h-2 min-w-0 flex-1 overflow-hidden rounded-pill bg-muted"
           >
             <div
-              className="h-full rounded-pill bg-market-yes transition-[width] duration-200 ease-standard"
-              style={{ width: `${leader.implied}%` }}
+              className="h-full rounded-pill transition-[width] duration-200 ease-standard"
+              style={{ width: `${leader.implied}%`, backgroundColor: outcomeColor(leader.sortOrder) }}
             />
           </div>
           <span className="num shrink-0 text-sm font-semibold text-text">
@@ -62,10 +63,10 @@ export function MarketCard({ market }: { market: MarketListItem }) {
             key={outcome.id}
             href={`/market/${market.id}`}
             aria-label={`${outcome.label} ${formatCents(outcome.implied)}`}
-            className="flex items-center justify-between rounded-md border border-market-yes/40 bg-market-yes-bg px-3 py-2.5 text-sm font-semibold text-market-yes transition-transform duration-200 ease-standard hover:scale-[0.98] focus-visible:outline-red"
+            className="flex items-center justify-between rounded-md border border-hairline bg-muted px-3 py-2.5 text-sm font-semibold text-text transition-transform duration-200 ease-standard hover:scale-[0.98] hover:border-border-strong focus-visible:outline-red"
           >
             <span className="truncate">{outcome.label}</span>
-            <span className="num">{formatCents(outcome.implied)}</span>
+            <span className="num text-text-muted">{formatCents(outcome.implied)}</span>
           </Link>
         ))}
         {more > 0 ? (

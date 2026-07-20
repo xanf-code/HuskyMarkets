@@ -27,11 +27,9 @@ export default async function ShareBetPage({ params }: ShareBetPageProps) {
   const card = await getShareCard(betId);
   if (!card) notFound();
 
-  const sideClass = "text-market-yes";
-
   return (
     <div className="mx-auto flex min-h-[70vh] w-full max-w-2xl flex-col justify-center">
-      <p className={`num text-lg font-semibold sm:text-xl ${sideClass}`}>
+      <p className="num text-lg font-semibold text-market-yes sm:text-xl">
         Called it at {formatCents(card.priceAtBet)}
       </p>
       <h1 className="mt-3 text-2xl font-semibold leading-snug text-text sm:text-4xl">
@@ -46,7 +44,7 @@ export default async function ShareBetPage({ params }: ShareBetPageProps) {
       </p>
       <p className="mt-4 text-sm text-text-muted">
         {card.displayName} backed{" "}
-        <span className={sideClass}>{card.outcomeLabel}</span> on
+        <span className="text-market-yes">{card.outcomeLabel}</span> on
         HuskyMarkets.
       </p>
       <div className="mt-10 border-t border-hairline pt-6">

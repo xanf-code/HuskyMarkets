@@ -21,7 +21,6 @@ const placeBetSchema = z.object({
 });
 
 export interface BetFill {
-  betId: string;
   /** Full per-outcome pool/price map, ordered by sort_order (REC-12). */
   outcomes: OutcomeState[];
   newBalance: number;
@@ -66,7 +65,6 @@ export async function placeBet(
   if (error) return { ok: false, error: friendlyBetError(error.message) };
 
   const fill = data as {
-    bet_id: string;
     new_balance: number;
     outcomes: unknown;
   };
@@ -76,7 +74,6 @@ export async function placeBet(
 
   return {
     ok: true,
-    betId: fill.bet_id,
     outcomes: outcomeStateFromRpc(fill.outcomes),
     newBalance: fill.new_balance,
   };

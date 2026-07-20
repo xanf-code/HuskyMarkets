@@ -21,14 +21,6 @@ export function impliedOutcome(outcomePool: number, totalPool: number): number {
 }
 
 /**
- * Implied YES probability in cents, clamped to 1–99.
- * Thin wrapper around `impliedOutcome` — preserved for call-site compatibility.
- */
-export function impliedYes(yesPool: number, noPool: number): number {
-  return impliedOutcome(yesPool, yesPool + noPool);
-}
-
-/**
  * Estimated payout if this bet wins, assuming pools freeze after it.
  * Mirrors resolve_market with the bet added to the pools: the vig is floored
  * on the total first (`v_total*5/100` in integer SQL), then the pro-rata
