@@ -33,7 +33,7 @@ describe("share/bet/[betId] generateMetadata", () => {
   it("points the OG image at the bet OG route", async () => {
     const meta = await generateMetadata({ params });
     expect(meta.openGraph?.images).toEqual(["/api/og/bet/b1"]);
-    expect(String(meta.title)).toContain("22¢");
+    expect(String(meta.title)).toContain("22%");
   });
 
   it("404s when the bet is not a shareable win", async () => {
@@ -45,12 +45,12 @@ describe("share/bet/[betId] generateMetadata", () => {
 describe("ShareBetPage", () => {
   it("renders the public card content", async () => {
     render(await ShareBetPage({ params }));
-    expect(screen.getByText(/Called it at 22¢/)).toBeInTheDocument();
+    expect(screen.getByText(/Called it at 22%/)).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Will it snow before finals?" }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/250 HC/)).toBeInTheDocument();
-    expect(screen.getByText(/396 HC/)).toBeInTheDocument();
+    expect(screen.getByLabelText("250 HC")).toBeInTheDocument();
+    expect(screen.getByLabelText("396 HC")).toBeInTheDocument();
     expect(screen.getByText(/QuietHusky42/)).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: /view the market/i }),

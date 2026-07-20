@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import { placeBet } from "@/actions/bets";
 import { Button } from "@/components/ui/Button";
-import { Chip } from "@/components/ui/Chip";
+import { HcAmount } from "@/components/ui/HcAmount";
+import { HuskyCoinIcon } from "@/components/icons/HuskyCoinIcon";
 import { useToast } from "@/components/ui/Toast";
 import { CAP_PER_MARKET } from "@/lib/constants";
 import type { Database } from "@/lib/database.types";
-import { formatCents, formatHC, formatPercent } from "@/lib/format";
+import { formatHC, formatPercent } from "@/lib/format";
 import { totalPool, type OutcomeState } from "@/lib/outcomes";
 import { estimatePayout } from "@/lib/payout";
 import type { PositionEntry } from "@/lib/queries/markets";
@@ -116,14 +117,14 @@ export function OrderPanel(props: OrderPanelProps) {
     // Est. payout repeats at the moment of purchase, not just on the panel —
     // this is where the parimutuel expectation is actually set (FR-24).
     toast.push(
-      `Placed ${formatHC(amount)} on ${selected.label} · odds ${formatCents(priceNow)} · est. ${formatHC(estimate)}`,
+      `Placed ${formatHC(amount)} on ${selected.label} · odds ${formatPercent(priceNow)} · est. ${formatHC(estimate)}`,
     );
   }
 
   const submitLabel = open
     ? pending
       ? "Placing…"
-      : `Buy ${selected?.label ?? "—"} · ${formatCents(selected?.implied ?? 0)}`
+      : `Buy ${selected?.label ?? "—"} · ${formatPercent(selected?.implied ?? 0)}`
     : "Market closed";
 
   return (
@@ -133,7 +134,7 @@ export function OrderPanel(props: OrderPanelProps) {
     >
       <div className="flex items-center justify-between border-b border-hairline">
         <h2 className="pb-3 text-sm font-semibold text-text">Buy</h2>
-        <Chip className="num mb-2">HC</Chip>
+        <HuskyCoinIcon size={18} className="mb-2" />
       </div>
 
       <div className="flex flex-col gap-1">
@@ -161,16 +162,16 @@ export function OrderPanel(props: OrderPanelProps) {
                   : "border-hairline bg-muted text-text hover:border-border-strong"
               }`}
             >
-              {outcome.label} {formatCents(outcome.implied)}
+              {outcome.label} {formatPercent(outcome.implied)}
             </button>
           );
         })}
       </div>
 
       <label className="flex items-center justify-between gap-3 rounded-lg border border-hairline bg-card px-4 py-3 transition-colors duration-200 ease-standard focus-within:border-red">
-        <span className="flex shrink-0 flex-col">
+        <span className="flex shrink-0 items-center gap-1.5">
+          <HuskyCoinIcon size={18} />
           <span className="text-sm font-semibold text-text">Amount</span>
-          <span className="text-xs text-text-muted">HC</span>
         </span>
         <input
           type="number"
@@ -180,7 +181,7 @@ export function OrderPanel(props: OrderPanelProps) {
           value={amountInput}
           onChange={(event) => setAmountInput(event.target.value)}
           disabled={!open}
-          aria-label="Amount (HC)"
+          aria-label="Amount (HuskyCoin)"
           placeholder="0"
           className="num w-full min-w-0 flex-1 border-none bg-transparent text-right text-3xl font-semibold text-text [appearance:textfield] placeholder:text-text-tertiary focus:outline-none disabled:opacity-50 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
         />
@@ -217,16 +218,20 @@ export function OrderPanel(props: OrderPanelProps) {
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="shrink-0 text-text-muted">Balance</dt>
-          <dd className="num whitespace-nowrap text-text">{formatHC(balance)}</dd>
+          <dd className="whitespace-nowrap text-text">
+            <HcAmount amount={balance} size={14} />
+          </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="shrink-0 text-text-muted">Cap remaining</dt>
-          <dd className="num whitespace-nowrap text-text">{formatHC(capRemaining)}</dd>
+          <dd className="whitespace-nowrap text-text">
+            <HcAmount amount={capRemaining} size={14} />
+          </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3 border-t border-hairline pt-3">
           <dt className="shrink-0 font-semibold text-text">Est. payout</dt>
-          <dd className="num text-2xl font-bold whitespace-nowrap text-text">
-            {valid ? formatHC(estimate) : "—"}
+          <dd className="text-2xl font-bold whitespace-nowrap text-text">
+            {valid ? <HcAmount amount={estimate} size={20} /> : "—"}
           </dd>
         </div>
       </dl>

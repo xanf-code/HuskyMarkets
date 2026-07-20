@@ -76,8 +76,8 @@ describe("MarketGridLive", () => {
 
   it("patches the matching card's price and volume on an outcome UPDATE", () => {
     render(<MarketGridLive initial={[market("m1", "Snow before finals?")]} />);
-    expect(screen.getByText("67%")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /yes\s+67¢/i })).toBeInTheDocument();
+    expect(screen.getAllByText("67%").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByRole("link", { name: /yes\s+67%/i })).toBeInTheDocument();
 
     act(() => {
       handlers.get("market_outcomes:UPDATE")!({
@@ -85,10 +85,10 @@ describe("MarketGridLive", () => {
       });
     });
 
-    // No now leads 300/500 → 60%; Yes 40¢
-    expect(screen.getByText("60%")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /yes\s+40¢/i })).toBeInTheDocument();
-    expect(screen.getByText("300 HC")).toBeInTheDocument();
+    // No now leads 300/500 → 60%; Yes 40%
+    expect(screen.getAllByText("60%").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByRole("link", { name: /yes\s+40%/i })).toBeInTheDocument();
+    expect(screen.getByLabelText("300 HC")).toBeInTheDocument();
   });
 
   it("drops a card when its market closes", () => {

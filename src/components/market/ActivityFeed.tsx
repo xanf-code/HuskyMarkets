@@ -4,8 +4,9 @@ import {
   InfiniteScrollSentinel,
   useLoadMore,
 } from "@/components/ui/LoadMore";
+import { HcAmount } from "@/components/ui/HcAmount";
 import { ACTIVITY_PAGE_SIZE } from "@/lib/constants";
-import { formatCents, formatHC, timeAgo } from "@/lib/format";
+import { formatPercent, timeAgo } from "@/lib/format";
 import type { ActivityItem } from "@/lib/queries/markets";
 
 export function ActivityFeed({ activity }: { activity: ActivityItem[] }) {
@@ -34,8 +35,9 @@ export function ActivityFeed({ activity }: { activity: ActivityItem[] }) {
                 <span className="text-text-muted"> · </span>
                 <span className="text-text">{bet.outcomeLabel}</span>
               </p>
-              <p className="num mt-0.5 text-xs text-text-muted">
-                {formatHC(bet.amount)} ({formatCents(bet.price)})
+              <p className="mt-0.5 flex flex-wrap items-center gap-1 text-xs text-text-muted">
+                <HcAmount amount={bet.amount} size={12} />
+                <span className="num">({formatPercent(bet.price)})</span>
               </p>
             </div>
             <span className="num shrink-0 pt-0.5 text-xs text-text-muted">

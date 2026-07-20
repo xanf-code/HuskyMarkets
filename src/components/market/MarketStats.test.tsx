@@ -14,7 +14,7 @@ describe("MarketStats", () => {
         bettorCount={3}
       />,
     );
-    expect(screen.getByText("550 HC")).toBeInTheDocument();
+    expect(screen.getByLabelText("550 HC")).toBeInTheDocument();
     expect(screen.getByText("3")).toBeInTheDocument();
     expect(screen.getByText("Yes 450 / No 300")).toBeInTheDocument();
   });

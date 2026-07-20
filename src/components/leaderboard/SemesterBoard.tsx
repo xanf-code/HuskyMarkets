@@ -4,8 +4,8 @@ import {
   InfiniteScrollSentinel,
   useLoadMore,
 } from "@/components/ui/LoadMore";
+import { HcAmount } from "@/components/ui/HcAmount";
 import { LEADERBOARD_PAGE_SIZE } from "@/lib/constants";
-import { formatHC } from "@/lib/format";
 import type { SemesterEntry } from "@/lib/queries/leaderboard";
 
 interface SemesterBoardProps {
@@ -52,8 +52,8 @@ export function SemesterBoard({ entries, currentUserId }: SemesterBoardProps) {
                 {e.displayName}
                 {mine ? " (you)" : ""}
               </span>
-              <span className="num shrink-0 text-sm font-semibold text-text">
-                {formatHC(e.score)}
+              <span className="shrink-0 text-sm font-semibold text-text">
+                <HcAmount amount={e.score} size={14} />
               </span>
             </li>
           );

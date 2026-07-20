@@ -39,7 +39,7 @@ describe("market/[id] generateMetadata", () => {
   it("titles the page with the market and points OG images at the market OG route", async () => {
     const meta = await generateMetadata({ params });
     expect(String(meta.title)).toContain("Will it snow before finals?");
-    expect(String(meta.description)).toContain("63¢");
+    expect(String(meta.description)).toContain("63%");
     expect(meta.openGraph?.images).toEqual(["/api/og/market/m1"]);
   });
 

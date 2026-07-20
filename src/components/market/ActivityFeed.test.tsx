@@ -32,8 +32,8 @@ describe("ActivityFeed", () => {
     const line = screen.getByRole("listitem");
     expect(line).toHaveTextContent("Bought");
     expect(line).toHaveTextContent("Gavin Newsom");
-    expect(line).toHaveTextContent("50 HC");
-    expect(line).toHaveTextContent("61¢");
+    expect(line).toHaveTextContent("50");
+    expect(line).toHaveTextContent("61%");
     expect(line).toHaveTextContent("2m ago");
     expect(line).not.toHaveTextContent(/Husky/i);
   });

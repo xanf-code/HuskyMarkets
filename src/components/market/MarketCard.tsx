@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Chip } from "@/components/ui/Chip";
+import { HcAmount } from "@/components/ui/HcAmount";
 import { CATEGORIES } from "@/lib/constants";
-import { formatCents, formatHC, formatPercent } from "@/lib/format";
+import { formatPercent } from "@/lib/format";
 import { leadingOutcome, totalPool } from "@/lib/outcomes";
 import type { MarketListItem } from "@/lib/queries/markets";
 import { outcomeColor } from "@/lib/theme";
@@ -20,9 +21,9 @@ export function MarketCard({ market }: { market: MarketListItem }) {
   const more = market.outcomes.length - top.length;
   const pool = totalPool(market.outcomes);
   const stats = [
-    { label: "Volume", value: formatHC(market.volume) },
+    { label: "Volume", value: <HcAmount amount={market.volume} size={12} /> },
     { label: "Bettors", value: String(market.bettorCount) },
-    { label: "Pool", value: formatHC(pool) },
+    { label: "Pool", value: <HcAmount amount={pool} size={12} /> },
   ];
 
   return (
@@ -67,11 +68,11 @@ export function MarketCard({ market }: { market: MarketListItem }) {
           <Link
             key={outcome.id}
             href={`/market/${market.id}`}
-            aria-label={`${outcome.label} ${formatCents(outcome.implied)}`}
+            aria-label={`${outcome.label} ${formatPercent(outcome.implied)}`}
             className="flex items-center justify-between rounded-md border border-hairline bg-muted px-3 py-2.5 text-sm font-semibold text-text transition-transform duration-200 ease-standard hover:scale-[0.98] hover:border-border-strong focus-visible:outline-red"
           >
             <span className="truncate">{outcome.label}</span>
-            <span className="num text-text-muted">{formatCents(outcome.implied)}</span>
+            <span className="num text-text-muted">{formatPercent(outcome.implied)}</span>
           </Link>
         ))}
         {more > 0 ? (
@@ -87,7 +88,7 @@ export function MarketCard({ market }: { market: MarketListItem }) {
             <dt className="text-[10px] font-medium tracking-wide text-text-muted uppercase">
               {stat.label}
             </dt>
-            <dd className="num mt-0.5 truncate text-xs font-semibold text-text">
+            <dd className="mt-0.5 truncate text-xs font-semibold text-text">
               {stat.value}
             </dd>
           </div>

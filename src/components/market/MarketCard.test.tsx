@@ -28,11 +28,11 @@ describe("MarketCard", () => {
 
   it("shows both outcomes as price affordances for a binary market", () => {
     render(<MarketCard market={market} />);
-    expect(screen.getByRole("link", { name: /yes\s+60¢/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /yes\s+60%/i })).toHaveAttribute(
       "href",
       "/market/m1",
     );
-    expect(screen.getByRole("link", { name: /no\s+40¢/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /no\s+40%/i })).toHaveAttribute(
       "href",
       "/market/m1",
     );
@@ -51,7 +51,7 @@ describe("MarketCard", () => {
         }}
       />,
     );
-    expect(screen.getByRole("link", { name: /beta\s+60¢/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /beta\s+60%/i })).toBeInTheDocument();
     expect(screen.getByText("+1 more")).toBeInTheDocument();
   });
 
@@ -71,10 +71,10 @@ describe("MarketCard", () => {
     render(<MarketCard market={{ ...market, outcomes }} />);
 
     expect(
-      screen.getByRole("link", { name: /outcome 4\s+56¢/i }),
+      screen.getByRole("link", { name: /outcome 4\s+56%/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: /outcome 2\s+22¢/i }),
+      screen.getByRole("link", { name: /outcome 2\s+22%/i }),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("link", { name: /outcome 1/i }),
@@ -84,7 +84,7 @@ describe("MarketCard", () => {
 
   it("leads with the leading outcome's probability percentage", () => {
     render(<MarketCard market={market} />);
-    expect(screen.getByText("60%")).toBeInTheDocument();
+    expect(screen.getAllByText("60%").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByRole("progressbar")).toHaveAttribute(
       "aria-valuenow",
       "60",
@@ -95,11 +95,11 @@ describe("MarketCard", () => {
     const { container } = render(<MarketCard market={market} />);
     expect(screen.getByText("Weather")).toBeInTheDocument();
     expect(screen.getByText("Volume")).toBeInTheDocument();
-    expect(screen.getByText("550 HC")).toBeInTheDocument();
+    expect(screen.getByLabelText("550 HC")).toBeInTheDocument();
     expect(screen.getByText("Bettors")).toBeInTheDocument();
     expect(screen.getByText("3")).toBeInTheDocument();
     expect(screen.getByText("Pool")).toBeInTheDocument();
-    expect(screen.getByText("750 HC")).toBeInTheDocument();
+    expect(screen.getByLabelText("750 HC")).toBeInTheDocument();
     expect(container.querySelector("[data-testid=sparkline]")).toBeNull();
     const title = screen.getByRole("heading", { level: 3 });
     expect(title).toHaveTextContent(market.title);

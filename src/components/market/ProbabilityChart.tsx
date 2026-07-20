@@ -11,7 +11,7 @@ import {
   YAxis,
 } from "recharts";
 import { buildChartSeries, type ChartVariant } from "@/lib/chart-series";
-import { formatCents } from "@/lib/format";
+import { formatPercent } from "@/lib/format";
 import type { OutcomeState } from "@/lib/outcomes";
 import type { HistoryPoint } from "@/lib/queries/markets";
 import { outcomeColor, theme } from "@/lib/theme";
@@ -76,7 +76,7 @@ function CrosshairTooltip({
               className="ml-auto pl-3 font-semibold"
               style={{ color: row.color }}
             >
-              {formatCents(row.value ?? 0)}
+              {formatPercent(row.value ?? 0)}
             </span>
           </li>
         ))}
@@ -176,7 +176,7 @@ export function ProbabilityChart({
             <YAxis
               domain={[0, 100]}
               ticks={[0, 25, 50, 75, 100]}
-              tickFormatter={(v: number) => `${v}¢`}
+              tickFormatter={(v: number) => `${v}%`}
               tick={TICK_STYLE}
               tickLine={false}
               axisLine={false}

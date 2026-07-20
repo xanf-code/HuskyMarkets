@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Countdown } from "@/components/market/Countdown";
-import { formatCents, formatHC } from "@/lib/format";
+import { HcAmount } from "@/components/ui/HcAmount";
+import { formatPercent } from "@/lib/format";
 import type { OpenPosition } from "@/lib/queries/portfolio";
 
 export function PositionsTable({ positions }: { positions: OpenPosition[] }) {
@@ -36,18 +37,20 @@ export function PositionsTable({ positions }: { positions: OpenPosition[] }) {
           <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
             <div>
               <dt className="text-xs font-medium text-text-muted">Stake</dt>
-              <dd className="num mt-1">{formatHC(p.stake)}</dd>
+              <dd className="mt-1">
+                <HcAmount amount={p.stake} size={14} />
+              </dd>
             </div>
             <div>
               <dt className="text-xs font-medium text-text-muted">Avg price</dt>
-              <dd className="num mt-1">{formatCents(p.avgPrice)}</dd>
+              <dd className="num mt-1">{formatPercent(p.avgPrice)}</dd>
             </div>
             <div>
               <dt className="text-xs font-medium text-text-muted">
                 Implied value
               </dt>
-              <dd className="num mt-1 font-semibold text-text">
-                {formatHC(p.impliedValue)}
+              <dd className="mt-1 font-semibold text-text">
+                <HcAmount amount={p.impliedValue} size={14} />
               </dd>
             </div>
           </dl>

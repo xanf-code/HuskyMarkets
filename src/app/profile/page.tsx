@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { formatHC } from "@/lib/format";
 import { buttonStyles } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
+import { HcAmount } from "@/components/ui/HcAmount";
 import { StatBlock } from "@/components/ui/StatBlock";
 import { BAILOUT_THRESHOLD } from "@/lib/constants";
 import { verifySession } from "@/lib/dal";
@@ -81,7 +81,9 @@ export default async function ProfilePage() {
       <dl className="card-surface grid grid-cols-1 overflow-hidden sm:grid-cols-3 sm:divide-x sm:divide-hairline">
         <div className="border-b border-hairline p-4 sm:border-b-0 sm:p-5">
           <dt className="text-sm font-semibold text-text-muted">Balance</dt>
-          <dd className="num mt-2 text-2xl text-text">{formatHC(balance)}</dd>
+          <dd className="mt-2 text-2xl text-text">
+            <HcAmount amount={balance} size={22} />
+          </dd>
         </div>
         <div className="border-b border-hairline p-4 sm:border-b-0 sm:p-5">
           <dt className="text-sm font-semibold text-text-muted">Display mode</dt>
@@ -104,8 +106,14 @@ export default async function ProfilePage() {
           Career stats
         </h2>
         <div className="card-surface grid grid-cols-1 overflow-hidden sm:grid-cols-3 sm:divide-x sm:divide-hairline">
-          <StatBlock label="Biggest win" value={formatHC(stats.biggestWin)} />
-          <StatBlock label="Worst loss" value={formatHC(stats.worstLoss)} />
+          <StatBlock
+            label="Biggest win"
+            value={<HcAmount amount={stats.biggestWin} size={28} />}
+          />
+          <StatBlock
+            label="Worst loss"
+            value={<HcAmount amount={stats.worstLoss} size={28} />}
+          />
           <StatBlock label="Current streak" value={streakLabel} />
         </div>
       </section>
@@ -114,9 +122,9 @@ export default async function ProfilePage() {
         <section className="card-surface p-4 sm:p-6">
           <h2 className="text-xl font-semibold text-text">Broke?</h2>
           <p className="mt-2 mb-4 text-sm text-text-muted">
-            Your balance is below {BAILOUT_THRESHOLD} HC, so you can take one
-            bailout per week. It keeps you trading, but it counts against you
-            on the leaderboard.
+            Your balance is below {BAILOUT_THRESHOLD} HuskyCoin, so you can take
+            one bailout per week. It keeps you trading, but it counts against
+            you on the leaderboard.
           </p>
           <BailoutButton />
         </section>

@@ -41,7 +41,8 @@ describe("ResolvedHistory", () => {
 
   it("shows the bet-time estimate next to the actual payout (FR-21, FR-24)", () => {
     render(<ResolvedHistory rows={[row({})]} />);
-    expect(screen.getByText(/Est\. payout 200 HC/)).toBeInTheDocument();
+    expect(screen.getByText(/Est\. payout/)).toBeInTheDocument();
+    expect(screen.getByLabelText("200 HC")).toBeInTheDocument();
   });
 
   it("omits the estimate for lost positions", () => {

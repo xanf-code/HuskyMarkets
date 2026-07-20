@@ -1,5 +1,5 @@
 import { CATEGORIES } from "@/lib/constants";
-import { formatCents, formatHC } from "@/lib/format";
+import { formatHC, formatPercent } from "@/lib/format";
 import type { MarketCard } from "@/lib/queries/share";
 import { OG_COLORS, OG_FONT, ogDate } from "./theme";
 
@@ -87,7 +87,7 @@ export function MarketOgCard({ card }: { card: MarketCard }) {
             fontVariantNumeric: "tabular-nums",
           }}
         >
-          {`${card.leading.label} ${formatCents(card.leading.price)}`}
+          {`${card.leading.label} ${formatPercent(card.leading.price)}`}
         </div>
       </div>
 

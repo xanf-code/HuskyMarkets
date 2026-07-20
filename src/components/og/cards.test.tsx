@@ -17,7 +17,7 @@ describe("MarketOgCard", () => {
     render(<MarketOgCard card={card} />);
     expect(screen.getByText("Will it snow before finals?")).toBeInTheDocument();
     expect(screen.getByText("Weather")).toBeInTheDocument();
-    expect(screen.getByText("Yes 63¢")).toBeInTheDocument();
+    expect(screen.getByText("Yes 63%")).toBeInTheDocument();
     expect(screen.getByText(/550 HC/)).toBeInTheDocument();
     expect(screen.getByText(/Jul 20/)).toBeInTheDocument();
     expect(screen.getByText("HuskyMarkets")).toBeInTheDocument();
@@ -29,7 +29,7 @@ describe("MarketOgCard", () => {
         card={{ ...card, leading: { label: "Green Line", price: 41 } }}
       />,
     );
-    expect(screen.getByText("Green Line 41¢")).toBeInTheDocument();
+    expect(screen.getByText("Green Line 41%")).toBeInTheDocument();
   });
 
   it("escapes UGC labels — markup in a label renders as text, never HTML", () => {
@@ -43,7 +43,7 @@ describe("MarketOgCard", () => {
       />,
     );
     expect(
-      screen.getByText(/<img src=x onerror="alert\(1\)"> 63¢/),
+      screen.getByText(/<img src=x onerror="alert\(1\)"> 63%/),
     ).toBeInTheDocument();
     expect(container.querySelector("img")).toBeNull();
   });
@@ -62,7 +62,7 @@ describe("BetOgCard", () => {
 
   it("renders called-it price, title, stake to payout, outcome label, display name and wordmark", () => {
     render(<BetOgCard card={card} />);
-    expect(screen.getByText(/Called it at 22¢/)).toBeInTheDocument();
+    expect(screen.getByText(/Called it at 22%/)).toBeInTheDocument();
     expect(screen.getByText("Will it snow before finals?")).toBeInTheDocument();
     expect(screen.getByText(/250 HC/)).toBeInTheDocument();
     expect(screen.getByText(/396 HC/)).toBeInTheDocument();

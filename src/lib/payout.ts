@@ -7,7 +7,7 @@
 //   Σ(user tx) + Σ(vig_burn) − Σ_{m ∈ resolved}(100 × outcome_count(m)) = Σ(grants)
 
 /**
- * Implied probability for one outcome, in cents, clamped to 1–99.
+ * Implied probability for one outcome (1–99 percent points), clamped.
  * Mirrors `least(greatest(round(100.0*outcome/total)::int, 1), 99)`.
  *
  * N-outcome generalisation of the binary formula. Binary markets are the N=2

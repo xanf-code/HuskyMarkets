@@ -1,25 +1,26 @@
 import { describe, expect, it } from "vitest";
 import {
-  formatCents,
   formatCountdown,
   formatHC,
+  formatHCNumber,
   formatPercent,
   marketVolume,
   timeAgo,
 } from "./format";
 
-describe("formatHC", () => {
-  it("adds thousands separators and the HC suffix", () => {
-    expect(formatHC(1000)).toBe("1,000 HC");
-    expect(formatHC(50)).toBe("50 HC");
-    expect(formatHC(0)).toBe("0 HC");
+describe("formatHCNumber", () => {
+  it("adds thousands separators with no unit", () => {
+    expect(formatHCNumber(1000)).toBe("1,000");
+    expect(formatHCNumber(50)).toBe("50");
+    expect(formatHCNumber(0)).toBe("0");
   });
 });
 
-describe("formatCents", () => {
-  it("renders an implied price as cents", () => {
-    expect(formatCents(63)).toBe("63¢");
-    expect(formatCents(1)).toBe("1¢");
+describe("formatHC", () => {
+  it("adds thousands separators and the HC suffix for plain strings", () => {
+    expect(formatHC(1000)).toBe("1,000 HC");
+    expect(formatHC(50)).toBe("50 HC");
+    expect(formatHC(0)).toBe("0 HC");
   });
 });
 

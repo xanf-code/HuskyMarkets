@@ -81,7 +81,7 @@ describe("MarketLive", () => {
     renderLive(<LivePrice />);
 
     expect(screen.getByText("67%")).toBeInTheDocument();
-    expect(screen.getByText("Yes 67¢")).toBeInTheDocument();
+    expect(screen.getByText("Yes")).toBeInTheDocument();
   });
 
   it("renders live pools and volume in the stats", () => {
@@ -96,7 +96,7 @@ describe("MarketLive", () => {
     renderLive(<LiveStats bettorCount={4} />);
 
     // volume = 450 − 200 seed
-    expect(screen.getByText("250 HC")).toBeInTheDocument();
+    expect(screen.getByLabelText("250 HC")).toBeInTheDocument();
     expect(screen.getByText("Yes 300 / No 150")).toBeInTheDocument();
   });
 

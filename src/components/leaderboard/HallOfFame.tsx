@@ -1,4 +1,4 @@
-import { formatHC } from "@/lib/format";
+import { HcAmount } from "@/components/ui/HcAmount";
 import type { HallOfFameEntry } from "@/lib/queries/leaderboard";
 
 export function HallOfFame({ entries }: { entries: HallOfFameEntry[] }) {
@@ -36,8 +36,8 @@ export function HallOfFame({ entries }: { entries: HallOfFameEntry[] }) {
                 <span className="min-w-0 flex-1 truncate text-sm sm:text-base text-text">
                   {e.displayName}
                 </span>
-                <span className="num shrink-0 text-sm font-semibold text-text">
-                  {formatHC(e.score)}
+                <span className="shrink-0 text-sm font-semibold text-text">
+                  <HcAmount amount={e.score} size={14} />
                 </span>
               </li>
             ))}

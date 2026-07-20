@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Chip } from "@/components/ui/Chip";
+import { HcAmount } from "@/components/ui/HcAmount";
 import { CATEGORIES } from "@/lib/constants";
-import { formatCents, formatHC } from "@/lib/format";
+import { formatPercent } from "@/lib/format";
 import { leadingOutcome } from "@/lib/outcomes";
 import type { MarketListItem } from "@/lib/queries/markets";
 import { outcomeColor } from "@/lib/theme";
@@ -97,7 +98,7 @@ export function TrendingCarousel({ markets }: { markets: MarketListItem[] }) {
                     {outcome.label}
                   </span>
                   <span className="num ml-auto rounded-pill border border-hairline bg-muted px-2.5 py-0.5 text-xs font-semibold text-text">
-                    {formatCents(outcome.implied)}
+                    {formatPercent(outcome.implied)}
                   </span>
                 </li>
               ))}
@@ -108,8 +109,9 @@ export function TrendingCarousel({ markets }: { markets: MarketListItem[] }) {
               ) : null}
             </ul>
 
-            <p className="num text-sm text-text-muted">
-              {formatHC(market.volume)} vol
+            <p className="flex items-center gap-1 text-sm text-text-muted">
+              <HcAmount amount={market.volume} size={12} />
+              <span>vol</span>
             </p>
           </div>
 

@@ -12,8 +12,9 @@ import {
 } from "@/components/market/MarketLive";
 import { ReportDialog } from "@/components/market/ReportDialog";
 import { Chip } from "@/components/ui/Chip";
+import { HcAmount } from "@/components/ui/HcAmount";
 import { CATEGORIES } from "@/lib/constants";
-import { formatCents, formatHC } from "@/lib/format";
+import { formatHC, formatPercent } from "@/lib/format";
 import { getMarketDetail } from "@/lib/queries/markets";
 import { getMarketCard } from "@/lib/queries/share";
 
@@ -44,7 +45,7 @@ export async function generateMetadata({
   if (!card) return { title: "Market — HuskyMarkets" };
   return {
     title: `${card.title} — HuskyMarkets`,
-    description: `${card.leading.label} at ${formatCents(card.leading.price)} · ${formatHC(card.volume)} wagered — HuskyMarkets`,
+    description: `${card.leading.label} at ${formatPercent(card.leading.price)} · ${formatHC(card.volume)} wagered — HuskyMarkets`,
     openGraph: { images: [`/api/og/market/${id}`] },
   };
 }
@@ -113,11 +114,15 @@ export default async function MarketPage({
             question={market.title}
           />
           {totalStaked > 0 ? (
-            <p className="num mt-3 text-xs text-text-muted">
-              Your position:{" "}
-              {detail.position
-                .map((p) => `${p.stake} HC ${p.label}`)
-                .join(" · ")}
+            <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-text-muted">
+              <span>Your position:</span>
+              {detail.position.map((p, i) => (
+                <span key={p.outcomeId} className="inline-flex items-center gap-1">
+                  {i > 0 ? <span aria-hidden="true">·</span> : null}
+                  <HcAmount amount={p.stake} size={12} />
+                  <span>{p.label}</span>
+                </span>
+              ))}
             </p>
           ) : null}
         </div>

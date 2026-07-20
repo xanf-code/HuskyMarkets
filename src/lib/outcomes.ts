@@ -12,7 +12,7 @@ export interface OutcomeState {
   label: string;
   sortOrder: number;
   pool: number;
-  /** Implied price in cents (1–99), as of the last pool movement. */
+  /** Implied price as a percent point (1–99), as of the last pool movement. */
   implied: number;
 }
 

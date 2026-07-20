@@ -28,9 +28,9 @@ describe("PositionsTable", () => {
     );
 
     expect(screen.getByText("Green Line delay?")).toBeInTheDocument();
-    expect(screen.getByText("150 HC")).toBeInTheDocument();
-    expect(screen.getByText("55¢")).toBeInTheDocument();
-    expect(screen.getByText("237 HC")).toBeInTheDocument();
+    expect(screen.getByLabelText("150 HC")).toBeInTheDocument();
+    expect(screen.getByText("55%")).toBeInTheDocument();
+    expect(screen.getByLabelText("237 HC")).toBeInTheDocument();
   });
 
   it("shows a plain empty state when there are no positions", () => {

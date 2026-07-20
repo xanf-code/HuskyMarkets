@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { buttonStyles } from "@/components/ui/Button";
-import { formatHC } from "@/lib/format";
+import { HcAmount } from "@/components/ui/HcAmount";
 import type { ResolvedPosition } from "@/lib/queries/portfolio";
 
 export function ResolvedHistory({ rows }: { rows: ResolvedPosition[] }) {
@@ -34,19 +34,24 @@ export function ResolvedHistory({ rows }: { rows: ResolvedPosition[] }) {
               </p>
             </div>
             <p
-              className={`num text-lg font-semibold ${
+              className={`flex items-center gap-0.5 text-lg font-semibold ${
                 r.won ? "text-market-yes" : "text-text-muted"
               }`}
             >
-              {r.pnl > 0 ? "+" : ""}
-              {formatHC(r.pnl)}
+              {r.pnl > 0 ? <span aria-hidden="true">+</span> : null}
+              <HcAmount amount={r.pnl} size={16} />
             </p>
           </div>
-          <p className="num mt-3 text-sm text-text-muted">
-            {formatHC(r.stake)} to {formatHC(r.payout)}
-            {r.estimatedPayout != null
-              ? ` · Est. payout ${formatHC(r.estimatedPayout)}`
-              : ""}
+          <p className="mt-3 flex flex-wrap items-center gap-1 text-sm text-text-muted">
+            <HcAmount amount={r.stake} size={12} />
+            <span>to</span>
+            <HcAmount amount={r.payout} size={12} />
+            {r.estimatedPayout != null ? (
+              <span className="inline-flex items-center gap-1">
+                <span>· Est. payout</span>
+                <HcAmount amount={r.estimatedPayout} size={12} />
+              </span>
+            ) : null}
           </p>
           {r.won && r.shareBetId ? (
             <Link

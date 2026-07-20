@@ -4,16 +4,20 @@ import { HOUSE_SEED } from "@/lib/constants";
 
 const HC = new Intl.NumberFormat("en-US");
 
+/** Thousands-separated amount with no unit — pair with HuskyCoinIcon in UI. */
+export function formatHCNumber(amount: number): string {
+  return HC.format(amount);
+}
+
+/**
+ * Plain-string HuskyCoin amount for toasts, aria-labels, and meta descriptions
+ * where the coin icon cannot render: "1,000 HC".
+ */
 export function formatHC(amount: number): string {
   return `${HC.format(amount)} HC`;
 }
 
-/** Implied probability (1–99) rendered Kalshi-style: "63¢". */
-export function formatCents(price: number): string {
-  return `${price}¢`;
-}
-
-/** Primary card/detail probability label: "62%". */
+/** Implied probability (1–99) as a percent: "62%". */
 export function formatPercent(price: number): string {
   return `${price}%`;
 }

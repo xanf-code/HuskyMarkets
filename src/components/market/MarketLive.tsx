@@ -6,7 +6,7 @@
 // activity, status banner. Static content (title, rules) stays server-side.
 
 import { createContext, useContext, type ReactNode } from "react";
-import { formatCents, marketVolume } from "@/lib/format";
+import { marketVolume } from "@/lib/format";
 import { leadingOutcome, totalPool } from "@/lib/outcomes";
 import {
   useMarketChannel,
@@ -58,9 +58,7 @@ export function LivePrice() {
       <p className="num text-4xl font-semibold text-text sm:text-5xl">
         {leader.implied}%
       </p>
-      <p className="num text-lg text-text-muted sm:text-xl">
-        {leader.label} {formatCents(leader.implied)}
-      </p>
+      <p className="num text-lg text-text-muted sm:text-xl">{leader.label}</p>
     </div>
   );
 }

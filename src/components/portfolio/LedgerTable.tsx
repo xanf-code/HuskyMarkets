@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { formatHC, timeAgo } from "@/lib/format";
+import { HcAmount } from "@/components/ui/HcAmount";
+import { timeAgo } from "@/lib/format";
 import type { LedgerEntry } from "@/lib/queries/portfolio";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -43,12 +44,12 @@ export function LedgerTable({ entries }: { entries: LedgerEntry[] }) {
           </div>
           <div className="text-right">
             <p
-              className={`num text-sm font-semibold ${
+              className={`flex items-center justify-end gap-0.5 text-sm font-semibold ${
                 e.amount > 0 ? "text-market-yes" : "text-text"
               }`}
             >
-              {e.amount > 0 ? "+" : ""}
-              {formatHC(e.amount)}
+              {e.amount > 0 ? <span aria-hidden="true">+</span> : null}
+              <HcAmount amount={e.amount} size={14} />
             </p>
             <p className="num mt-0.5 text-xs text-text-muted">
               {timeAgo(e.createdAt)}

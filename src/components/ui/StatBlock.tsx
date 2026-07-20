@@ -1,6 +1,8 @@
+import type { ReactNode } from "react";
+
 interface StatBlockProps {
   label: string;
-  value: string | number;
+  value: ReactNode;
 }
 
 /** Large tabular numeral + label — used in inverse “by the numbers” bands. */

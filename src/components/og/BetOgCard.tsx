@@ -1,4 +1,4 @@
-import { formatCents, formatHC } from "@/lib/format";
+import { formatHC, formatPercent } from "@/lib/format";
 import type { ShareCard } from "@/lib/queries/share";
 import { OG_COLORS, OG_FONT } from "./theme";
 
@@ -31,7 +31,7 @@ export function BetOgCard({ card }: { card: ShareCard }) {
             fontVariantNumeric: "tabular-nums",
           }}
         >
-          {`Called it at ${formatCents(card.priceAtBet)}`}
+          {`Called it at ${formatPercent(card.priceAtBet)}`}
         </span>
         <span
           style={{

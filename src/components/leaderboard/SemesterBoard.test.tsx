@@ -39,7 +39,7 @@ describe("SemesterBoard", () => {
 
     expect(screen.getByText("Alice")).toBeInTheDocument();
     expect(screen.getByText(/Bob \(you\)/)).toBeInTheDocument();
-    expect(screen.getByText("1,200 HC")).toBeInTheDocument();
+    expect(screen.getByLabelText("1,200 HC")).toBeInTheDocument();
   });
 
   it("paginates long boards and shows a scroll sentinel", () => {

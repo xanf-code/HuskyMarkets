@@ -53,8 +53,8 @@ describe("OrderPanel", () => {
 
   it("shows every outcome with its price and defaults to the first in sort_order", () => {
     renderPanel();
-    const yes = screen.getByRole("button", { name: /Yes 67¢/ });
-    const no = screen.getByRole("button", { name: /No 33¢/ });
+    const yes = screen.getByRole("button", { name: /Yes 67%/ });
+    const no = screen.getByRole("button", { name: /No 33%/ });
     expect(yes).toHaveAttribute("aria-pressed", "true");
     expect(no).toHaveAttribute("aria-pressed", "false");
   });
@@ -62,7 +62,7 @@ describe("OrderPanel", () => {
   it("labels the submit with the selected outcome and price", () => {
     renderPanel();
     expect(
-      screen.getByRole("button", { name: /Buy Yes · 67¢/i }),
+      screen.getByRole("button", { name: /Buy Yes · 67%/i }),
     ).toBeInTheDocument();
   });
 
@@ -71,7 +71,7 @@ describe("OrderPanel", () => {
     renderPanel();
     expect(screen.getByText("67% chance")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /No 33¢/ }));
+    await user.click(screen.getByRole("button", { name: /No 33%/ }));
     expect(screen.getByText("33% chance")).toBeInTheDocument();
   });
 
@@ -82,7 +82,7 @@ describe("OrderPanel", () => {
     await user.type(screen.getByLabelText(/amount/i), "100");
 
     // total 400, vig 20, after 380 → floor(100·380/300) = 126
-    expect(screen.getByText("126 HC")).toBeInTheDocument();
+    expect(screen.getByLabelText("126 HC")).toBeInTheDocument();
     expect(screen.getByText(/Est\. payout/)).toBeInTheDocument();
     // Generic arrow glyphs are banned from the UI.
     expect(container.textContent).not.toContain("→");
@@ -105,16 +105,16 @@ describe("OrderPanel", () => {
     renderPanel();
 
     await user.type(screen.getByLabelText(/amount/i), "100");
-    await user.click(screen.getByRole("button", { name: /Buy Yes · 67¢/i }));
+    await user.click(screen.getByRole("button", { name: /Buy Yes · 67%/i }));
 
     expect(placeBet).toHaveBeenCalledWith({
       marketId: "m1",
       outcomeId: "o-yes",
       amount: 100,
     });
-    // fill moves the displayed price to the RPC's post-bet 75¢
+    // fill moves the displayed price to the RPC's post-bet 75%
     expect(
-      await screen.findByRole("button", { name: /Yes 75¢/ }),
+      await screen.findByRole("button", { name: /Yes 75%/ }),
     ).toBeInTheDocument();
   });
 
@@ -127,7 +127,7 @@ describe("OrderPanel", () => {
     renderPanel();
 
     await user.type(screen.getByLabelText(/amount/i), "100");
-    await user.click(screen.getByRole("button", { name: /Buy Yes · 67¢/i }));
+    await user.click(screen.getByRole("button", { name: /Buy Yes · 67%/i }));
 
     expect(
       await screen.findByText(/enough HC for that bet/),
@@ -136,7 +136,7 @@ describe("OrderPanel", () => {
 
   it("syncs prices when live outcome props arrive", () => {
     const { rerender } = renderPanel();
-    expect(screen.getByRole("button", { name: /Yes 67¢/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Yes 67%/ })).toBeInTheDocument();
 
     rerender(
       <ToastProvider>
@@ -154,7 +154,7 @@ describe("OrderPanel", () => {
       </ToastProvider>,
     );
 
-    expect(screen.getByRole("button", { name: /Yes 25¢/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Yes 25%/ })).toBeInTheDocument();
   });
 
   it("reports successful fills so live consumers update optimistically", async () => {
@@ -163,9 +163,9 @@ describe("OrderPanel", () => {
     renderPanel({ onFill });
 
     await user.type(screen.getByLabelText(/amount/i), "100");
-    await user.click(screen.getByRole("button", { name: /Buy Yes · 67¢/i }));
+    await user.click(screen.getByRole("button", { name: /Buy Yes · 67%/i }));
 
-    await screen.findByRole("button", { name: /Yes 75¢/ });
+    await screen.findByRole("button", { name: /Yes 75%/ });
     expect(onFill).toHaveBeenCalledWith({ outcomes: FILLED });
   });
 
@@ -180,7 +180,7 @@ describe("OrderPanel", () => {
 
     await user.type(screen.getByLabelText(/amount/i), "100");
 
-    expect(screen.getByRole("button", { name: /Buy Yes · 67¢/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /Buy Yes · 67%/i })).toBeDisabled();
   });
 
   it("renders every outcome of a 6-outcome market as a selectable button", () => {
@@ -196,7 +196,7 @@ describe("OrderPanel", () => {
     for (const outcome of six) {
       expect(
         screen.getByRole("button", {
-          name: new RegExp(`${outcome.label} 17¢`),
+          name: new RegExp(`${outcome.label} 17%`),
         }),
       ).toBeInTheDocument();
     }
@@ -211,7 +211,7 @@ describe("OrderPanel", () => {
       position: [],
     });
 
-    expect(screen.getByRole("button", { name: /Yes 50¢/ })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: /Yes 50%/ })).toHaveAttribute(
       "aria-pressed",
       "true",
     );
@@ -223,11 +223,11 @@ describe("OrderPanel", () => {
 
     await user.type(screen.getByLabelText(/amount/i), "100");
     // Yes selected: floor(100·380/300) = 126
-    expect(screen.getByText("126 HC")).toBeInTheDocument();
+    expect(screen.getByLabelText("126 HC")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /No 33¢/ }));
+    await user.click(screen.getByRole("button", { name: /No 33%/ }));
     // No selected: floor(100·380/200) = 190
-    expect(screen.getByText("190 HC")).toBeInTheDocument();
+    expect(screen.getByLabelText("190 HC")).toBeInTheDocument();
   });
 
   it("repeats the est. payout at the moment of purchase in the fill toast", async () => {
@@ -235,7 +235,7 @@ describe("OrderPanel", () => {
     renderPanel();
 
     await user.type(screen.getByLabelText(/amount/i), "100");
-    await user.click(screen.getByRole("button", { name: /Buy Yes · 67¢/i }));
+    await user.click(screen.getByRole("button", { name: /Buy Yes · 67%/i }));
 
     expect(await screen.findByText(/est\. 126 HC/i, { exact: false })).toBeInTheDocument();
   });

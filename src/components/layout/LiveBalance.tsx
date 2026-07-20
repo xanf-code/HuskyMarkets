@@ -6,9 +6,9 @@
 // refetch (never client-side arithmetic); payouts and refunds also toast.
 
 import { useEffect, useRef, useState } from "react";
+import { HcAmount } from "@/components/ui/HcAmount";
 import { useToast } from "@/components/ui/Toast";
 import type { Tables } from "@/lib/database.types";
-import { formatHC } from "@/lib/format";
 import { describePayout } from "@/lib/realtime/live-state";
 import { createClient } from "@/lib/supabase/client";
 
@@ -98,8 +98,8 @@ export function LiveBalance({ initialBalance, userId }: LiveBalanceProps) {
   }, [userId]);
 
   return (
-    <div className="num rounded-pill bg-muted px-3 py-1.5 text-sm font-medium text-text">
-      {formatHC(balance)}
+    <div className="rounded-pill bg-muted px-3 py-1.5 text-sm font-medium text-text">
+      <HcAmount amount={balance} size={14} />
     </div>
   );
 }

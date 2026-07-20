@@ -63,7 +63,7 @@ describe("LiveBalance", () => {
   it("renders the initial balance and subscribes to the user's transactions", () => {
     renderChip();
 
-    expect(screen.getByText("1,050 HC")).toBeInTheDocument();
+    expect(screen.getByLabelText("1,050 HC")).toBeInTheDocument();
     expect(supabase.channel).toHaveBeenCalledWith("transactions:u1");
     expect(channel.on).toHaveBeenCalledWith(
       "postgres_changes",
@@ -82,7 +82,7 @@ describe("LiveBalance", () => {
     await emitTransaction({ type: "bet_place", amount: -50, market_id: "m1" });
 
     expect(supabase.rpc).toHaveBeenCalledWith("get_my_balance");
-    expect(screen.getByText("1,208 HC")).toBeInTheDocument();
+    expect(screen.getByLabelText("1,208 HC")).toBeInTheDocument();
     // ordinary spends do not toast
     expect(screen.queryByText(/resolved/)).not.toBeInTheDocument();
   });

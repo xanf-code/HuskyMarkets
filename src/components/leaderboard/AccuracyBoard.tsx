@@ -4,8 +4,8 @@ import {
   InfiniteScrollSentinel,
   useLoadMore,
 } from "@/components/ui/LoadMore";
+import { HcAmount } from "@/components/ui/HcAmount";
 import { LEADERBOARD_PAGE_SIZE } from "@/lib/constants";
-import { formatHC } from "@/lib/format";
 import type { AccuracyEntry } from "@/lib/queries/leaderboard";
 
 interface AccuracyBoardProps {
@@ -59,7 +59,7 @@ export function AccuracyBoard({ entries, currentUserId }: AccuracyBoardProps) {
                 <span className="text-market-yes">{e.wins}W</span>/
                 <span className="text-market-no">{e.losses}L</span>
                 {" · "}
-                {formatHC(e.volume)}
+                <HcAmount amount={e.volume} size={12} />
               </span>
             </li>
           );

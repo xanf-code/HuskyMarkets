@@ -1,4 +1,5 @@
-import { formatHC } from "@/lib/format";
+import type { ReactNode } from "react";
+import { HcAmount } from "@/components/ui/HcAmount";
 import type { OutcomeState } from "@/lib/outcomes";
 
 interface MarketStatsProps {
@@ -12,8 +13,8 @@ export function MarketStats({
   volume,
   bettorCount,
 }: MarketStatsProps) {
-  const stats = [
-    { label: "Volume", value: formatHC(volume) },
+  const stats: { label: string; value: ReactNode }[] = [
+    { label: "Volume", value: <HcAmount amount={volume} /> },
     { label: "Bettors", value: String(bettorCount) },
     {
       label: "Pools",
@@ -26,9 +27,7 @@ export function MarketStats({
       {stats.map((stat) => (
         <div key={stat.label} className="card-surface px-4 py-3">
           <dt className="text-xs font-medium text-text-muted">{stat.label}</dt>
-          <dd className="num mt-1 text-lg font-semibold text-text">
-            {stat.value}
-          </dd>
+          <dd className="mt-1 text-lg font-semibold text-text">{stat.value}</dd>
         </div>
       ))}
     </dl>
