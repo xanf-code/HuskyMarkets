@@ -105,7 +105,7 @@ export function MarketOgCard({ card }: { card: MarketCard }) {
         }}
       >
         <span>
-          {`${formatHC(card.volume)} wagered · closes ${ogDate(card.closeAt)}`}
+          {`${formatHC(card.volume)} in play · closes ${ogDate(card.closeAt)}`}
         </span>
         <span>huskymarkets</span>
       </div>

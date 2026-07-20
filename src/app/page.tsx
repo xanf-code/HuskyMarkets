@@ -41,7 +41,7 @@ export default async function Home({ searchParams }: HomeProps) {
     filters.category || filters.q ? await getMarketList({}) : markets;
 
   const showGroups = !filters.category && !filters.q;
-  const hasMovers = !showGroups && getTopMovers(allMarkets).length > 0;
+  const hasMovers = getTopMovers(allMarkets).length > 0;
 
   return (
     <div className="flex flex-col gap-5 sm:gap-6">

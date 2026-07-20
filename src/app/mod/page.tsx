@@ -28,8 +28,8 @@ export default async function ModPage() {
           Moderator dashboard
         </h1>
         <p className="mt-2 text-sm text-text-muted">
-          Markets you created or bet on are excluded — the server enforces the
-          same conflict rule.
+          Markets you created or predicted on are excluded — the server
+          enforces the same conflict rule.
         </p>
       </div>
 

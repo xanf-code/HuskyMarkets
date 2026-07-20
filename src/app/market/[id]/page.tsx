@@ -45,7 +45,7 @@ export async function generateMetadata({
   if (!card) return { title: "Market — HuskyMarkets" };
   return {
     title: `${card.title} — HuskyMarkets`,
-    description: `${card.leading.label} at ${formatPercent(card.leading.price)} · ${formatHC(card.volume)} wagered — HuskyMarkets`,
+    description: `${card.leading.label} at ${formatPercent(card.leading.price)} · ${formatHC(card.volume)} in play — HuskyMarkets`,
     openGraph: { images: [`/api/og/market/${id}`] },
   };
 }

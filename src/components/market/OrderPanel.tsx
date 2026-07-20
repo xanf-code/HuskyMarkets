@@ -117,7 +117,7 @@ export function OrderPanel(props: OrderPanelProps) {
     // Est. payout repeats at the moment of purchase, not just on the panel —
     // this is where the parimutuel expectation is actually set (FR-24).
     toast.push(
-      `Placed ${formatHC(amount)} on ${selected.label} · odds ${formatPercent(priceNow)} · est. ${formatHC(estimate)}`,
+      `Predicted ${formatHC(amount)} on ${selected.label} · chance ${formatPercent(priceNow)} · est. ${formatHC(estimate)}`,
     );
   }
 
@@ -129,7 +129,7 @@ export function OrderPanel(props: OrderPanelProps) {
 
   return (
     <section
-      aria-label="Place a bet"
+      aria-label="Place a prediction"
       className="card-surface flex flex-col gap-4 p-4 sm:p-5"
     >
       <div className="flex items-center justify-between border-b border-hairline">
@@ -211,7 +211,7 @@ export function OrderPanel(props: OrderPanelProps) {
 
       <dl className="flex flex-col gap-2.5 border-t border-hairline pt-4 text-sm">
         <div className="flex items-baseline justify-between gap-3">
-          <dt className="shrink-0 text-text-muted">Odds</dt>
+          <dt className="shrink-0 text-text-muted">Chance</dt>
           <dd className="num font-semibold whitespace-nowrap text-text">
             {formatPercent(selected?.implied ?? 0)} chance
           </dd>

@@ -22,7 +22,7 @@ export function MarketCard({ market }: { market: MarketListItem }) {
   const pool = totalPool(market.outcomes);
   const stats = [
     { label: "Volume", value: <HcAmount amount={market.volume} size={12} /> },
-    { label: "Bettors", value: String(market.bettorCount) },
+    { label: "Predictors", value: String(market.bettorCount) },
     { label: "Pool", value: <HcAmount amount={pool} size={12} /> },
   ];
 

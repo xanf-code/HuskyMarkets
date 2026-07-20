@@ -15,7 +15,7 @@ export function MarketStats({
 }: MarketStatsProps) {
   const stats: { label: string; value: ReactNode }[] = [
     { label: "Volume", value: <HcAmount amount={volume} /> },
-    { label: "Bettors", value: String(bettorCount) },
+    { label: "Predictors", value: String(bettorCount) },
     {
       label: "Pools",
       value: outcomes.map((o) => `${o.label} ${o.pool}`).join(" / "),

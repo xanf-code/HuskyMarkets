@@ -96,7 +96,7 @@ describe("MarketCard", () => {
     expect(screen.getByText("Weather")).toBeInTheDocument();
     expect(screen.getByText("Volume")).toBeInTheDocument();
     expect(screen.getByLabelText("550 HC")).toBeInTheDocument();
-    expect(screen.getByText("Bettors")).toBeInTheDocument();
+    expect(screen.getByText("Predictors")).toBeInTheDocument();
     expect(screen.getByText("3")).toBeInTheDocument();
     expect(screen.getByText("Pool")).toBeInTheDocument();
     expect(screen.getByLabelText("750 HC")).toBeInTheDocument();
