@@ -32,7 +32,7 @@ export function Sparkline({ points, label, colorIndex }: SparklineProps) {
         >
           <YAxis domain={[0, 100]} hide />
           <Line
-            type="stepAfter"
+            type="monotone"
             dataKey="price"
             stroke={outcomeColor(colorIndex)}
             strokeWidth={1.5}

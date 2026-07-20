@@ -204,6 +204,12 @@ const WAVE_SPANS_SECS = [
   6 * DAY,
   4 * DAY,
   5 * DAY,
+  // Waves 11–15 (multi-option markets)
+  4 * DAY,
+  6 * DAY,
+  5 * DAY,
+  3 * DAY,
+  7 * DAY,
 ];
 
 const BET_WAVES: SeedBet[][] = [
@@ -320,6 +326,62 @@ const BET_WAVES: SeedBet[][] = [
     { userIdx: 1, outcomeIdx: 1, amount: 55,  secsAgo: 0 },
     { userIdx: 2, outcomeIdx: 3, amount: 45,  secsAgo: 0 },
     { userIdx: 3, outcomeIdx: 4, amount: 40,  secsAgo: 0 },
+  ],
+  // Wave 11 — 4 predictors, 4-outcome market; outcome-2 is the crowd favourite
+  [
+    { userIdx: 0, outcomeIdx: 2, amount: 160, secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 2, amount: 140, secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 0, amount: 55,  secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 1, amount: 40,  secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 3, amount: 30,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 2, amount: 80,  secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 2, amount: 70,  secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 0, amount: 25,  secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 1, amount: 35,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 3, amount: 20,  secsAgo: 0 },
+  ],
+  // Wave 12 — 3 predictors, 3-outcome market with contrarian minority on outcome-2
+  [
+    { userIdx: 0, outcomeIdx: 0, amount: 200, secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 0, amount: 175, secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 1, amount: 60,  secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 2, amount: 45,  secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 0, amount: 90,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 2, amount: 30,  secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 0, amount: 70,  secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 1, amount: 20,  secsAgo: 0 },
+  ],
+  // Wave 13 — 4 predictors, 5-outcome market; all outcomes get real money, no clear leader
+  [
+    { userIdx: 0, outcomeIdx: 1, amount: 130, secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 3, amount: 115, secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 0, amount: 100, secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 2, amount: 90,  secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 4, amount: 75,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 0, amount: 60,  secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 3, amount: 50,  secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 1, amount: 40,  secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 2, amount: 20,  secsAgo: 0 },
+  ],
+  // Wave 14 — 2 predictors whale duel on a 4-outcome market; outcome-0 vs outcome-3
+  [
+    { userIdx: 0, outcomeIdx: 0, amount: 300, secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 3, amount: 280, secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 1, amount: 45,  secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 2, amount: 35,  secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 0, amount: 100, secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 3, amount: 90,  secsAgo: 0 },
+  ],
+  // Wave 15 — late-breaking consensus flip: starts on outcome-1, swings to outcome-0
+  [
+    { userIdx: 2, outcomeIdx: 1, amount: 180, secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 1, amount: 150, secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 2, amount: 40,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 0, amount: 250, secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 0, amount: 200, secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 0, amount: 120, secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 0, amount: 80,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 2, amount: 30,  secsAgo: 0 },
   ],
 ];
 

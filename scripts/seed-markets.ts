@@ -79,6 +79,7 @@ type MarketInsert = {
   close_at: string;
   resolve_at: string;
   resolution_criteria: string;
+  outcomes?: string[]; // explicit labels override the cycled OUTCOME_SETS for this market
 };
 
 const MARKETS: MarketInsert[] = [
@@ -603,6 +604,116 @@ const MARKETS: MarketInsert[] = [
     resolve_at: daysFromNow(80),
     resolution_criteria: "Resolves YES if any official Northeastern student club, team, or organization wins a national-level competition (hackathon, case competition, academic bowl, etc.) reported by Northeastern News.",
   },
+
+  // ── Multi-option markets — Northeastern 2026 ──────────────────────────────
+  {
+    category: "academics",
+    title: "What will Northeastern's final US News National Universities rank be in 2026?",
+    description: "NU has climbed steadily — from #49 in 2020 to #34 in 2024. Where does 2026 land?",
+    close_at: daysFromNow(120),
+    resolve_at: daysFromNow(150),
+    resolution_criteria: "Resolves to the band that contains Northeastern's rank in the US News & World Report 2026 Best National Universities list, published in fall 2025.",
+    outcomes: ["Top 30", "31–35", "36–40", "41–45"],
+  },
+  {
+    category: "academics",
+    title: "Which Northeastern college will launch the most new degree programs in 2026?",
+    description: "Khoury, D'Amore-McKim, Engineering, and Bouvé are all expanding. Who moves fastest?",
+    close_at: daysFromNow(90),
+    resolve_at: daysFromNow(130),
+    resolution_criteria: "Resolves to whichever college publishes the most net-new degree or certificate programs in the Northeastern course catalog by August 2026. Ties resolved by earlier publish date.",
+    outcomes: ["Khoury (CS & Data)", "D'Amore-McKim (Business)", "College of Engineering", "Bouvé (Health Sciences)"],
+  },
+  {
+    category: "academics",
+    title: "What will be the highest-demand co-op sector for NU students in the Spring 2026 cycle?",
+    description: "The co-op office placement data by sector — which industry absorbs the most Huskies?",
+    close_at: daysFromNow(60),
+    resolve_at: daysFromNow(100),
+    resolution_criteria: "Resolves to the employment sector with the highest number of Northeastern co-op placements in the Spring 2026 cycle as reported by the Co-op & Careers office.",
+    outcomes: ["Tech / AI / Software", "Healthcare & Biotech", "Finance & Consulting", "Government & Nonprofits"],
+  },
+  {
+    category: "campus",
+    title: "Which Northeastern global campus will see the largest enrollment growth in Fall 2026?",
+    description: "NU's global network (Oakland, Portland, Vancouver, Miami, London) keeps expanding. Which location surges?",
+    close_at: daysFromNow(100),
+    resolve_at: daysFromNow(140),
+    resolution_criteria: "Resolves to the NU global campus that records the highest percentage year-over-year enrollment increase in official Fall 2026 enrollment data vs. Fall 2025.",
+    outcomes: ["Oakland", "Portland", "Vancouver", "Miami", "London"],
+  },
+  {
+    category: "campus",
+    title: "Which major campus construction project will break ground first in 2026?",
+    description: "Several projects are in the pipeline — sciences complex, graduate housing, innovation center, and athletics expansion.",
+    close_at: daysFromNow(80),
+    resolve_at: daysFromNow(120),
+    resolution_criteria: "Resolves to the project for which Northeastern Facilities Management officially initiates groundbreaking (permit issued + site work started) first in calendar year 2026.",
+    outcomes: ["Life Sciences Research Hub", "Graduate Housing Tower", "Interdisciplinary Innovation Center", "Athletics Facility Expansion"],
+  },
+  {
+    category: "campus",
+    title: "What will Northeastern announce as its next major philanthropic naming gift in 2026?",
+    description: "NU has a history of large naming gifts (Khoury, Bouvé, D'Amore-McKim). The next $50M+ gift is expected in 2026.",
+    close_at: daysFromNow(110),
+    resolve_at: daysFromNow(150),
+    resolution_criteria: "Resolves to the area receiving the next publicly announced $50M+ naming gift in calendar year 2026. Resolves N/A if no qualifying gift is announced.",
+    outcomes: ["School of Law", "College of Arts & Sciences", "School of Engineering", "New Research Institute", "No gift announced"],
+  },
+  {
+    category: "sports",
+    title: "How many Hockey East regular-season wins will Northeastern men's hockey finish with in 2025–26?",
+    description: "The Huskies have been competitive in HEA — where does the final win total land?",
+    close_at: daysFromNow(55),
+    resolve_at: daysFromNow(75),
+    resolution_criteria: "Resolves to the win-count band matching Northeastern men's hockey's final Hockey East regular-season record as published on hockeyeast.com at season end.",
+    outcomes: ["20+ wins", "16–19 wins", "12–15 wins", "Under 12 wins"],
+  },
+  {
+    category: "sports",
+    title: "Which Northeastern team will win a conference championship title in Spring 2026?",
+    description: "CAA and HEA titles are on the table across multiple sports. Who brings home hardware?",
+    close_at: daysFromNow(70),
+    resolve_at: daysFromNow(100),
+    resolution_criteria: "Resolves to the first Northeastern team to win an official conference championship (regular season or tournament) in Spring 2026. Resolves 'None' if no team wins a title.",
+    outcomes: ["Men's Hockey (HEA)", "Men's Lacrosse (CAA)", "Women's Basketball (CAA)", "Women's Soccer (CAA)", "None"],
+  },
+  {
+    category: "transit",
+    title: "Which MBTA line will cause the most documented service disruptions near NU in Spring 2026?",
+    description: "Green Line E Branch and Orange Line both serve Northeastern heavily — neither has a clean track record.",
+    close_at: daysFromNow(40),
+    resolve_at: daysFromNow(70),
+    resolution_criteria: "Resolves to the MBTA line with the highest number of T-Alerts delay notifications of 15+ minutes affecting stops within 0.5 miles of Northeastern between January 1 and May 31, 2026.",
+    outcomes: ["Green Line E Branch", "Orange Line", "Green Line D Branch", "Bus network (39 / 1 / CT2)"],
+  },
+  {
+    category: "dining",
+    title: "What new dining concept will open on Northeastern's Boston campus in 2026?",
+    description: "Dining Services has hinted at new vendors. Will it be a local staple, a national chain, or something unique to NU?",
+    close_at: daysFromNow(60),
+    resolve_at: daysFromNow(90),
+    resolution_criteria: "Resolves to the category that best describes the first net-new dining vendor or concept opening on the main Boston campus in calendar year 2026, per official Dining Services announcement.",
+    outcomes: ["Local Boston restaurant brand", "National fast-casual chain", "NU-exclusive concept", "International cuisine specialist"],
+  },
+  {
+    category: "wildcard",
+    title: "What will be the biggest Northeastern news story of Spring 2026?",
+    description: "From research breakthroughs to athletics, campus expansions to partnerships — which story dominates the headlines?",
+    close_at: daysFromNow(30),
+    resolve_at: daysFromNow(100),
+    resolution_criteria: "Resolves to the category with the most media impressions in stories mentioning Northeastern University between January and May 2026, based on news.northeastern.edu coverage volume by section.",
+    outcomes: ["Research / Innovation breakthrough", "Major athletics achievement", "Campus expansion / construction", "Corporate or academic partnership"],
+  },
+  {
+    category: "wildcard",
+    title: "How large will Northeastern's Class of 2026 Commencement ceremony be?",
+    description: "NU's graduating class has grown with global expansion. Will the 2026 ceremony set a new attendance record?",
+    close_at: daysFromNow(90),
+    resolve_at: daysFromNow(110),
+    resolution_criteria: "Resolves to the attendance band matching Northeastern's official 2026 Spring Commencement participant count (degree recipients + guests) as reported in the commencement program or university communications.",
+    outcomes: ["Under 5,000 participants", "5,000–7,500", "7,501–10,000", "Over 10,000"],
+  },
 ];
 
 /** Ensure the seed creator auth user exists; return a signed-in JWT. */
@@ -670,12 +781,14 @@ async function main() {
 
   for (let i = 0; i < MARKETS.length; i++) {
     const m = MARKETS[i];
-    const outcomes = OUTCOME_SETS[i % OUTCOME_SETS.length];
-    // De-binary the resolution copy on 3+-outcome markets.
+    const outcomes = m.outcomes ?? OUTCOME_SETS[i % OUTCOME_SETS.length];
+    // Use explicit resolution criteria for named-outcome markets; auto-generate for generic sets.
     const criteria =
-      outcomes.length > 2
-        ? `Resolves to whichever of the listed outcomes occurs: ${outcomes.join(" / ")}.`
-        : m.resolution_criteria;
+      m.outcomes
+        ? m.resolution_criteria
+        : outcomes.length > 2
+          ? `Resolves to whichever of the listed outcomes occurs: ${outcomes.join(" / ")}.`
+          : m.resolution_criteria;
 
     const res = await fetch(`${BASE}/rpc/create_market`, {
       method: "POST",

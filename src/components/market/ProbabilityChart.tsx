@@ -267,7 +267,7 @@ export function ProbabilityChart({
               {series.map((s) => (
                 <Area
                   key={s.key}
-                  type="stepAfter"
+                  type="monotone"
                   dataKey={s.key}
                   name={s.label}
                   stroke={colorFor(s.colorIndex)}
