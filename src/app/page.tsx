@@ -1,4 +1,6 @@
 import { Suspense } from "react";
+import { HomeShowcase } from "@/components/market/HomeShowcase";
+import { HomeSidebar } from "@/components/market/HomeSidebar";
 import { MarketFilters } from "@/components/market/MarketFilters";
 import { MarketGridLive } from "@/components/market/MarketGridLive";
 import {
@@ -22,22 +24,41 @@ export default async function Home({ searchParams }: HomeProps) {
 
   const category = first(params.category);
   const sort = first(params.sort);
-  const markets = await getMarketList({
+  const q = first(params.q);
+  const filters = {
     category: CATEGORIES.some((c) => c.value === category)
       ? (category as Category)
       : undefined,
     sort: MARKET_SORTS.includes(sort as MarketSort)
       ? (sort as MarketSort)
       : undefined,
-    q: first(params.q),
-  });
+    q,
+  };
+  const markets = await getMarketList(filters);
+  // Sidebar always reflects the *unfiltered* pool so the rail stays useful
+  // while browsing a category. Cheap: campus-scale list already in memory.
+  const allMarkets =
+    filters.category || filters.q ? await getMarketList({}) : markets;
+
+  const showGroups = !filters.category && !filters.q;
 
   return (
     <div className="flex flex-col gap-5 sm:gap-6">
       <Suspense>
         <MarketFilters />
       </Suspense>
-      <MarketGridLive initial={markets} />
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-8">
+        <div className="min-w-0">
+          {showGroups ? (
+            <HomeShowcase markets={markets} />
+          ) : (
+            <MarketGridLive initial={markets} />
+          )}
+        </div>
+        <div className="lg:sticky lg:top-6">
+          <HomeSidebar markets={allMarkets} />
+        </div>
+      </div>
     </div>
   );
 }
