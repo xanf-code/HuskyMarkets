@@ -37,7 +37,7 @@ export function MarketCard({ market }: { market: MarketListItem }) {
         href={`/market/${market.id}`}
         className="focus-visible:outline-red"
       >
-        <h3 className="text-[15px] font-semibold leading-snug text-text sm:text-base">
+        <h3 className="line-clamp-2 text-[15px] font-semibold leading-snug text-text sm:text-base">
           {market.title}
         </h3>
       </Link>
