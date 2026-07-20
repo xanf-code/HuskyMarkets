@@ -104,15 +104,9 @@ export function useMarketChannel({ marketId, initial }: UseMarketChannelArgs) {
           table: "bets",
           filter: `market_id=eq.${marketId}`,
         },
-        async (payload) => {
+        (payload) => {
           const bet = payload.new as Tables<"bets">;
-          // Display names live behind public_profiles (display-mode aware);
-          // resolve on arrival rather than shipping names over the wire.
-          const { data } = await supabase
-            .from("public_profiles")
-            .select("display_name")
-            .eq("id", bet.user_id)
-            .maybeSingle();
+          // Activity is anonymous — never resolve or ship trader identity.
           const label =
             outcomesRef.current.find((o) => o.id === bet.outcome_id)?.label ??
             "—";
@@ -121,7 +115,6 @@ export function useMarketChannel({ marketId, initial }: UseMarketChannelArgs) {
               current,
               {
                 id: bet.id,
-                displayName: data?.display_name ?? "Unknown Husky",
                 outcomeId: bet.outcome_id,
                 outcomeLabel: label,
                 amount: bet.amount,

@@ -118,7 +118,6 @@ describe("appendHistoryPoint", () => {
 describe("prependActivity", () => {
   const item = (id: string) => ({
     id,
-    displayName: "CunningHusky42",
     outcomeId: "o-yes",
     outcomeLabel: "Yes",
     amount: 50,

@@ -4,9 +4,8 @@ import { useMarketChannel } from "./useMarketChannel";
 
 type Handler = (payload: { new: Record<string, unknown> }) => void;
 
-const { supabase, channel, handlers, maybeSingle } = vi.hoisted(() => {
+const { supabase, channel, handlers } = vi.hoisted(() => {
   const handlers = new Map<string, Handler>();
-  const maybeSingle = vi.fn();
   const channel = {
     on: vi.fn(
       (
@@ -23,13 +22,8 @@ const { supabase, channel, handlers, maybeSingle } = vi.hoisted(() => {
   const supabase = {
     channel: vi.fn(() => channel),
     removeChannel: vi.fn(),
-    from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({ maybeSingle })),
-      })),
-    })),
   };
-  return { supabase, channel, handlers, maybeSingle };
+  return { supabase, channel, handlers };
 });
 
 vi.mock("@/lib/supabase/client", () => ({ createClient: () => supabase }));
@@ -52,7 +46,6 @@ function renderChannel() {
 beforeEach(() => {
   vi.clearAllMocks();
   handlers.clear();
-  maybeSingle.mockResolvedValue({ data: { display_name: "CunningHusky42" } });
 });
 
 describe("useMarketChannel", () => {
@@ -128,7 +121,7 @@ describe("useMarketChannel", () => {
     ]);
   });
 
-  it("prepends bets INSERTs to activity with the outcome label resolved client-side", async () => {
+  it("prepends bets INSERTs to activity anonymously with the outcome label resolved client-side", async () => {
     const { result } = renderChannel();
 
     await act(async () => {
@@ -146,7 +139,6 @@ describe("useMarketChannel", () => {
 
     expect(result.current.activity[0]).toEqual({
       id: "b9",
-      displayName: "CunningHusky42",
       outcomeId: "o-no",
       outcomeLabel: "No",
       amount: 75,

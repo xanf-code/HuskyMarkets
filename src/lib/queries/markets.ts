@@ -188,7 +188,6 @@ export async function getMarketList(
 
 export interface ActivityItem {
   id: string;
-  displayName: string;
   outcomeId: string;
   outcomeLabel: string;
   amount: number;
@@ -209,7 +208,7 @@ export interface MarketDetail {
   creatorName: string;
   /** Full per-outcome price history, oldest → newest. */
   history: HistoryPoint[];
-  /** Latest bets, newest first, display-mode respected via public_profiles. */
+  /** Latest bets, newest first — anonymous (no trader identity). */
   activity: ActivityItem[];
   bettorCount: number;
   /** Signed-in user's stake on this market, per outcome (hedging allowed). */
@@ -252,20 +251,11 @@ export async function getMarketDetail(
     ]);
 
   const allBets = bets ?? [];
-  const nameIds = [
-    ...new Set([
-      market.creator_id,
-      ...allBets.slice(0, ACTIVITY_LIMIT).map((b) => b.user_id),
-    ]),
-  ];
-  const { data: profiles } = await supabase
+  const { data: creatorProfile } = await supabase
     .from("public_profiles")
-    .select("id, display_name")
-    .in("id", nameIds);
-
-  const names = new Map(
-    (profiles ?? []).map((p) => [p.id, p.display_name ?? "Unknown Husky"]),
-  );
+    .select("display_name")
+    .eq("id", market.creator_id)
+    .maybeSingle();
 
   const stakeByOutcome = new Map<string, number>();
   if (session) {
@@ -282,7 +272,7 @@ export async function getMarketDetail(
   return {
     market,
     outcomes,
-    creatorName: names.get(market.creator_id) ?? "Unknown Husky",
+    creatorName: creatorProfile?.display_name ?? "Unknown Husky",
     history: (history ?? []).map((p) => ({
       recordedAt: p.recorded_at,
       outcomeId: p.outcome_id,
@@ -290,7 +280,6 @@ export async function getMarketDetail(
     })),
     activity: allBets.slice(0, ACTIVITY_LIMIT).map((b) => ({
       id: b.id,
-      displayName: names.get(b.user_id) ?? "Unknown Husky",
       outcomeId: b.outcome_id,
       outcomeLabel: labelById.get(b.outcome_id) ?? "—",
       amount: b.amount,

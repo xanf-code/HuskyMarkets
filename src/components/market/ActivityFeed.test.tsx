@@ -12,12 +12,11 @@ function stubIntersectionObserver() {
   vi.stubGlobal("IntersectionObserver", MockIntersectionObserver);
 }
 
-function bet(id: string, name: string) {
+function bet(id: string, outcomeLabel = "Yes") {
   return {
     id,
-    displayName: name,
     outcomeId: "o-yes",
-    outcomeLabel: "Yes",
+    outcomeLabel,
     amount: 50,
     price: 61,
     createdAt: new Date(Date.now() - 2 * 60_000).toISOString(),
@@ -28,14 +27,15 @@ describe("ActivityFeed", () => {
   beforeEach(stubIntersectionObserver);
   afterEach(() => vi.unstubAllGlobals());
 
-  it("renders a Kalshi-style line per bet", () => {
-    render(<ActivityFeed activity={[bet("b1", "HungryHusky42")]} />);
+  it("renders an anonymous Bought line per bet", () => {
+    render(<ActivityFeed activity={[bet("b1", "Gavin Newsom")]} />);
     const line = screen.getByRole("listitem");
-    expect(line).toHaveTextContent("HungryHusky42");
+    expect(line).toHaveTextContent("Bought");
+    expect(line).toHaveTextContent("Gavin Newsom");
     expect(line).toHaveTextContent("50 HC");
-    expect(line).toHaveTextContent("Yes");
     expect(line).toHaveTextContent("61¢");
     expect(line).toHaveTextContent("2m ago");
+    expect(line).not.toHaveTextContent(/Husky/i);
   });
 
   it("shows a plain empty state when there are no bets", () => {
@@ -44,9 +44,7 @@ describe("ActivityFeed", () => {
   });
 
   it("windows long feeds behind a scroll sentinel", () => {
-    const activity = Array.from({ length: 25 }, (_, i) =>
-      bet(`b${i}`, `Husky${i}`),
-    );
+    const activity = Array.from({ length: 25 }, (_, i) => bet(`b${i}`));
     render(<ActivityFeed activity={activity} />);
     expect(screen.getAllByRole("listitem")).toHaveLength(10);
     expect(screen.getByRole("status")).toHaveTextContent("15 more");

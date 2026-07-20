@@ -32,7 +32,6 @@ const NO: OutcomeState = { id: "o-no", label: "No", sortOrder: 1, pool: 100, imp
 const activity: ActivityItem[] = [
   {
     id: "b1",
-    displayName: "CunningHusky42",
     outcomeId: "o-yes",
     outcomeLabel: "Yes",
     amount: 50,
@@ -104,7 +103,8 @@ describe("MarketLive", () => {
   it("renders the live activity feed", () => {
     renderLive(<LiveActivity />);
 
-    expect(screen.getByText("CunningHusky42")).toBeInTheDocument();
+    expect(screen.getByText("Bought")).toBeInTheDocument();
+    expect(screen.getByText("Yes")).toBeInTheDocument();
   });
 
   it("shows the winning label and disables the order panel when the market resolves", () => {
