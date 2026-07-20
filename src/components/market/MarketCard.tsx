@@ -2,11 +2,10 @@ import Link from "next/link";
 import { Chip } from "@/components/ui/Chip";
 import { CATEGORIES } from "@/lib/constants";
 import { formatCents, formatHC, formatPercent } from "@/lib/format";
-import { leadingOutcome } from "@/lib/outcomes";
+import { leadingOutcome, totalPool } from "@/lib/outcomes";
 import type { MarketListItem } from "@/lib/queries/markets";
 import { outcomeColor } from "@/lib/theme";
 import { Countdown } from "./Countdown";
-import { Sparkline } from "./Sparkline";
 
 export function MarketCard({ market }: { market: MarketListItem }) {
   const categoryLabel =
@@ -19,6 +18,12 @@ export function MarketCard({ market }: { market: MarketListItem }) {
     .sort((a, b) => b.pool - a.pool || a.sortOrder - b.sortOrder)
     .slice(0, 2);
   const more = market.outcomes.length - top.length;
+  const pool = totalPool(market.outcomes);
+  const stats = [
+    { label: "Volume", value: formatHC(market.volume) },
+    { label: "Bettors", value: String(market.bettorCount) },
+    { label: "Pool", value: formatHC(pool) },
+  ];
 
   return (
     <article className="card-surface flex flex-col gap-3 p-4 transition-[box-shadow,border-color] duration-200 ease-standard hover:border-border-strong hover:shadow-card-hover sm:p-5">
@@ -76,20 +81,18 @@ export function MarketCard({ market }: { market: MarketListItem }) {
         ) : null}
       </div>
 
-      <div className="flex items-end justify-between gap-3 pt-1">
-        {market.volume > 0 && market.spark.length >= 2 ? (
-          <Sparkline
-            points={market.spark}
-            label={leader?.label ?? "Leading outcome"}
-            colorIndex={leader?.sortOrder ?? 0}
-          />
-        ) : (
-          <span />
-        )}
-        <span className="num shrink-0 text-xs whitespace-nowrap text-text-muted">
-          {formatHC(market.volume)} vol
-        </span>
-      </div>
+      <dl className="mt-auto grid grid-cols-3 gap-2 border-t border-hairline pt-3">
+        {stats.map((stat) => (
+          <div key={stat.label} className="min-w-0 text-center first:text-left last:text-right">
+            <dt className="text-[10px] font-medium tracking-wide text-text-muted uppercase">
+              {stat.label}
+            </dt>
+            <dd className="num mt-0.5 truncate text-xs font-semibold text-text">
+              {stat.value}
+            </dd>
+          </div>
+        ))}
+      </dl>
     </article>
   );
 }

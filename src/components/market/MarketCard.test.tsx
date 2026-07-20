@@ -1,11 +1,7 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { MarketListItem } from "@/lib/queries/markets";
 import { MarketCard } from "./MarketCard";
-
-vi.mock("./Sparkline", () => ({
-  Sparkline: () => <div data-testid="sparkline" />,
-}));
 
 const market: MarketListItem = {
   id: "m1",
@@ -18,6 +14,7 @@ const market: MarketListItem = {
     { id: "o-no", label: "No", sortOrder: 1, pool: 300, implied: 40 },
   ],
   volume: 550,
+  bettorCount: 3,
   spark: [50, 67, 60],
 };
 
@@ -94,11 +91,16 @@ describe("MarketCard", () => {
     );
   });
 
-  it("shows category, volume, and sparkline without serif title chrome", () => {
+  it("shows category, volume, bettors, and pool without a sparkline", () => {
     const { container } = render(<MarketCard market={market} />);
     expect(screen.getByText("Weather")).toBeInTheDocument();
-    expect(screen.getByText(/550 HC/)).toBeInTheDocument();
-    expect(screen.getByTestId("sparkline")).toBeInTheDocument();
+    expect(screen.getByText("Volume")).toBeInTheDocument();
+    expect(screen.getByText("550 HC")).toBeInTheDocument();
+    expect(screen.getByText("Bettors")).toBeInTheDocument();
+    expect(screen.getByText("3")).toBeInTheDocument();
+    expect(screen.getByText("Pool")).toBeInTheDocument();
+    expect(screen.getByText("750 HC")).toBeInTheDocument();
+    expect(container.querySelector("[data-testid=sparkline]")).toBeNull();
     const title = screen.getByRole("heading", { level: 3 });
     expect(title).toHaveTextContent(market.title);
     expect(title.className).not.toMatch(/font-serif/);

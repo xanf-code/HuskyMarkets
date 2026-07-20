@@ -154,6 +154,7 @@ describe("patchMarketList", () => {
       { id: "o-no", label: "No", sortOrder: 1, pool: 100, implied: 33 },
     ],
     volume: 100,
+    bettorCount: 2,
     spark: [50, 67],
   };
 
@@ -193,6 +194,7 @@ describe("patchMarketListOutcome", () => {
       { id: "o-no", label: "No", sortOrder: 1, pool: 100, implied: 33 },
     ],
     volume: 100,
+    bettorCount: 2,
     spark: [50, 67],
   };
 

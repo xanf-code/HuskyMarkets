@@ -3,10 +3,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { MarketListItem } from "@/lib/queries/markets";
 import { MarketGridLive } from "./MarketGridLive";
 
-vi.mock("./Sparkline", () => ({
-  Sparkline: () => <div data-testid="sparkline" />,
-}));
-
 type Handler = (payload: { new: Record<string, unknown> }) => void;
 
 const { supabase, channel, handlers } = vi.hoisted(() => {
@@ -44,6 +40,7 @@ const market = (id: string, title: string): MarketListItem => ({
     { id: `${id}-no`, label: "No", sortOrder: 1, pool: 100, implied: 33 },
   ],
   volume: 100,
+  bettorCount: 2,
   spark: [50, 67],
 });
 
@@ -83,7 +80,7 @@ describe("MarketGridLive", () => {
     // No now leads 300/500 → 60%; Yes 40¢
     expect(screen.getByText("60%")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /yes\s+40¢/i })).toBeInTheDocument();
-    expect(screen.getByText(/300 HC vol/)).toBeInTheDocument();
+    expect(screen.getByText("300 HC")).toBeInTheDocument();
   });
 
   it("drops a card when its market closes", () => {

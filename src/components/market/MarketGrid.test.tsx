@@ -1,11 +1,7 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { MarketListItem } from "@/lib/queries/markets";
 import { MarketGrid } from "./MarketGrid";
-
-vi.mock("./Sparkline", () => ({
-  Sparkline: () => <div data-testid="sparkline" />,
-}));
 
 function item(id: string, title: string): MarketListItem {
   return {
@@ -19,6 +15,7 @@ function item(id: string, title: string): MarketListItem {
       { id: `${id}-no`, label: "No", sortOrder: 1, pool: 100, implied: 50 },
     ],
     volume: 0,
+    bettorCount: 0,
     spark: [50],
   };
 }

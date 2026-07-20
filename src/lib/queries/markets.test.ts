@@ -30,6 +30,7 @@ function item(overrides: Partial<MarketListItem>): MarketListItem {
     createdAt: "2026-07-10T00:00:00Z",
     outcomes: [YES, NO],
     volume: 100,
+    bettorCount: 0,
     spark: [50, 67],
     ...overrides,
   };
@@ -134,9 +135,19 @@ describe("getMarketList", () => {
       ],
       error: null,
     });
-    from.mockImplementation((table: string) =>
-      table === "markets" ? marketsBuilder : historyBuilder,
-    );
+    const betsBuilder = chainable({
+      data: [
+        { market_id: "m1", user_id: "u1" },
+        { market_id: "m1", user_id: "u2" },
+        { market_id: "m1", user_id: "u1" },
+      ],
+      error: null,
+    });
+    from.mockImplementation((table: string) => {
+      if (table === "markets") return marketsBuilder;
+      if (table === "bets") return betsBuilder;
+      return historyBuilder;
+    });
 
     const list = await getMarketList({});
 
@@ -157,6 +168,7 @@ describe("getMarketList", () => {
           { id: "o-no", label: "No", sortOrder: 1, pool: 100, implied: 33 },
         ],
         volume: 100,
+        bettorCount: 2,
         spark: [50, 67],
       },
     ]);

@@ -35,9 +35,11 @@ export interface MarketListItem {
   /** Every outcome, in canonical sort_order. Binary markets are N = 2. */
   outcomes: OutcomeState[];
   volume: number;
+  /** Distinct users who have placed at least one bet on this market. */
+  bettorCount: number;
   /**
    * Recent implied-price points of the leading outcome (A-2), oldest →
-   * newest, for the card sparkline. Multi-outcome series land with the
+   * newest, for the trending sparkline. Multi-outcome series land with the
    * realtime cut-over; the sparkline always tracks the leader.
    */
   spark: number[];
@@ -138,14 +140,23 @@ export async function getMarketList(
   if (error || !markets || markets.length === 0) return [];
 
   const ids = markets.map((m) => m.id);
-  const { data: points } = await supabase
-    .from("price_history")
-    .select("market_id, outcome_id, implied")
-    .in("market_id", ids)
-    .order("recorded_at", { ascending: false })
-    .limit(ids.length * SPARK_POINTS * 6);
+  const [{ data: points }, { data: bets }] = await Promise.all([
+    supabase
+      .from("price_history")
+      .select("market_id, outcome_id, implied")
+      .in("market_id", ids)
+      .order("recorded_at", { ascending: false })
+      .limit(ids.length * SPARK_POINTS * 6),
+    supabase.from("bets").select("market_id, user_id").in("market_id", ids),
+  ]);
 
   const sparks = groupSparklines(points ?? []);
+  const bettorsByMarket = new Map<string, Set<string>>();
+  for (const bet of bets ?? []) {
+    const set = bettorsByMarket.get(bet.market_id) ?? new Set<string>();
+    set.add(bet.user_id);
+    bettorsByMarket.set(bet.market_id, set);
+  }
 
   const items = markets.map((m) => {
     const outcomes = toOutcomeStates(m.market_outcomes ?? []);
@@ -159,6 +170,7 @@ export async function getMarketList(
       createdAt: m.created_at,
       outcomes,
       volume: marketVolume(total, outcomes.length),
+      bettorCount: bettorsByMarket.get(m.id)?.size ?? 0,
       spark: leader
         ? (sparks.get(`${m.id}:${leader.id}`) ?? [leader.implied])
         : [],
