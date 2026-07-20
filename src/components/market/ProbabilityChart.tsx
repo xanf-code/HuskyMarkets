@@ -210,7 +210,7 @@ export function ProbabilityChart({
           </button>
         )}
         <div
-          className="h-56 w-full select-none px-1 pt-2 sm:h-72 sm:px-2"
+          className="h-56 w-full select-none px-1 pt-2 sm:h-72 sm:px-2 [&_*]:outline-none"
           aria-hidden="true"
         >
           <ResponsiveContainer width="100%" height="100%">
