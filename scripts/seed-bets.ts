@@ -10,8 +10,9 @@
 //   3. Sign each user in (password grant) and place bets through the
 //      place_bet engine RPC — bets reference outcome_id, the FR-9 aggregate
 //      cap is engine-enforced, and price_history snapshots are written by the
-//      engine (FR-12). Waves are pre-validated against the cap with the same
-//      helper the unit tests cover.
+//      engine (FR-12). Each bet is then backdated via secsAgo so charts span
+//      multi-day price paths instead of a 1-second burst. Waves are
+//      pre-validated against the cap with the same helper the unit tests cover.
 //   4. Assert verify_ledger_invariant() is balanced at the end.
 //
 // Re-runnable / idempotent: seed users are only created when absent, and only
@@ -26,7 +27,7 @@ if (process.env.SEED_ENV !== "dev") {
   process.exit(1);
 }
 
-import { capViolations, type SeedBet } from "../src/lib/seed-plan";
+import { capViolations, staggerWave, type SeedBet } from "../src/lib/seed-plan";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -87,6 +88,20 @@ async function countRows(path: string, params?: Record<string, string>): Promise
   return parseInt(header?.split("/")[1] ?? "0", 10);
 }
 
+async function pgPatch(path: string, params: Record<string, string>, body: unknown): Promise<void> {
+  const url = new URL(`${BASE}${path}`);
+  for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
+  const res = await fetch(url, {
+    method: "PATCH",
+    headers: { ...HEADERS, Prefer: "return=minimal" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`PATCH ${path} → ${res.status}: ${text}`);
+  }
+}
+
 async function signIn(email: string, password: string): Promise<string> {
   const res = await fetch(`${AUTH_BASE}/token?grant_type=password`, {
     method: "POST",
@@ -106,7 +121,7 @@ async function placeBet(
   marketId: string,
   outcomeId: string,
   amount: number,
-): Promise<{ new_balance: number }> {
+): Promise<{ bet_id: string; new_balance: number }> {
   const res = await fetch(`${BASE}/rpc/place_bet`, {
     method: "POST",
     headers: {
@@ -124,7 +139,40 @@ async function placeBet(
     const text = await res.text();
     throw new Error(`place_bet ${marketId} → ${res.status}: ${text}`);
   }
-  return (await res.json()) as { new_balance: number };
+  return (await res.json()) as { bet_id: string; new_balance: number };
+}
+
+/**
+ * Backdate the bet + its post-bet price_history snapshot so charts span
+ * real wall-clock time. Transactions stay at now() (append-only ledger).
+ */
+async function backdateBet(
+  marketId: string,
+  betId: string,
+  secsAgo: number,
+): Promise<void> {
+  if (secsAgo <= 0) return;
+  const ts = new Date(Date.now() - secsAgo * 1000).toISOString();
+
+  await pgPatch("/bets", { id: `eq.${betId}` }, { created_at: ts });
+
+  // The engine just wrote one snapshot row per outcome under a shared now().
+  const latest = await pgGet<{ recorded_at: string }[]>("/price_history", {
+    select: "recorded_at",
+    market_id: `eq.${marketId}`,
+    order: "recorded_at.desc",
+    limit: "1",
+  });
+  if (latest.length === 0) return;
+
+  await pgPatch(
+    "/price_history",
+    {
+      market_id: `eq.${marketId}`,
+      recorded_at: `eq.${latest[0].recorded_at}`,
+    },
+    { recorded_at: ts },
+  );
 }
 
 // ── Seed user definitions ─────────────────────────────────────────────────────
@@ -141,6 +189,22 @@ const SEED_USERS = [
 // outcomeIdx is taken modulo the market's outcome count, so the same waves
 // cover 2–6-outcome markets. Per-user aggregates stay within the 500 HC cap
 // (asserted by capViolations before anything is sent).
+// secsAgo placeholders are overwritten by staggerWave at placement time.
+
+const DAY = 24 * 3600;
+/** Chart span per wave index — 3–7 days so price paths look lived-in. */
+const WAVE_SPANS_SECS = [
+  5 * DAY,
+  3 * DAY,
+  6 * DAY,
+  4 * DAY,
+  7 * DAY,
+  5 * DAY,
+  3 * DAY,
+  6 * DAY,
+  4 * DAY,
+  5 * DAY,
+];
 
 const BET_WAVES: SeedBet[][] = [
   // Wave 1 — outcome-0 heavy (strong consensus)
@@ -327,8 +391,8 @@ async function main() {
   }
 
   // ── 1b. Top up balances so multi-market betting doesn't overdraft. ───────
-  // ~3 markets/category × 7 categories × ~500 HC aggregate cap ≈ 10k+ headroom.
-  const MIN_BALANCE = 20000;
+  // ~all open markets × ~500 HC aggregate cap ≈ 30k+ headroom per seed user.
+  const MIN_BALANCE = 50000;
   for (let i = 0; i < SEED_USERS.length; i++) {
     const uid = resolvedUserIds[i];
     const txns = await pgGet<{ amount: number }[]>(
@@ -380,23 +444,19 @@ async function main() {
     }),
   );
 
-  // Spread bets across every category (up to 3 under-seeded markets each).
-  const PER_CATEGORY = 3;
+  // Only untouched markets — partial waves (< 10) must not get a second wave
+  // or the FR-9 aggregate cap will fire on re-runs.
   const eligible = withCounts.filter(
-    ({ betCount, market }) => betCount < 10 && market.market_outcomes.length >= 2,
+    ({ betCount, market }) => betCount === 0 && market.market_outcomes.length >= 2,
   );
-  const byCategory = new Map<string, (typeof eligible)[number]["market"][]>();
-  for (const { market } of eligible) {
-    const list = byCategory.get(market.category) ?? [];
-    if (list.length < PER_CATEGORY) {
-      list.push(market);
-      byCategory.set(market.category, list);
-    }
-  }
-  const targets = [...byCategory.values()].flat();
+  const byCategory = new Map<string, number>();
+  const targets = eligible.map(({ market }) => {
+    byCategory.set(market.category, (byCategory.get(market.category) ?? 0) + 1);
+    return market;
+  });
   console.log(
     `Category coverage: ${[...byCategory.entries()]
-      .map(([c, ms]) => `${c}=${ms.length}`)
+      .map(([c, n]) => `${c}=${n}`)
       .join(", ")}`,
   );
 
@@ -413,18 +473,25 @@ async function main() {
 
   for (let mi = 0; mi < targets.length; mi++) {
     const market = targets[mi];
-    const wave = BET_WAVES[mi % BET_WAVES.length];
+    const waveIdx = mi % BET_WAVES.length;
+    const wave = staggerWave(BET_WAVES[waveIdx], WAVE_SPANS_SECS[waveIdx]);
     const outcomes = [...market.market_outcomes].sort(
       (a, b) => a.sort_order - b.sort_order,
     );
 
     console.log(
-      `[${mi + 1}/${targets.length}] ${market.title.substring(0, 60)} (${outcomes.length} outcomes)`,
+      `[${mi + 1}/${targets.length}] ${market.title.substring(0, 60)} (${outcomes.length} outcomes, span ${Math.round(WAVE_SPANS_SECS[waveIdx] / DAY)}d)`,
     );
 
     for (const tmpl of wave) {
       const outcome = outcomes[tmpl.outcomeIdx % outcomes.length];
-      await placeBet(jwts[tmpl.userIdx], market.id, outcome.id, tmpl.amount);
+      const placed = await placeBet(
+        jwts[tmpl.userIdx],
+        market.id,
+        outcome.id,
+        tmpl.amount,
+      );
+      await backdateBet(market.id, placed.bet_id, tmpl.secsAgo);
       totalBetsInserted++;
     }
 
@@ -456,22 +523,30 @@ async function main() {
   }
 
   // REC-1 balances after settlement (vig_burn / seed). Open bets lock HC in
-  // pools, so delta equals Σ(bet_place) until those markets resolve/void.
+  // pools, so delta equals Σ(open bet_place) until those markets resolve/void.
+  // Resolved/voided markets already net out via payouts / vig / refunds.
   const invariant = await pgPost<{ balanced: boolean; delta: number }>(
     "/rpc/verify_ledger_invariant",
     {},
   );
-  const betPlaceRows = await pgGet<{ amount: number }[]>("/transactions", {
-    select: "amount",
-    type: "eq.bet_place",
+  const openMarkets = await pgGet<{ id: string }[]>("/markets", {
+    select: "id",
+    status: "eq.open",
   });
-  const openFloat = betPlaceRows.reduce((s, t) => s + t.amount, 0);
+  const openIds = new Set(openMarkets.map((m) => m.id));
+  const betPlaceRows = await pgGet<{ amount: number; market_id: string | null }[]>(
+    "/transactions",
+    { select: "amount,market_id", type: "eq.bet_place" },
+  );
+  const openFloat = betPlaceRows
+    .filter((t) => t.market_id && openIds.has(t.market_id))
+    .reduce((s, t) => s + t.amount, 0);
   console.log(`\nLedger invariant: balanced=${invariant.balanced} delta=${invariant.delta}`);
   console.log(`Open bet_place float:       ${openFloat}`);
   if (invariant.balanced) {
     // fully settled economy
   } else if (invariant.delta === openFloat) {
-    console.log("Open-market float matches REC-1 expectation (delta == Σ bet_place).");
+    console.log("Open-market float matches REC-1 expectation (delta == Σ open bet_place).");
   } else {
     console.error(
       `Ledger invariant unexpected: delta=${invariant.delta} openFloat=${openFloat}`,

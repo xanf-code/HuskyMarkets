@@ -77,12 +77,16 @@ export function MarketCard({ market }: { market: MarketListItem }) {
       </div>
 
       <div className="flex items-end justify-between gap-3 pt-1">
-        <Sparkline
-          points={market.spark}
-          label={leader?.label ?? "Leading outcome"}
-          colorIndex={leader?.sortOrder ?? 0}
-        />
-        <span className="num text-xs text-text-muted">
+        {market.volume > 0 && market.spark.length >= 2 ? (
+          <Sparkline
+            points={market.spark}
+            label={leader?.label ?? "Leading outcome"}
+            colorIndex={leader?.sortOrder ?? 0}
+          />
+        ) : (
+          <span />
+        )}
+        <span className="num shrink-0 text-xs whitespace-nowrap text-text-muted">
           {formatHC(market.volume)} vol
         </span>
       </div>

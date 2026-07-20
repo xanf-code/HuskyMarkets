@@ -6,10 +6,12 @@ import {
   AreaChart,
   CartesianGrid,
   ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 import { buildChartSeries, type ChartVariant } from "@/lib/chart-series";
+import { formatCents } from "@/lib/format";
 import type { OutcomeState } from "@/lib/outcomes";
 import type { HistoryPoint } from "@/lib/queries/markets";
 import { outcomeColor, theme } from "@/lib/theme";
@@ -25,6 +27,63 @@ const TIME = new Intl.DateTimeFormat("en-US", {
   day: "numeric",
   timeZone: "America/New_York",
 });
+
+const DATE_TIME = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+  timeZone: "America/New_York",
+});
+
+interface TooltipEntry {
+  dataKey?: string | number;
+  name?: string;
+  value?: number;
+  color?: string;
+}
+
+/** Kalshi-style crosshair card: time on top, series values sorted high → low. */
+function CrosshairTooltip({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: TooltipEntry[];
+  label?: number;
+}) {
+  if (!active || !payload?.length || label === undefined) return null;
+  const rows = [...payload].sort((a, b) => (b.value ?? 0) - (a.value ?? 0));
+  return (
+    <div className="card-surface min-w-36 px-3 py-2 shadow-card-hover">
+      <p className="num pb-1 text-xs font-semibold text-text">
+        {DATE_TIME.format(new Date(label))}
+      </p>
+      <ul className="flex flex-col gap-0.5">
+        {rows.map((row) => (
+          <li
+            key={String(row.dataKey)}
+            className="num flex items-center gap-1.5 text-xs"
+          >
+            <span
+              aria-hidden="true"
+              className="inline-block size-2 shrink-0 rounded-full"
+              style={{ backgroundColor: row.color }}
+            />
+            <span className="truncate text-text-muted">{row.name}</span>
+            <span
+              className="ml-auto pl-3 font-semibold"
+              style={{ color: row.color }}
+            >
+              {formatCents(row.value ?? 0)}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 const MOBILE_QUERY = "(max-width: 640px)";
 
@@ -122,6 +181,13 @@ export function ProbabilityChart({
               tickLine={false}
               axisLine={false}
             />
+            <Tooltip
+              content={<CrosshairTooltip />}
+              cursor={{
+                stroke: theme.colors.textTertiary,
+                strokeWidth: 1,
+              }}
+            />
             {series.map((s) => (
               <Area
                 key={s.key}
@@ -131,6 +197,11 @@ export function ProbabilityChart({
                 stroke={colorFor(s.colorIndex)}
                 strokeWidth={2}
                 fill={`${colorFor(s.colorIndex)}1F`}
+                activeDot={{
+                  r: 3.5,
+                  strokeWidth: 2,
+                  stroke: theme.colors.card,
+                }}
                 isAnimationActive={false}
                 connectNulls
               />

@@ -70,3 +70,29 @@ export function capViolations(
     .filter(([, total]) => total > cap)
     .map(([userIdx, total]) => ({ userIdx, total, cap }));
 }
+
+/**
+ * Spread a wave's timestamps across `spanSecs` so charts show stepped
+ * price paths instead of a 1-second burst. Oldest bet first (largest
+ * secsAgo); the newest lands near "now". Small deterministic jitter keeps
+ * gaps from looking perfectly even.
+ */
+export function staggerWave(
+  wave: readonly SeedBet[],
+  spanSecs: number,
+): SeedBet[] {
+  const n = wave.length;
+  if (n === 0) return [];
+  if (n === 1) return [{ ...wave[0], secsAgo: Math.max(0, Math.round(spanSecs)) }];
+
+  return wave.map((bet, i) => {
+    const t = i / (n - 1); // 0 = oldest, 1 = newest
+    const base = spanSecs * (1 - t);
+    // ±20 min wobble, zero at endpoints so the span stays exact.
+    const jitter =
+      i === 0 || i === n - 1
+        ? 0
+        : Math.round(Math.sin(i * 2.7) * 20 * 60);
+    return { ...bet, secsAgo: Math.max(0, Math.round(base + jitter)) };
+  });
+}

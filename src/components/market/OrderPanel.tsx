@@ -209,33 +209,32 @@ export function OrderPanel(props: OrderPanelProps) {
       </div>
 
       <dl className="flex flex-col gap-2.5 border-t border-hairline pt-4 text-sm">
-        <div className="flex items-baseline justify-between">
-          <dt className="text-text-muted">Odds</dt>
-          <dd className="num font-semibold text-text">
+        <div className="flex items-baseline justify-between gap-3">
+          <dt className="shrink-0 text-text-muted">Odds</dt>
+          <dd className="num font-semibold whitespace-nowrap text-text">
             {formatPercent(selected?.implied ?? 0)} chance
           </dd>
         </div>
-        <div className="flex items-baseline justify-between">
-          <dt className="text-text-muted">Balance</dt>
-          <dd className="num text-text">{formatHC(balance)}</dd>
+        <div className="flex items-baseline justify-between gap-3">
+          <dt className="shrink-0 text-text-muted">Balance</dt>
+          <dd className="num whitespace-nowrap text-text">{formatHC(balance)}</dd>
         </div>
-        <div className="flex items-baseline justify-between">
-          <dt className="text-text-muted">Cap remaining</dt>
-          <dd className="num text-text">{formatHC(capRemaining)}</dd>
+        <div className="flex items-baseline justify-between gap-3">
+          <dt className="shrink-0 text-text-muted">Cap remaining</dt>
+          <dd className="num whitespace-nowrap text-text">{formatHC(capRemaining)}</dd>
         </div>
-        <div className="flex items-end justify-between">
-          <dt className="flex flex-col gap-0.5">
-            <span className="font-semibold text-text">Est. payout</span>
-            <span className="text-xs text-text-tertiary">
-              Final payout depends on the pools at close · Closes{" "}
-              {CLOSE_DATE.format(new Date(props.closeAt))}
-            </span>
-          </dt>
-          <dd className="num text-2xl font-bold text-text">
+        <div className="flex items-baseline justify-between gap-3 border-t border-hairline pt-3">
+          <dt className="shrink-0 font-semibold text-text">Est. payout</dt>
+          <dd className="num text-2xl font-bold whitespace-nowrap text-text">
             {valid ? formatHC(estimate) : "—"}
           </dd>
         </div>
       </dl>
+
+      <p className="text-xs text-text-tertiary">
+        Final payout depends on the pools at close · Closes{" "}
+        {CLOSE_DATE.format(new Date(props.closeAt))}
+      </p>
 
       {error ? (
         <p role="alert" className="text-sm text-market-no">

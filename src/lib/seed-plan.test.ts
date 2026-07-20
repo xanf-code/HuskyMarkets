@@ -8,6 +8,7 @@ import {
   capViolations,
   OUTCOME_LABEL_POOL,
   seedOutcomeSets,
+  staggerWave,
   type SeedBet,
 } from "./seed-plan";
 import { CAP_PER_MARKET, MAX_OUTCOMES, MIN_OUTCOMES } from "./constants";
@@ -80,5 +81,47 @@ describe("capViolations (FR-9 aggregate cap)", () => {
     // Three separate 200 HC stakes on three outcomes: 600 total — over cap.
     const wave = [bet(2, 0, 200), bet(2, 1, 200), bet(2, 2, 200)];
     expect(capViolations(wave)).toHaveLength(1);
+  });
+});
+
+describe("staggerWave", () => {
+  const HOUR = 3600;
+  const DAY = 24 * HOUR;
+  const bet = (userIdx: number, outcomeIdx: number, amount: number): SeedBet => ({
+    userIdx,
+    outcomeIdx,
+    amount,
+    secsAgo: 0,
+  });
+
+  it("spreads oldest→newest across the span", () => {
+    const wave = [bet(0, 0, 10), bet(1, 0, 10), bet(2, 0, 10)];
+    const staggered = staggerWave(wave, 3 * DAY);
+    expect(staggered[0].secsAgo).toBe(3 * DAY);
+    expect(staggered[staggered.length - 1].secsAgo).toBe(0);
+    for (let i = 1; i < staggered.length; i++) {
+      expect(staggered[i - 1].secsAgo).toBeGreaterThan(staggered[i].secsAgo);
+    }
+  });
+
+  it("preserves stake fields", () => {
+    const wave = [bet(0, 1, 80), bet(3, 2, 40)];
+    const staggered = staggerWave(wave, DAY);
+    expect(staggered[0]).toMatchObject({
+      userIdx: 0,
+      outcomeIdx: 1,
+      amount: 80,
+    });
+    expect(staggered[1]).toMatchObject({
+      userIdx: 3,
+      outcomeIdx: 2,
+      amount: 40,
+    });
+  });
+
+  it("handles a single-bet wave", () => {
+    expect(staggerWave([bet(0, 0, 10)], DAY)).toEqual([
+      { userIdx: 0, outcomeIdx: 0, amount: 10, secsAgo: DAY },
+    ]);
   });
 });
