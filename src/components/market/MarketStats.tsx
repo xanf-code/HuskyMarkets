@@ -18,7 +18,16 @@ export function MarketStats({
     { label: "Predictors", value: String(bettorCount) },
     {
       label: "Pools",
-      value: outcomes.map((o) => `${o.label} ${o.pool}`).join(" / "),
+      value: (
+        <ul className="flex flex-col gap-0.5">
+          {outcomes.map((o) => (
+            <li key={o.id} className="flex items-center justify-between gap-2 text-sm">
+              <span className="truncate text-text-muted">{o.label}</span>
+              <span className="num shrink-0 font-semibold text-text">{o.pool}</span>
+            </li>
+          ))}
+        </ul>
+      ),
     },
   ];
 
@@ -27,7 +36,9 @@ export function MarketStats({
       {stats.map((stat) => (
         <div key={stat.label} className="card-surface px-4 py-3">
           <dt className="text-xs font-medium text-text-muted">{stat.label}</dt>
-          <dd className="mt-1 text-lg font-semibold text-text">{stat.value}</dd>
+          <dd className={`mt-1 text-text ${stat.label === "Pools" ? "" : "text-lg font-semibold"}`}>
+            {stat.value}
+          </dd>
         </div>
       ))}
     </dl>

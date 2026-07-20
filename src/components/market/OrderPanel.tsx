@@ -146,7 +146,7 @@ export function OrderPanel(props: OrderPanelProps) {
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-2" role="group" aria-label="Outcomes">
+      <div className="flex flex-col gap-1" role="group" aria-label="Outcomes">
         {outcomes.map((outcome) => {
           const selectedOutcome = outcome.id === selected?.id;
           return (
@@ -156,13 +156,21 @@ export function OrderPanel(props: OrderPanelProps) {
               aria-pressed={selectedOutcome}
               onClick={() => setOutcomeId(outcome.id)}
               disabled={!open}
-              className={`num flex-1 basis-2/5 cursor-pointer rounded-pill border px-4 py-3.5 text-base font-semibold transition-all duration-200 ease-standard focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-40 ${
+              className={`num flex w-full items-center justify-between gap-3 cursor-pointer rounded border px-3 py-2 text-sm font-medium transition-all duration-150 ease-standard focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-40 ${
                 selectedOutcome
-                  ? "border-red bg-red text-white"
-                  : "border-hairline bg-muted text-text hover:border-border-strong"
+                  ? "border-red bg-red/10 text-text"
+                  : "border-hairline bg-muted text-text hover:border-border-strong hover:bg-card"
               }`}
             >
-              {outcome.label} {formatPercent(outcome.implied)}
+              <span className={`flex items-center gap-2 ${selectedOutcome ? "font-semibold" : ""}`}>
+                {selectedOutcome && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-red shrink-0" />
+                )}
+                {outcome.label}
+              </span>
+              <span className="num shrink-0 text-text-muted">
+                {formatPercent(outcome.implied)}
+              </span>
             </button>
           );
         })}
