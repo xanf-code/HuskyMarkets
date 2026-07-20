@@ -2,14 +2,13 @@ import Link from "next/link";
 import { CATEGORIES } from "@/lib/constants";
 import type { MarketListItem } from "@/lib/queries/markets";
 import { MarketCard } from "./MarketCard";
-import { TrendingCarousel } from "./TrendingCarousel";
 
-const CARDS_PER_CATEGORY = 4;
+const CARDS_PER_CATEGORY = 6;
 
 /**
- * Default home view: trending hero carousel, then a 2x2 grid per category
- * (Kalshi-style). Each section shows up to 4 markets; the header link opens
- * the filtered full list. Filtering/searching swaps this for the live grid.
+ * Default home view: category grids (Kalshi-style). Each section shows up to
+ * 6 markets; the header link opens the filtered full list.
+ * Filtering/searching swaps this for the live grid.
  */
 export function HomeShowcase({ markets }: { markets: MarketListItem[] }) {
   if (markets.length === 0) {
@@ -24,7 +23,6 @@ export function HomeShowcase({ markets }: { markets: MarketListItem[] }) {
 
   return (
     <div className="flex flex-col gap-8 sm:gap-10">
-      <TrendingCarousel markets={markets} />
 
       {CATEGORIES.map((category) => {
         const list = markets
@@ -48,7 +46,7 @@ export function HomeShowcase({ markets }: { markets: MarketListItem[] }) {
                 </span>
               </h2>
             </Link>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 [&>article]:h-full">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 [&>article]:h-full">
               {list.map((market) => (
                 <MarketCard key={market.id} market={market} />
               ))}

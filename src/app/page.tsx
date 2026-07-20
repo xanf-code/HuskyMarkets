@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { HomeShowcase } from "@/components/market/HomeShowcase";
-import { HomeSidebar } from "@/components/market/HomeSidebar";
+import { getTopMovers, HomeSidebar } from "@/components/market/HomeSidebar";
 import { MarketFilters } from "@/components/market/MarketFilters";
 import { MarketGridLive } from "@/components/market/MarketGridLive";
 import {
@@ -41,13 +41,22 @@ export default async function Home({ searchParams }: HomeProps) {
     filters.category || filters.q ? await getMarketList({}) : markets;
 
   const showGroups = !filters.category && !filters.q;
+  const hasSidebar = !showGroups && getTopMovers(allMarkets).length > 0;
 
   return (
     <div className="flex flex-col gap-5 sm:gap-6">
-      <Suspense>
-        <MarketFilters />
-      </Suspense>
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-8">
+      {!showGroups && (
+        <Suspense>
+          <MarketFilters />
+        </Suspense>
+      )}
+      <div
+        className={
+          hasSidebar
+            ? "grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-8"
+            : "min-w-0"
+        }
+      >
         <div className="min-w-0">
           {showGroups ? (
             <HomeShowcase markets={markets} />
@@ -55,9 +64,11 @@ export default async function Home({ searchParams }: HomeProps) {
             <MarketGridLive initial={markets} />
           )}
         </div>
-        <div className="lg:sticky lg:top-6">
-          <HomeSidebar markets={allMarkets} />
-        </div>
+        {hasSidebar && (
+          <div className="lg:sticky lg:top-6">
+            <HomeSidebar markets={allMarkets} />
+          </div>
+        )}
       </div>
     </div>
   );
