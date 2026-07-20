@@ -11,6 +11,7 @@
 // payloads (D-5).
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ACTIVITY_FEED_LIMIT } from "@/lib/constants";
 import type { Tables } from "@/lib/database.types";
 import type { OutcomeState } from "@/lib/outcomes";
 import type { ActivityItem, HistoryPoint } from "@/lib/queries/markets";
@@ -23,7 +24,7 @@ import {
   type LiveMarketState,
 } from "./live-state";
 
-const ACTIVITY_LIMIT = 30;
+const ACTIVITY_LIMIT = ACTIVITY_FEED_LIMIT;
 
 export interface MarketChannelInitial {
   outcomes: OutcomeState[];

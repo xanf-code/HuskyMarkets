@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
 import { LIST_PAGE_SIZE } from "@/lib/constants";
 import { Button } from "./Button";
 
@@ -27,11 +33,89 @@ export function useLoadMore<T>(
   const hasMore = capped < items.length;
   const remaining = items.length - capped;
 
-  function loadMore() {
+  const loadMore = useCallback(() => {
     setVisible((v) => Math.min(v + pageSize, items.length));
-  }
+  }, [pageSize, items.length]);
 
-  return { visibleItems, hasMore, remaining, loadMore };
+  return { visibleItems, hasMore, remaining, loadMore, visibleCount: capped };
+}
+
+/**
+ * Fires `onLoadMore` when the sentinel enters the viewport (with a generous
+ * rootMargin so the next page is ready before the user hits the fold — key
+ * on mobile where thumb-scroll is continuous).
+ */
+export function InfiniteScrollSentinel({
+  hasMore,
+  onLoadMore,
+  remaining,
+  visibleCount,
+  rootMargin = "280px 0px",
+}: {
+  hasMore: boolean;
+  onLoadMore: () => void;
+  remaining?: number;
+  /** Re-check intersection after each page so a still-visible sentinel keeps loading. */
+  visibleCount: number;
+  rootMargin?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useInfiniteScroll({
+    ref,
+    hasMore,
+    onLoadMore,
+    visibleCount,
+    rootMargin,
+  });
+
+  if (!hasMore) return null;
+
+  return (
+    <div
+      ref={ref}
+      className="flex min-h-10 items-center justify-center px-4 py-3 sm:py-4"
+      role="status"
+      aria-live="polite"
+    >
+      <p className="text-xs text-text-muted">
+        {remaining != null && remaining > 0
+          ? `${remaining} more`
+          : "Loading…"}
+      </p>
+    </div>
+  );
+}
+
+function useInfiniteScroll({
+  ref,
+  hasMore,
+  onLoadMore,
+  visibleCount,
+  rootMargin,
+}: {
+  ref: RefObject<HTMLElement | null>;
+  hasMore: boolean;
+  onLoadMore: () => void;
+  visibleCount: number;
+  rootMargin: string;
+}) {
+  useEffect(() => {
+    if (!hasMore) return;
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          onLoadMore();
+        }
+      },
+      { root: null, rootMargin, threshold: 0 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasMore, onLoadMore, visibleCount, rootMargin, ref]);
 }
 
 export function LoadMoreButton({

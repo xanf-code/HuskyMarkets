@@ -1,3 +1,10 @@
+"use client";
+
+import {
+  InfiniteScrollSentinel,
+  useLoadMore,
+} from "@/components/ui/LoadMore";
+import { LEADERBOARD_PAGE_SIZE } from "@/lib/constants";
 import { formatHC } from "@/lib/format";
 import type { AccuracyEntry } from "@/lib/queries/leaderboard";
 
@@ -7,6 +14,9 @@ interface AccuracyBoardProps {
 }
 
 export function AccuracyBoard({ entries, currentUserId }: AccuracyBoardProps) {
+  const { visibleItems, hasMore, remaining, loadMore, visibleCount } =
+    useLoadMore(entries, { pageSize: LEADERBOARD_PAGE_SIZE });
+
   if (entries.length === 0) {
     return (
       <p className="rounded-md bg-muted px-4 py-8 text-center text-sm text-text-muted">
@@ -22,16 +32,16 @@ export function AccuracyBoard({ entries, currentUserId }: AccuracyBoardProps) {
         resolved bets.
       </p>
       <ol className="card-surface divide-y divide-hairline overflow-hidden">
-        {entries.map((e) => {
+        {visibleItems.map((e) => {
           const mine = e.userId === currentUserId;
           return (
             <li
               key={e.userId}
-              className={`flex flex-wrap items-baseline gap-x-4 gap-y-1 px-4 py-3 sm:px-5 ${
+              className={`flex flex-wrap items-baseline gap-x-3 gap-y-1 px-3 py-3 sm:gap-x-4 sm:px-5 ${
                 mine ? "bg-muted" : "bg-card"
               }`}
             >
-              <span className="num w-10 shrink-0 text-2xl font-semibold text-red tabular-nums">
+              <span className="num w-8 shrink-0 text-xl font-semibold text-red tabular-nums sm:w-10 sm:text-2xl">
                 {e.rank}
               </span>
               <span
@@ -41,7 +51,7 @@ export function AccuracyBoard({ entries, currentUserId }: AccuracyBoardProps) {
               >
                 {e.displayName}
               </span>
-              <span className="num text-sm text-text">
+              <span className="num w-full text-sm text-text sm:ml-auto sm:w-auto">
                 <span className="text-market-yes">
                   {(e.winRate * 100).toFixed(1)}%
                 </span>
@@ -55,6 +65,12 @@ export function AccuracyBoard({ entries, currentUserId }: AccuracyBoardProps) {
           );
         })}
       </ol>
+      <InfiniteScrollSentinel
+        hasMore={hasMore}
+        onLoadMore={loadMore}
+        remaining={remaining}
+        visibleCount={visibleCount}
+      />
     </div>
   );
 }

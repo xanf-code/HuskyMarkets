@@ -29,6 +29,18 @@ export type Category = (typeof CATEGORIES)[number]["value"];
 export const MARKET_SORTS = ["closing", "volume", "newest"] as const;
 export type MarketSort = (typeof MARKET_SORTS)[number];
 
+/**
+ * Client-side window sizes for infinite scroll. Server still ships the
+ * full campus-scale list; the UI reveals pages as the user scrolls.
+ */
+export const LIST_PAGE_SIZE = 12;
+/** ~2 screens of cards on a phone before the next page loads. */
+export const MARKET_PAGE_SIZE = 6;
+export const LEADERBOARD_PAGE_SIZE = 15;
+export const ACTIVITY_PAGE_SIZE = 10;
+/** How many recent bets to ship for the market activity feed. */
+export const ACTIVITY_FEED_LIMIT = 100;
+
 /** Hard content rule — rendered verbatim on /create above the form. */
 export const CONTENT_RULE =
   "No markets targeting named individual students or private individuals' personal lives, relationships, health, or conduct.";

@@ -1,3 +1,10 @@
+"use client";
+
+import {
+  InfiniteScrollSentinel,
+  useLoadMore,
+} from "@/components/ui/LoadMore";
+import { LEADERBOARD_PAGE_SIZE } from "@/lib/constants";
 import { formatHC } from "@/lib/format";
 import type { SemesterEntry } from "@/lib/queries/leaderboard";
 
@@ -7,6 +14,9 @@ interface SemesterBoardProps {
 }
 
 export function SemesterBoard({ entries, currentUserId }: SemesterBoardProps) {
+  const { visibleItems, hasMore, remaining, loadMore, visibleCount } =
+    useLoadMore(entries, { pageSize: LEADERBOARD_PAGE_SIZE });
+
   if (entries.length === 0) {
     return (
       <p className="rounded-md bg-muted px-4 py-8 text-center text-sm text-text-muted">
@@ -22,16 +32,16 @@ export function SemesterBoard({ entries, currentUserId }: SemesterBoardProps) {
         Monday.
       </p>
       <ol className="card-surface divide-y divide-hairline overflow-hidden">
-        {entries.map((e) => {
+        {visibleItems.map((e) => {
           const mine = e.userId === currentUserId;
           return (
             <li
               key={e.userId}
-              className={`flex items-baseline gap-4 px-4 py-3 sm:px-5 ${
+              className={`flex items-baseline gap-3 px-3 py-3 sm:gap-4 sm:px-5 ${
                 mine ? "bg-muted" : "bg-card"
               }`}
             >
-              <span className="num w-10 shrink-0 text-2xl font-semibold text-red">
+              <span className="num w-8 shrink-0 text-xl font-semibold text-red sm:w-10 sm:text-2xl">
                 {e.rank}
               </span>
               <span
@@ -49,6 +59,12 @@ export function SemesterBoard({ entries, currentUserId }: SemesterBoardProps) {
           );
         })}
       </ol>
+      <InfiniteScrollSentinel
+        hasMore={hasMore}
+        onLoadMore={loadMore}
+        remaining={remaining}
+        visibleCount={visibleCount}
+      />
     </div>
   );
 }

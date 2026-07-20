@@ -7,7 +7,11 @@
 // portfolio). Queries fetch it and helpers preserve it; no surface may
 // invent its own order.
 
-import type { Category, MarketSort } from "@/lib/constants";
+import {
+  ACTIVITY_FEED_LIMIT,
+  type Category,
+  type MarketSort,
+} from "@/lib/constants";
 import { getSession } from "@/lib/dal";
 import { marketVolume } from "@/lib/format";
 import {
@@ -213,7 +217,7 @@ export interface MarketDetail {
   balance: number;
 }
 
-const ACTIVITY_LIMIT = 30;
+const ACTIVITY_LIMIT = ACTIVITY_FEED_LIMIT;
 
 export async function getMarketDetail(
   id: string,

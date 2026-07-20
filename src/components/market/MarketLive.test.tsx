@@ -18,6 +18,14 @@ const { useMarketChannel } = vi.hoisted(() => ({
 
 vi.mock("@/lib/realtime/useMarketChannel", () => ({ useMarketChannel }));
 
+class MockIntersectionObserver {
+  observe = vi.fn();
+  disconnect = vi.fn();
+  unobserve = vi.fn();
+  takeRecords = vi.fn();
+}
+vi.stubGlobal("IntersectionObserver", MockIntersectionObserver);
+
 const YES: OutcomeState = { id: "o-yes", label: "Yes", sortOrder: 0, pool: 200, implied: 67 };
 const NO: OutcomeState = { id: "o-no", label: "No", sortOrder: 1, pool: 100, implied: 33 };
 

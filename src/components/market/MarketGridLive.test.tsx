@@ -29,6 +29,14 @@ const { supabase, channel, handlers } = vi.hoisted(() => {
 
 vi.mock("@/lib/supabase/client", () => ({ createClient: () => supabase }));
 
+class MockIntersectionObserver {
+  observe = vi.fn();
+  disconnect = vi.fn();
+  unobserve = vi.fn();
+  takeRecords = vi.fn();
+}
+vi.stubGlobal("IntersectionObserver", MockIntersectionObserver);
+
 const market = (id: string, title: string): MarketListItem => ({
   id,
   title,
@@ -99,6 +107,16 @@ describe("MarketGridLive", () => {
 
     expect(screen.queryByText("Snow before finals?")).not.toBeInTheDocument();
     expect(screen.getByText("Beanpot final?")).toBeInTheDocument();
+  });
+
+  it("windows a long list behind a scroll sentinel", () => {
+    const initial = Array.from({ length: 10 }, (_, i) =>
+      market(`m${i}`, `Market ${i}`),
+    );
+    render(<MarketGridLive initial={initial} />);
+
+    expect(screen.getAllByRole("article")).toHaveLength(6);
+    expect(screen.getByRole("status")).toHaveTextContent("4 more");
   });
 
   it("removes the channel on unmount", () => {

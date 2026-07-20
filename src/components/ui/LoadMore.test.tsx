@@ -1,7 +1,11 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
-import { LoadMoreButton, useLoadMore } from "./LoadMore";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  InfiniteScrollSentinel,
+  LoadMoreButton,
+  useLoadMore,
+} from "./LoadMore";
 
 function Probe({
   items,
@@ -27,6 +31,32 @@ function Probe({
         hasMore={hasMore}
         remaining={remaining}
         onLoadMore={loadMore}
+      />
+    </div>
+  );
+}
+
+function ScrollProbe({
+  items,
+  pageSize = 2,
+}: {
+  items: string[];
+  pageSize?: number;
+}) {
+  const { visibleItems, hasMore, remaining, loadMore, visibleCount } =
+    useLoadMore(items, { pageSize });
+  return (
+    <div>
+      <ul>
+        {visibleItems.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+      <InfiniteScrollSentinel
+        hasMore={hasMore}
+        onLoadMore={loadMore}
+        remaining={remaining}
+        visibleCount={visibleCount}
       />
     </div>
   );
@@ -63,5 +93,51 @@ describe("useLoadMore / LoadMoreButton", () => {
     rerender(<Probe items={["x", "y", "z", "w"]} resetKey="sports" />);
     expect(screen.getAllByRole("listitem")).toHaveLength(2);
     expect(screen.getByText("x")).toBeInTheDocument();
+  });
+});
+
+describe("InfiniteScrollSentinel", () => {
+  let observe: ReturnType<typeof vi.fn>;
+  let disconnect: ReturnType<typeof vi.fn>;
+  let observerCallback: IntersectionObserverCallback | null = null;
+
+  beforeEach(() => {
+    observe = vi.fn();
+    disconnect = vi.fn();
+    observerCallback = null;
+    class MockIntersectionObserver {
+      constructor(cb: IntersectionObserverCallback) {
+        observerCallback = cb;
+      }
+      observe = observe;
+      disconnect = disconnect;
+      unobserve = vi.fn();
+      takeRecords = vi.fn();
+    }
+    vi.stubGlobal("IntersectionObserver", MockIntersectionObserver);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("loads the next page when the sentinel intersects", () => {
+    render(<ScrollProbe items={["a", "b", "c", "d", "e"]} />);
+    expect(screen.getAllByRole("listitem")).toHaveLength(2);
+    expect(screen.getByRole("status")).toHaveTextContent("3 more");
+
+    act(() => {
+      observerCallback?.(
+        [{ isIntersecting: true } as IntersectionObserverEntry],
+        {} as IntersectionObserver,
+      );
+    });
+
+    expect(screen.getAllByRole("listitem")).toHaveLength(4);
+  });
+
+  it("hides the sentinel when the list is fully shown", () => {
+    render(<ScrollProbe items={["a", "b"]} pageSize={12} />);
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 });
