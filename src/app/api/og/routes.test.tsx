@@ -25,7 +25,7 @@ const FONTS = [{ name: "IBM Plex Mono", data: new ArrayBuffer(0) }];
 const marketCard = {
   title: "Will it snow before finals?",
   category: "weather" as const,
-  yesPrice: 63,
+  leading: { label: "Yes", price: 63 },
   volume: 550,
   status: "open" as const,
   closeAt: "2026-07-20T00:00:00Z",
@@ -34,7 +34,7 @@ const marketCard = {
 const shareCard = {
   marketId: "m1",
   marketTitle: "Will it snow before finals?",
-  side: "no" as const,
+  outcomeLabel: "No",
   priceAtBet: 22,
   stake: 250,
   payout: 396,

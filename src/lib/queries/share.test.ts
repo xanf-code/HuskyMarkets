@@ -13,22 +13,26 @@ beforeEach(() => {
 
 describe("getMarketCard", () => {
   const row = {
+    id: "m1",
     title: "Will it snow before finals?",
-    category: "weather" as const,
-    yes_pool: 450,
-    no_pool: 300,
-    status: "open" as const,
+    category: "weather",
+    status: "open",
     close_at: "2026-07-20T00:00:00Z",
+    outcomes: [
+      { id: "o1", label: "Yes", sort_order: 0, pool: 450, implied: 60 },
+      { id: "o2", label: "No", sort_order: 1, pool: 300, implied: 40 },
+    ],
+    leading: { label: "Yes", implied: 60 },
   };
 
-  it("maps the RPC row and derives price and volume", async () => {
-    rpc.mockResolvedValue({ data: [row], error: null });
+  it("maps the RPC payload, deriving volume from the outcome pools", async () => {
+    rpc.mockResolvedValue({ data: row, error: null });
     const card = await getMarketCard("m1");
     expect(rpc).toHaveBeenCalledWith("get_market_card", { p_market_id: "m1" });
     expect(card).toEqual({
       title: "Will it snow before finals?",
       category: "weather",
-      yesPrice: 60,
+      leading: { label: "Yes", price: 60 },
       volume: 550,
       status: "open",
       closeAt: "2026-07-20T00:00:00Z",
@@ -36,7 +40,7 @@ describe("getMarketCard", () => {
   });
 
   it("returns null when the market is missing or hidden", async () => {
-    rpc.mockResolvedValue({ data: [], error: null });
+    rpc.mockResolvedValue({ data: null, error: null });
     expect(await getMarketCard("hidden")).toBeNull();
   });
 
@@ -48,23 +52,24 @@ describe("getMarketCard", () => {
 
 describe("getShareCard", () => {
   const row = {
+    bet_id: "b1",
     market_id: "m1",
     market_title: "Will it snow before finals?",
-    side: "no" as const,
+    outcome_label: "No",
     price_at_bet: 22,
-    stake: 250,
+    amount: 250,
     payout: 396,
     display_name: "QuietHusky42",
   };
 
-  it("maps the RPC row", async () => {
-    rpc.mockResolvedValue({ data: [row], error: null });
+  it("maps the RPC payload with the outcome label", async () => {
+    rpc.mockResolvedValue({ data: row, error: null });
     const card = await getShareCard("b1");
     expect(rpc).toHaveBeenCalledWith("get_share_card", { p_bet_id: "b1" });
     expect(card).toEqual({
       marketId: "m1",
       marketTitle: "Will it snow before finals?",
-      side: "no",
+      outcomeLabel: "No",
       priceAtBet: 22,
       stake: 250,
       payout: 396,
@@ -73,7 +78,7 @@ describe("getShareCard", () => {
   });
 
   it("returns null for losing or unresolved bets", async () => {
-    rpc.mockResolvedValue({ data: [], error: null });
+    rpc.mockResolvedValue({ data: null, error: null });
     expect(await getShareCard("loser")).toBeNull();
   });
 

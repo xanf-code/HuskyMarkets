@@ -25,8 +25,12 @@ export function ResolvedHistory({ rows }: { rows: ResolvedPosition[] }) {
                 {r.marketTitle}
               </Link>
               <p className="mt-1 text-sm text-text-muted">
-                Outcome {r.outcome === "yes" ? "Yes" : "No"} · you{" "}
-                {r.side === "yes" ? "Yes" : "No"}
+                Outcome {r.outcomeLabel} ·{" "}
+                {r.outcomeLabel === "Void"
+                  ? "refunded"
+                  : r.won
+                    ? "you won"
+                    : "you lost"}
               </p>
             </div>
             <p
@@ -40,6 +44,9 @@ export function ResolvedHistory({ rows }: { rows: ResolvedPosition[] }) {
           </div>
           <p className="num mt-3 text-sm text-text-muted">
             {formatHC(r.stake)} to {formatHC(r.payout)}
+            {r.estimatedPayout != null
+              ? ` · Est. payout ${formatHC(r.estimatedPayout)}`
+              : ""}
           </p>
           {r.won && r.shareBetId ? (
             <Link

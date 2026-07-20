@@ -1,9 +1,17 @@
 #!/usr/bin/env node
-// Seed 10 demo markets per category (70 total) using the Supabase REST API.
+// Seed demo markets across all categories via the create_market engine RPC
+// (E-6 / S6-1: engine-first, so the AR-5 insert order and outcome validation
+// are exercised by the seed itself). Markets get a 2/3/4/5/6-outcome mix (D-7).
 // Works on Node.js 20+ (no WebSocket needed — plain fetch only).
 //
 // Usage from repo root:
-//   npx tsx --env-file=.env.local scripts/seed-markets.ts
+//   SEED_ENV=dev npx tsx --env-file=.env.local scripts/seed-markets.ts
+
+// Non-prod guard (S6-1): refuse to run unless explicitly marked as a dev seed.
+if (process.env.SEED_ENV !== "dev") {
+  console.error("Refusing to seed: set SEED_ENV=dev (non-prod only).");
+  process.exit(1);
+}
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -14,12 +22,26 @@ if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
 }
 
 const BASE = `${SUPABASE_URL}/rest/v1`;
+const AUTH_BASE = `${SUPABASE_URL}/auth/v1`;
 const HEADERS = {
   apikey: SERVICE_ROLE_KEY,
   Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
   "Content-Type": "application/json",
   Prefer: "return=representation",
 };
+
+// The engine's create_market RPC runs as the caller (auth.uid()), so seeding
+// needs a real user JWT — the service role key alone is rejected. A dedicated
+// seed creator is provisioned via the Auth Admin API, then signed in.
+const SEED_CREATOR = {
+  email: "creator.seed@northeastern.edu",
+  password: "HuskyM4rkets!Creator",
+};
+
+// Outcome-label mix for the catalog, cycled by market index (D-7).
+import { seedOutcomeSets } from "../src/lib/seed-plan";
+
+const OUTCOME_SETS = seedOutcomeSets();
 
 async function pg<T>(
   method: string,
@@ -583,30 +605,54 @@ const MARKETS: MarketInsert[] = [
   },
 ];
 
-async function main() {
-  // Fetch a profile to use as creator.
-  const profiles = await pg<{ id: string; email: string }[]>(
+/** Ensure the seed creator auth user exists; return a signed-in JWT. */
+async function seedCreatorJwt(): Promise<string> {
+  const existing = await pg<{ id: string }[]>(
     "GET",
     "/profiles",
     undefined,
-    { select: "id,email", limit: "5" },
+    { select: "id", email: `eq.${SEED_CREATOR.email}`, limit: "1" },
   );
 
-  if (!profiles.length) {
-    console.error("No profiles found. Create at least one user account first.");
-    process.exit(1);
+  if (existing.length === 0) {
+    const res = await fetch(`${AUTH_BASE}/admin/users`, {
+      method: "POST",
+      headers: {
+        apikey: SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: SEED_CREATOR.email,
+        password: SEED_CREATOR.password,
+        email_confirm: true,
+      }),
+    });
+    if (!res.ok) {
+      const txt = await res.text();
+      throw new Error(`Auth create ${SEED_CREATOR.email} → ${res.status}: ${txt}`);
+    }
+    console.log(`Created seed creator ${SEED_CREATOR.email}.`);
   }
 
-  // Prefer admin/moderator, fall back to first profile.
-  const elevated = await pg<{ id: string; email: string; role: string }[]>(
-    "GET",
-    "/profiles",
-    undefined,
-    { select: "id,email,role", role: "in.(admin,moderator)", limit: "1" },
-  );
+  const res = await fetch(`${AUTH_BASE}/token?grant_type=password`, {
+    method: "POST",
+    headers: { apikey: SERVICE_ROLE_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email: SEED_CREATOR.email,
+      password: SEED_CREATOR.password,
+    }),
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`Sign-in ${SEED_CREATOR.email} → ${res.status}: ${txt}`);
+  }
+  const data = (await res.json()) as { access_token: string };
+  return data.access_token;
+}
 
-  const creator = elevated[0] ?? profiles[0];
-  console.log(`Using profile ${creator.email} (${creator.id}) as market creator.`);
+async function main() {
+  const jwt = await seedCreatorJwt();
 
   // Check existing count to avoid re-seeding.
   const countRes = await fetch(`${BASE}/markets?select=id`, {
@@ -619,32 +665,52 @@ async function main() {
     process.exit(0);
   }
 
-  const rows = MARKETS.map((m) => ({
-    creator_id: creator.id,
-    title: m.title,
-    description: m.description ?? null,
-    category: m.category,
-    close_at: m.close_at,
-    resolve_at: m.resolve_at,
-    resolution_criteria: m.resolution_criteria,
-    auto_flagged: false,
-  }));
-
-  const inserted = await pg<{ id: string; category: string; title: string }[]>(
-    "POST",
-    "/markets",
-    rows,
-    { select: "id,category,title" },
-  );
-
   const counts: Record<string, number> = {};
-  for (const m of inserted) {
+  const outcomeCounts: Record<number, number> = {};
+
+  for (let i = 0; i < MARKETS.length; i++) {
+    const m = MARKETS[i];
+    const outcomes = OUTCOME_SETS[i % OUTCOME_SETS.length];
+    // De-binary the resolution copy on 3+-outcome markets.
+    const criteria =
+      outcomes.length > 2
+        ? `Resolves to whichever of the listed outcomes occurs: ${outcomes.join(" / ")}.`
+        : m.resolution_criteria;
+
+    const res = await fetch(`${BASE}/rpc/create_market`, {
+      method: "POST",
+      headers: {
+        apikey: SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${jwt}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        p_title: m.title,
+        p_description: m.description ?? null,
+        p_category: m.category,
+        p_resolution_criteria: criteria,
+        p_close_at: m.close_at,
+        p_resolve_at: m.resolve_at,
+        p_outcomes: outcomes,
+        p_catch_all: false,
+      }),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`create_market "${m.title.slice(0, 50)}" → ${res.status}: ${text}`);
+    }
+
     counts[m.category] = (counts[m.category] ?? 0) + 1;
+    outcomeCounts[outcomes.length] = (outcomeCounts[outcomes.length] ?? 0) + 1;
   }
 
-  console.log(`\nSeeded ${inserted.length} markets:`);
+  console.log(`\nSeeded ${MARKETS.length} markets:`);
   for (const [cat, count] of Object.entries(counts).sort()) {
     console.log(`  ${cat.padEnd(12)} ${count}`);
+  }
+  console.log("\nOutcome-count mix:");
+  for (const [n, count] of Object.entries(outcomeCounts).sort()) {
+    console.log(`  ${n} outcomes: ${count}`);
   }
   console.log("\nDone.");
 }

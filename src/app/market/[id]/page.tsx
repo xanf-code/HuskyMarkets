@@ -28,7 +28,6 @@ const ET_DATETIME = new Intl.DateTimeFormat("en-US", {
 
 interface MarketPageProps {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 interface MarketMetadataProps {
@@ -45,20 +44,17 @@ export async function generateMetadata({
   if (!card) return { title: "Market — HuskyMarkets" };
   return {
     title: `${card.title} — HuskyMarkets`,
-    description: `YES at ${formatCents(card.yesPrice)} · ${formatHC(card.volume)} wagered — HuskyMarkets`,
+    description: `${card.leading.label} at ${formatCents(card.leading.price)} · ${formatHC(card.volume)} wagered — HuskyMarkets`,
     openGraph: { images: [`/api/og/market/${id}`] },
   };
 }
 
 export default async function MarketPage({
   params,
-  searchParams,
 }: MarketPageProps) {
   const { id } = await params;
-  const query = await searchParams;
-  const sideParam = Array.isArray(query.side) ? query.side[0] : query.side;
-  const initialSide =
-    sideParam === "yes" || sideParam === "no" ? sideParam : undefined;
+  // Legacy `?side=yes|no` deep links degrade gracefully: the parameter is
+  // ignored, no outcome is preselected (A-4).
   const detail = await getMarketDetail(id);
   if (!detail) notFound();
 
@@ -66,14 +62,15 @@ export default async function MarketPage({
   const categoryLabel =
     CATEGORIES.find((c) => c.value === market.category)?.label ??
     market.category;
+  const totalStaked = detail.position.reduce((sum, p) => sum + p.stake, 0);
 
   return (
     <MarketLiveProvider
       marketId={market.id}
       initial={{
-        yesPool: market.yes_pool,
-        noPool: market.no_pool,
+        outcomes: detail.outcomes,
         status: market.status,
+        winningOutcomeId: market.winning_outcome_id,
         history: detail.history,
         activity: detail.activity,
       }}
@@ -113,13 +110,14 @@ export default async function MarketPage({
             closeAt={market.close_at}
             position={detail.position}
             balance={detail.balance}
-            initialSide={initialSide}
             question={market.title}
           />
-          {detail.position.yes + detail.position.no > 0 ? (
+          {totalStaked > 0 ? (
             <p className="num mt-3 text-xs text-text-muted">
-              Your position: {detail.position.yes} HC Yes ·{" "}
-              {detail.position.no} HC No
+              Your position:{" "}
+              {detail.position
+                .map((p) => `${p.stake} HC ${p.label}`)
+                .join(" · ")}
             </p>
           ) : null}
         </div>

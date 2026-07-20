@@ -8,10 +8,11 @@ import { useToast } from "@/components/ui/Toast";
 import { CAP_PER_MARKET } from "@/lib/constants";
 import type { Database } from "@/lib/database.types";
 import { formatCents, formatHC, formatPercent } from "@/lib/format";
-import { estimatePayout, impliedYes } from "@/lib/payout";
+import { totalPool, type OutcomeState } from "@/lib/outcomes";
+import { estimatePayout } from "@/lib/payout";
+import type { PositionEntry } from "@/lib/queries/markets";
 
 type MarketStatus = Database["public"]["Enums"]["market_status"];
-type Side = "yes" | "no";
 
 const QUICK_AMOUNTS = [25, 50, 100];
 
@@ -25,25 +26,27 @@ interface OrderPanelProps {
   marketId: string;
   status: MarketStatus;
   closeAt: string;
-  yesPool: number;
-  noPool: number;
-  /** Signed-in user's existing stake on this market, per side. */
-  position: { yes: number; no: number };
+  /** Every outcome of the market, in canonical sort_order. */
+  outcomes: OutcomeState[];
+  /** Signed-in user's existing stake on this market, per outcome. */
+  position: PositionEntry[];
   balance: number;
-  /** Prefill from `?side=yes|no` deep link. */
-  initialSide?: Side;
   /** Optional market question, rendered as a small context line above the outcome. */
   question?: string;
   /** Reports a successful fill so live consumers (hero price, chart, stats) update optimistically. */
-  onFill?: (fill: { yesPool: number; noPool: number }) => void;
+  onFill?: (fill: { outcomes: OutcomeState[] }) => void;
 }
 
 export function OrderPanel(props: OrderPanelProps) {
   const toast = useToast();
-  const [pools, setPools] = useState({ yes: props.yesPool, no: props.noPool });
-  const [staked, setStaked] = useState(props.position.yes + props.position.no);
+  const [outcomes, setOutcomes] = useState(props.outcomes);
+  const [staked, setStaked] = useState(
+    props.position.reduce((sum, p) => sum + p.stake, 0),
+  );
   const [balance, setBalance] = useState(props.balance);
-  const [side, setSide] = useState<Side>(props.initialSide ?? "yes");
+  const [outcomeId, setOutcomeId] = useState<string | undefined>(
+    props.outcomes[0]?.id,
+  );
   const [amountInput, setAmountInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -54,21 +57,15 @@ export function OrderPanel(props: OrderPanelProps) {
   // the panel's optimistic copies. Guarded setState during render is React's
   // sanctioned "adjust state when props change" pattern.
   const [syncedProps, setSyncedProps] = useState({
-    yes: props.yesPool,
-    no: props.noPool,
+    outcomes: props.outcomes,
     balance: props.balance,
   });
   if (
-    props.yesPool !== syncedProps.yes ||
-    props.noPool !== syncedProps.no ||
+    props.outcomes !== syncedProps.outcomes ||
     props.balance !== syncedProps.balance
   ) {
-    setSyncedProps({
-      yes: props.yesPool,
-      no: props.noPool,
-      balance: props.balance,
-    });
-    setPools({ yes: props.yesPool, no: props.noPool });
+    setSyncedProps({ outcomes: props.outcomes, balance: props.balance });
+    setOutcomes(props.outcomes);
     setBalance(props.balance);
   }
 
@@ -83,24 +80,27 @@ export function OrderPanel(props: OrderPanelProps) {
   }, [props.closeAt]);
 
   const open = props.status === "open" && !pastClose;
-  const yesPrice = impliedYes(pools.yes, pools.no);
-  const noPrice = 100 - yesPrice;
-  const sidePrice = side === "yes" ? yesPrice : noPrice;
+  const selected =
+    outcomes.find((o) => o.id === outcomeId) ?? outcomes[0] ?? null;
+  const total = totalPool(outcomes);
   const capRemaining = Math.max(CAP_PER_MARKET - staked, 0);
   const maxStake = Math.min(capRemaining, balance);
 
   const amount = /^\d+$/.test(amountInput) ? Number(amountInput) : 0;
-  const valid = amount >= 1 && amount <= maxStake;
-  const estimate = valid
-    ? estimatePayout(amount, side === "yes" ? pools.yes : pools.no, pools.yes + pools.no)
-    : 0;
+  const valid = amount >= 1 && amount <= maxStake && selected !== null;
+  const estimate =
+    valid && selected ? estimatePayout(amount, selected.pool, total) : 0;
 
   async function submit() {
-    if (!valid || pending) return;
+    if (!valid || pending || !selected) return;
     setPending(true);
     setError(null);
-    const priceNow = sidePrice;
-    const result = await placeBet({ marketId: props.marketId, side, amount });
+    const priceNow = selected.implied;
+    const result = await placeBet({
+      marketId: props.marketId,
+      outcomeId: selected.id,
+      amount,
+    });
     setPending(false);
 
     if (!result.ok) {
@@ -108,44 +108,22 @@ export function OrderPanel(props: OrderPanelProps) {
       return;
     }
 
-    setPools({ yes: result.yesPool, no: result.noPool });
+    setOutcomes(result.outcomes);
     setBalance(result.newBalance);
-    props.onFill?.({ yesPool: result.yesPool, noPool: result.noPool });
+    props.onFill?.({ outcomes: result.outcomes });
     setStaked((current) => current + amount);
     setAmountInput("");
+    // Est. payout repeats at the moment of purchase, not just on the panel —
+    // this is where the parimutuel expectation is actually set (FR-24).
     toast.push(
-      `Filled ${formatHC(amount)} on ${side === "yes" ? "Yes" : "No"} @ ${formatCents(priceNow)}`,
+      `Filled ${formatHC(amount)} on ${selected.label} @ ${formatCents(priceNow)} · est. ${formatHC(estimate)}`,
     );
   }
-
-  const sideButton = (value: Side, label: string, price: number) => {
-    const selected = side === value;
-    const semantic =
-      value === "yes"
-        ? selected
-          ? "border-market-yes bg-market-yes text-white"
-          : "border-market-yes/40 bg-market-yes-bg text-market-yes hover:border-market-yes"
-        : selected
-          ? "border-market-no bg-market-no text-white"
-          : "border-market-no/40 bg-market-no-bg text-market-no hover:border-market-no";
-
-    return (
-      <button
-        type="button"
-        aria-pressed={selected}
-        onClick={() => setSide(value)}
-        disabled={!open}
-        className={`num flex-1 cursor-pointer rounded-pill border px-4 py-3.5 text-base font-semibold transition-all duration-200 ease-standard focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-40 ${semantic}`}
-      >
-        {label} {formatCents(price)}
-      </button>
-    );
-  };
 
   const submitLabel = open
     ? pending
       ? "Placing…"
-      : `Buy ${side === "yes" ? "Yes" : "No"} · ${formatCents(sidePrice)}`
+      : `Buy ${selected?.label ?? "—"} · ${formatCents(selected?.implied ?? 0)}`
     : "Market closed";
 
   return (
@@ -179,13 +157,30 @@ export function OrderPanel(props: OrderPanelProps) {
           <p className="text-xs text-text-muted">{props.question}</p>
         ) : null}
         <p className="text-2xl leading-tight font-bold text-text">
-          {side === "yes" ? "Yes" : "No"}
+          {selected?.label ?? "—"}
         </p>
       </div>
 
-      <div className="flex gap-2">
-        {sideButton("yes", "Yes", yesPrice)}
-        {sideButton("no", "No", noPrice)}
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Outcomes">
+        {outcomes.map((outcome) => {
+          const selectedOutcome = outcome.id === selected?.id;
+          return (
+            <button
+              key={outcome.id}
+              type="button"
+              aria-pressed={selectedOutcome}
+              onClick={() => setOutcomeId(outcome.id)}
+              disabled={!open}
+              className={`num flex-1 basis-2/5 cursor-pointer rounded-pill border px-4 py-3.5 text-base font-semibold transition-all duration-200 ease-standard focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-40 ${
+                selectedOutcome
+                  ? "border-red bg-red text-white"
+                  : "border-hairline bg-muted text-text hover:border-border-strong"
+              }`}
+            >
+              {outcome.label} {formatCents(outcome.implied)}
+            </button>
+          );
+        })}
       </div>
 
       <label className="flex items-center justify-between gap-3 rounded-lg border border-hairline bg-card px-4 py-3 transition-colors duration-200 ease-standard focus-within:border-red">
@@ -233,7 +228,7 @@ export function OrderPanel(props: OrderPanelProps) {
         <div className="flex items-baseline justify-between">
           <dt className="text-text-muted">Odds</dt>
           <dd className="num font-semibold text-text">
-            {formatPercent(sidePrice)} chance
+            {formatPercent(selected?.implied ?? 0)} chance
           </dd>
         </div>
         <div className="flex items-baseline justify-between">
@@ -246,9 +241,10 @@ export function OrderPanel(props: OrderPanelProps) {
         </div>
         <div className="flex items-end justify-between">
           <dt className="flex flex-col gap-0.5">
-            <span className="font-semibold text-text">Max payout</span>
+            <span className="font-semibold text-text">Est. payout</span>
             <span className="text-xs text-text-tertiary">
-              Closes {CLOSE_DATE.format(new Date(props.closeAt))}
+              Final payout depends on the pools at close · Closes{" "}
+              {CLOSE_DATE.format(new Date(props.closeAt))}
             </span>
           </dt>
           <dd className="num text-2xl font-bold text-text">

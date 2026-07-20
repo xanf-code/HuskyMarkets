@@ -1,27 +1,32 @@
 #!/usr/bin/env node
-// Seed realistic bets across existing open markets.
+// Seed realistic bets across existing open markets (E-6 / S6-1).
 //
 // Strategy:
 //   1. Create 4 seed auth users via Supabase Auth Admin API (if they don't
 //      already exist). The handle_new_user() trigger auto-creates their
 //      public.profiles rows and credits each a 1000 HC signup_grant.
-//   2. Pick up to 8 open markets (those with fewer than 10 existing bets).
-//   3. For every bet in the wave templates:
-//        a. Compute price_at_bet from the current in-memory pools — same clamp
-//           formula as place_bet() in 0006_market_engine.sql.
-//        b. INSERT into public.bets with a back-dated created_at.
-//        c. INSERT a bet_place transaction (negative amount = debit).
-//        d. INSERT a price_history snapshot with the updated pools.
-//   4. PATCH markets.yes_pool / no_pool to reflect all seeded bets.
-//   5. Re-runnable / idempotent: seed users are only created when absent,
-//      and only markets with < 10 bets are touched.
+//   2. Top each user up via a direct transaction insert so multi-market
+//      betting doesn't overdraft them.
+//   3. Sign each user in (password grant) and place bets through the
+//      place_bet engine RPC — bets reference outcome_id, the FR-9 aggregate
+//      cap is engine-enforced, and price_history snapshots are written by the
+//      engine (FR-12). Waves are pre-validated against the cap with the same
+//      helper the unit tests cover.
+//   4. Assert verify_ledger_invariant() is balanced at the end.
+//
+// Re-runnable / idempotent: seed users are only created when absent, and only
+// markets with < 10 bets are touched.
 //
 // Usage from repo root:
-//   npx tsx --env-file=.env.local scripts/seed-bets.ts
+//   SEED_ENV=dev npx tsx --env-file=.env.local scripts/seed-bets.ts
 
-// Module scope: seed-markets.ts is also an import-less script, so without this
-// both files share the global scope and their identical const names collide.
-export {};
+// Non-prod guard (S6-1): refuse to run unless explicitly marked as a dev seed.
+if (process.env.SEED_ENV !== "dev") {
+  console.error("Refusing to seed: set SEED_ENV=dev (non-prod only).");
+  process.exit(1);
+}
+
+import { capViolations, type SeedBet } from "../src/lib/seed-plan";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -38,11 +43,6 @@ const HEADERS: Record<string, string> = {
   Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
   "Content-Type": "application/json",
   Prefer: "return=representation",
-};
-const AUTH_HEADERS: Record<string, string> = {
-  apikey: SERVICE_ROLE_KEY,
-  Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
-  "Content-Type": "application/json",
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -75,20 +75,6 @@ async function pgPost<T>(path: string, body: unknown): Promise<T> {
   return text ? (JSON.parse(text) as T) : ([] as unknown as T);
 }
 
-async function pgPatch(path: string, params: Record<string, string>, body: unknown): Promise<void> {
-  const url = new URL(`${BASE}${path}`);
-  for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
-  const res = await fetch(url, {
-    method: "PATCH",
-    headers: { ...HEADERS, Prefer: "return=minimal" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`PATCH ${path} → ${res.status}: ${text}`);
-  }
-}
-
 async function countRows(path: string, params?: Record<string, string>): Promise<number> {
   const url = new URL(`${BASE}${path}`);
   if (params) {
@@ -101,21 +87,49 @@ async function countRows(path: string, params?: Record<string, string>): Promise
   return parseInt(header?.split("/")[1] ?? "0", 10);
 }
 
-/** Implied YES probability clamped 1–99 — mirrors 0006_market_engine.sql. */
-function impliedYes(yesPool: number, noPool: number): number {
-  return Math.min(Math.max(Math.round((100 * yesPool) / (yesPool + noPool)), 1), 99);
+async function signIn(email: string, password: string): Promise<string> {
+  const res = await fetch(`${AUTH_BASE}/token?grant_type=password`, {
+    method: "POST",
+    headers: { apikey: SERVICE_ROLE_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`Sign-in ${email} → ${res.status}: ${txt}`);
+  }
+  const data = (await res.json()) as { access_token: string };
+  return data.access_token;
 }
 
-/** ISO timestamp N seconds before now. */
-function secsAgoIso(s: number): string {
-  return new Date(Date.now() - s * 1000).toISOString();
+async function placeBet(
+  jwt: string,
+  marketId: string,
+  outcomeId: string,
+  amount: number,
+): Promise<{ new_balance: number }> {
+  const res = await fetch(`${BASE}/rpc/place_bet`, {
+    method: "POST",
+    headers: {
+      apikey: SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${jwt}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      p_market_id: marketId,
+      p_outcome_id: outcomeId,
+      p_amount: amount,
+    }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`place_bet ${marketId} → ${res.status}: ${text}`);
+  }
+  return (await res.json()) as { new_balance: number };
 }
 
 // ── Seed user definitions ─────────────────────────────────────────────────────
 
 // Emails are @northeastern.edu so the handle_new_user() trigger accepts them.
-// The Auth Admin API creates the auth.users row; the trigger then creates the
-// public.profiles row and inserts a 1000 HC signup_grant automatically.
 const SEED_USERS = [
   { email: "alice.seed@northeastern.edu", password: "HuskyM4rkets!Alice" },
   { email: "bob.seed@northeastern.edu",   password: "HuskyM4rkets!Bob" },
@@ -124,134 +138,159 @@ const SEED_USERS = [
 ];
 
 // ── Bet wave templates ────────────────────────────────────────────────────────
+// outcomeIdx is taken modulo the market's outcome count, so the same waves
+// cover 2–6-outcome markets. Per-user aggregates stay within the 500 HC cap
+// (asserted by capViolations before anything is sent).
 
-type BetTemplate = {
-  userIdx: number;   // index into resolved SEED_USERS profile ids
-  side: "yes" | "no";
-  amount: number;
-  secsAgo: number;   // how far in the past to back-date the bet
-};
-
-// 8 wave patterns, one applied to each target market.
-const BET_WAVES: BetTemplate[][] = [
-  // Wave 1 — YES-heavy (strong bullish consensus)
+const BET_WAVES: SeedBet[][] = [
+  // Wave 1 — outcome-0 heavy (strong consensus)
   [
-    { userIdx: 0, side: "yes", amount: 80,  secsAgo: 86400 * 6 },
-    { userIdx: 1, side: "yes", amount: 120, secsAgo: 86400 * 5 },
-    { userIdx: 2, side: "no",  amount: 30,  secsAgo: 86400 * 4 },
-    { userIdx: 3, side: "yes", amount: 200, secsAgo: 86400 * 3 },
-    { userIdx: 0, side: "yes", amount: 50,  secsAgo: 86400 * 2 + 3600 },
-    { userIdx: 1, side: "no",  amount: 60,  secsAgo: 86400 * 2 },
-    { userIdx: 2, side: "yes", amount: 90,  secsAgo: 86400 },
-    { userIdx: 3, side: "no",  amount: 40,  secsAgo: 3600 * 12 },
-    { userIdx: 0, side: "yes", amount: 30,  secsAgo: 3600 * 6 },
-    { userIdx: 1, side: "no",  amount: 20,  secsAgo: 3600 * 2 },
+    { userIdx: 0, outcomeIdx: 0, amount: 80,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 0, amount: 120, secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 1, amount: 30,  secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 0, amount: 200, secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 0, amount: 50,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 1, amount: 60,  secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 0, amount: 90,  secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 1, amount: 40,  secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 0, amount: 30,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 1, amount: 20,  secsAgo: 0 },
   ],
   // Wave 2 — contested 50/50
   [
-    { userIdx: 2, side: "yes", amount: 50,  secsAgo: 86400 * 5 },
-    { userIdx: 3, side: "no",  amount: 60,  secsAgo: 86400 * 4 + 7200 },
-    { userIdx: 0, side: "yes", amount: 70,  secsAgo: 86400 * 4 },
-    { userIdx: 1, side: "no",  amount: 80,  secsAgo: 86400 * 3 },
-    { userIdx: 2, side: "yes", amount: 40,  secsAgo: 86400 * 2 },
-    { userIdx: 3, side: "no",  amount: 35,  secsAgo: 86400 },
-    { userIdx: 0, side: "yes", amount: 55,  secsAgo: 3600 * 18 },
-    { userIdx: 1, side: "no",  amount: 45,  secsAgo: 3600 * 10 },
-    { userIdx: 2, side: "yes", amount: 25,  secsAgo: 3600 * 4 },
-    { userIdx: 3, side: "no",  amount: 30,  secsAgo: 3600 },
+    { userIdx: 2, outcomeIdx: 0, amount: 50,  secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 1, amount: 60,  secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 0, amount: 70,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 1, amount: 80,  secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 0, amount: 40,  secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 1, amount: 35,  secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 0, amount: 55,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 1, amount: 45,  secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 0, amount: 25,  secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 1, amount: 30,  secsAgo: 0 },
   ],
-  // Wave 3 — NO-heavy (majority betting it resolves NO)
+  // Wave 3 — outcome-1 heavy
   [
-    { userIdx: 1, side: "no",  amount: 150, secsAgo: 86400 * 7 },
-    { userIdx: 0, side: "yes", amount: 40,  secsAgo: 86400 * 6 },
-    { userIdx: 2, side: "no",  amount: 200, secsAgo: 86400 * 5 },
-    { userIdx: 3, side: "yes", amount: 25,  secsAgo: 86400 * 4 },
-    { userIdx: 1, side: "no",  amount: 100, secsAgo: 86400 * 3 },
-    { userIdx: 0, side: "no",  amount: 80,  secsAgo: 86400 * 2 },
-    { userIdx: 2, side: "yes", amount: 30,  secsAgo: 86400 },
-    { userIdx: 3, side: "no",  amount: 50,  secsAgo: 3600 * 14 },
-    { userIdx: 0, side: "yes", amount: 20,  secsAgo: 3600 * 7 },
-    { userIdx: 1, side: "no",  amount: 45,  secsAgo: 3600 * 2 },
+    { userIdx: 1, outcomeIdx: 1, amount: 150, secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 0, amount: 40,  secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 1, amount: 200, secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 0, amount: 25,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 1, amount: 100, secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 1, amount: 80,  secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 0, amount: 30,  secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 1, amount: 50,  secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 0, amount: 20,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 1, amount: 45,  secsAgo: 0 },
   ],
-  // Wave 4 — volatile (probability swings back and forth)
+  // Wave 4 — volatile (money swings between outcomes)
   [
-    { userIdx: 3, side: "yes", amount: 100, secsAgo: 86400 * 6 },
-    { userIdx: 0, side: "no",  amount: 120, secsAgo: 86400 * 5 + 3600 },
-    { userIdx: 1, side: "yes", amount: 90,  secsAgo: 86400 * 5 },
-    { userIdx: 2, side: "no",  amount: 110, secsAgo: 86400 * 4 },
-    { userIdx: 3, side: "yes", amount: 70,  secsAgo: 86400 * 3 },
-    { userIdx: 0, side: "no",  amount: 85,  secsAgo: 86400 * 2 },
-    { userIdx: 1, side: "yes", amount: 60,  secsAgo: 86400 },
-    { userIdx: 2, side: "no",  amount: 95,  secsAgo: 3600 * 16 },
-    { userIdx: 3, side: "yes", amount: 50,  secsAgo: 3600 * 8 },
-    { userIdx: 0, side: "no",  amount: 40,  secsAgo: 3600 * 3 },
+    { userIdx: 3, outcomeIdx: 0, amount: 100, secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 1, amount: 120, secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 0, amount: 90,  secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 1, amount: 110, secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 0, amount: 70,  secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 1, amount: 85,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 0, amount: 60,  secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 1, amount: 95,  secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 0, amount: 50,  secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 1, amount: 40,  secsAgo: 0 },
   ],
   // Wave 5 — small stakes, casual bettors
   [
-    { userIdx: 0, side: "yes", amount: 15,  secsAgo: 86400 * 4 },
-    { userIdx: 1, side: "yes", amount: 20,  secsAgo: 86400 * 3 + 7200 },
-    { userIdx: 2, side: "no",  amount: 10,  secsAgo: 86400 * 3 },
-    { userIdx: 3, side: "yes", amount: 25,  secsAgo: 86400 * 2 + 3600 },
-    { userIdx: 0, side: "no",  amount: 12,  secsAgo: 86400 * 2 },
-    { userIdx: 1, side: "yes", amount: 18,  secsAgo: 86400 },
-    { userIdx: 2, side: "no",  amount: 22,  secsAgo: 3600 * 20 },
-    { userIdx: 3, side: "yes", amount: 30,  secsAgo: 3600 * 12 },
-    { userIdx: 0, side: "yes", amount: 10,  secsAgo: 3600 * 5 },
-    { userIdx: 1, side: "no",  amount: 15,  secsAgo: 3600 * 1 },
+    { userIdx: 0, outcomeIdx: 0, amount: 15,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 0, amount: 20,  secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 1, amount: 10,  secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 0, amount: 25,  secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 1, amount: 12,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 0, amount: 18,  secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 1, amount: 22,  secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 0, amount: 30,  secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 0, amount: 10,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 1, amount: 15,  secsAgo: 0 },
   ],
-  // Wave 6 — late YES surge (NO early, YES takes over)
+  // Wave 6 — late outcome-0 surge
   [
-    { userIdx: 2, side: "no",  amount: 150, secsAgo: 86400 * 5 },
-    { userIdx: 3, side: "no",  amount: 130, secsAgo: 86400 * 4 },
-    { userIdx: 0, side: "yes", amount: 200, secsAgo: 86400 * 3 },
-    { userIdx: 1, side: "yes", amount: 180, secsAgo: 86400 * 2 },
-    { userIdx: 2, side: "yes", amount: 120, secsAgo: 86400 },
-    { userIdx: 3, side: "yes", amount: 100, secsAgo: 3600 * 18 },
-    { userIdx: 0, side: "no",  amount: 50,  secsAgo: 3600 * 10 },
-    { userIdx: 1, side: "yes", amount: 80,  secsAgo: 3600 * 5 },
-    { userIdx: 2, side: "no",  amount: 40,  secsAgo: 3600 * 2 },
-    { userIdx: 3, side: "yes", amount: 60,  secsAgo: 1800 },
+    { userIdx: 2, outcomeIdx: 1, amount: 150, secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 1, amount: 130, secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 0, amount: 200, secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 0, amount: 180, secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 0, amount: 120, secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 0, amount: 100, secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 1, amount: 50,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 0, amount: 80,  secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 1, amount: 40,  secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 0, amount: 60,  secsAgo: 0 },
   ],
   // Wave 7 — moderate volume, mixed sentiment
   [
-    { userIdx: 1, side: "yes", amount: 45,  secsAgo: 86400 * 3 },
-    { userIdx: 2, side: "no",  amount: 55,  secsAgo: 86400 * 2 + 7200 },
-    { userIdx: 3, side: "yes", amount: 35,  secsAgo: 86400 * 2 },
-    { userIdx: 0, side: "no",  amount: 65,  secsAgo: 86400 },
-    { userIdx: 1, side: "yes", amount: 40,  secsAgo: 3600 * 22 },
-    { userIdx: 2, side: "no",  amount: 30,  secsAgo: 3600 * 15 },
-    { userIdx: 3, side: "yes", amount: 50,  secsAgo: 3600 * 9 },
-    { userIdx: 0, side: "yes", amount: 25,  secsAgo: 3600 * 5 },
-    { userIdx: 1, side: "no",  amount: 20,  secsAgo: 3600 * 2 },
-    { userIdx: 2, side: "yes", amount: 15,  secsAgo: 900 },
+    { userIdx: 1, outcomeIdx: 0, amount: 45,  secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 1, amount: 55,  secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 0, amount: 35,  secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 1, amount: 65,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 0, amount: 40,  secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 1, amount: 30,  secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 0, amount: 50,  secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 0, amount: 25,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 1, amount: 20,  secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 0, amount: 15,  secsAgo: 0 },
   ],
-  // Wave 8 — high-volume, big stakes (sports/weather feel)
+  // Wave 8 — high-volume, big stakes
   [
-    { userIdx: 0, side: "yes", amount: 300, secsAgo: 86400 * 4 },
-    { userIdx: 1, side: "no",  amount: 250, secsAgo: 86400 * 3 },
-    { userIdx: 2, side: "yes", amount: 200, secsAgo: 86400 * 2 },
-    { userIdx: 3, side: "no",  amount: 150, secsAgo: 86400 },
-    { userIdx: 0, side: "yes", amount: 100, secsAgo: 3600 * 20 },
-    { userIdx: 1, side: "yes", amount: 80,  secsAgo: 3600 * 14 },
-    { userIdx: 2, side: "no",  amount: 60,  secsAgo: 3600 * 8 },
-    { userIdx: 3, side: "yes", amount: 40,  secsAgo: 3600 * 4 },
-    { userIdx: 0, side: "no",  amount: 30,  secsAgo: 3600 * 1 },
-    { userIdx: 1, side: "no",  amount: 20,  secsAgo: 600 },
+    { userIdx: 0, outcomeIdx: 0, amount: 300, secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 1, amount: 250, secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 0, amount: 200, secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 1, amount: 150, secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 0, amount: 100, secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 0, amount: 80,  secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 1, amount: 60,  secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 0, amount: 40,  secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 1, amount: 30,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 1, amount: 20,  secsAgo: 0 },
+  ],
+  // Wave 9 — hedged across 3 outcomes (exercises 3+-outcome markets, FR-8)
+  [
+    { userIdx: 0, outcomeIdx: 0, amount: 120, secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 2, amount: 60,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 1, amount: 140, secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 0, amount: 50,  secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 2, amount: 110, secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 1, amount: 70,  secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 0, amount: 90,  secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 1, amount: 80,  secsAgo: 0 },
+  ],
+  // Wave 10 — spread across up to 5 outcomes
+  [
+    { userIdx: 0, outcomeIdx: 3, amount: 100, secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 4, amount: 90,  secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 2, amount: 85,  secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 1, amount: 75,  secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 0, amount: 60,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 1, amount: 55,  secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 3, amount: 45,  secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 4, amount: 40,  secsAgo: 0 },
   ],
 ];
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 async function main() {
+  // Every wave must respect the FR-9 aggregate cap before we send anything.
+  for (let i = 0; i < BET_WAVES.length; i++) {
+    const violations = capViolations(BET_WAVES[i]);
+    if (violations.length > 0) {
+      throw new Error(
+        `Wave ${i + 1} breaches the aggregate cap: ${JSON.stringify(violations)}`,
+      );
+    }
+  }
+
   // ── 1. Ensure seed auth users exist ──────────────────────────────────────
-  // Use Auth Admin API; handle_new_user() trigger auto-creates profiles + grants.
 
   console.log("Ensuring seed auth users exist...");
 
   const resolvedUserIds: string[] = [];
 
   for (const seedUser of SEED_USERS) {
-    // Check if profile already exists (profile created by trigger on user creation).
     const existing = await pgGet<{ id: string }[]>(
       "/profiles",
       { select: "id", email: `eq.${seedUser.email}`, limit: "1" },
@@ -263,10 +302,13 @@ async function main() {
       continue;
     }
 
-    // Create via Auth Admin API — trigger handles profile + grant.
     const res = await fetch(`${AUTH_BASE}/admin/users`, {
       method: "POST",
-      headers: AUTH_HEADERS,
+      headers: {
+        apikey: SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         email: seedUser.email,
         password: seedUser.password,
@@ -284,10 +326,9 @@ async function main() {
     console.log(`  ${seedUser.email} — created (${data.id.substring(0, 8)}…)`);
   }
 
-  // ── 1b. Ensure each seed user has at least 2000 HC so multi-market betting
-  //         doesn't overdraft them. We compute a top-up and add a signup_grant
-  //         if their balance is below the threshold.
-  const MIN_BALANCE = 2000;
+  // ── 1b. Top up balances so multi-market betting doesn't overdraft. ───────
+  // ~3 markets/category × 7 categories × ~500 HC aggregate cap ≈ 10k+ headroom.
+  const MIN_BALANCE = 20000;
   for (let i = 0; i < SEED_USERS.length; i++) {
     const uid = resolvedUserIds[i];
     const txns = await pgGet<{ amount: number }[]>(
@@ -306,12 +347,25 @@ async function main() {
     }
   }
 
+  // ── 1c. Sign each user in; place_bet runs as auth.uid(). ─────────────────
+  const jwts: string[] = [];
+  for (const u of SEED_USERS) {
+    jwts.push(await signIn(u.email, u.password));
+  }
+
   // ── 2. Find open markets with fewer than 10 bets ──────────────────────────
 
   const allMarkets = await pgGet<
-    { id: string; title: string; status: string; yes_pool: number; no_pool: number }[]
+    {
+      id: string;
+      title: string;
+      category: string;
+      market_outcomes: { id: string; sort_order: number }[];
+    }[]
   >("/markets", {
-    select: "id,title,status,yes_pool,no_pool",
+    // Disambiguate: markets also has markets_winning_outcome_fk → market_outcomes.
+    select:
+      "id,title,category,market_outcomes!market_outcomes_market_id_fkey(id,sort_order)",
     status: "eq.open",
     order: "created_at.asc",
     limit: "70",
@@ -319,7 +373,6 @@ async function main() {
 
   console.log(`\nFound ${allMarkets.length} open markets total.`);
 
-  // Check bet counts in parallel to keep things fast.
   const withCounts = await Promise.all(
     allMarkets.map(async (m) => {
       const count = await countRows("/bets", { market_id: `eq.${m.id}`, select: "id" });
@@ -327,10 +380,25 @@ async function main() {
     }),
   );
 
-  const targets = withCounts
-    .filter(({ betCount }) => betCount < 10)
-    .map(({ market }) => market)
-    .slice(0, 8);
+  // Spread bets across every category (up to 3 under-seeded markets each).
+  const PER_CATEGORY = 3;
+  const eligible = withCounts.filter(
+    ({ betCount, market }) => betCount < 10 && market.market_outcomes.length >= 2,
+  );
+  const byCategory = new Map<string, (typeof eligible)[number]["market"][]>();
+  for (const { market } of eligible) {
+    const list = byCategory.get(market.category) ?? [];
+    if (list.length < PER_CATEGORY) {
+      list.push(market);
+      byCategory.set(market.category, list);
+    }
+  }
+  const targets = [...byCategory.values()].flat();
+  console.log(
+    `Category coverage: ${[...byCategory.entries()]
+      .map(([c, ms]) => `${c}=${ms.length}`)
+      .join(", ")}`,
+  );
 
   if (targets.length === 0) {
     console.log("All markets already have 10+ bets — nothing to seed.");
@@ -339,87 +407,42 @@ async function main() {
 
   console.log(`Seeding bets into ${targets.length} markets…\n`);
 
-  // ── 3. Insert bets, transactions, price_history ───────────────────────────
+  // ── 3. Place bets through the engine RPC ─────────────────────────────────
 
   let totalBetsInserted = 0;
 
   for (let mi = 0; mi < targets.length; mi++) {
     const market = targets[mi];
     const wave = BET_WAVES[mi % BET_WAVES.length];
+    const outcomes = [...market.market_outcomes].sort(
+      (a, b) => a.sort_order - b.sort_order,
+    );
 
-    // Track pool sizes in memory to compute prices and snapshots correctly.
-    let yesPool = market.yes_pool;
-    let noPool = market.no_pool;
-
-    console.log(`[${mi + 1}/${targets.length}] ${market.title.substring(0, 70)}`);
-    console.log(`  Initial pools: YES=${yesPool}  NO=${noPool}  (implied YES=${impliedYes(yesPool, noPool)}%)`);
+    console.log(
+      `[${mi + 1}/${targets.length}] ${market.title.substring(0, 60)} (${outcomes.length} outcomes)`,
+    );
 
     for (const tmpl of wave) {
-      const userId = resolvedUserIds[tmpl.userIdx];
-      const priceAtBet = impliedYes(yesPool, noPool); // price BEFORE this bet
-      const createdAt = secsAgoIso(tmpl.secsAgo);
-
-      // Insert bet row.
-      const [betRow] = await pgPost<{ id: string }[]>("/bets?select=id", {
-        market_id: market.id,
-        user_id: userId,
-        side: tmpl.side,
-        amount: tmpl.amount,
-        price_at_bet: priceAtBet,
-        created_at: createdAt,
-      });
-
-      // Insert matching ledger debit.
-      await pgPost("/transactions", {
-        user_id: userId,
-        type: "bet_place",
-        amount: -tmpl.amount,
-        market_id: market.id,
-        bet_id: betRow.id,
-        created_at: createdAt,
-      });
-
-      // Advance pools.
-      if (tmpl.side === "yes") {
-        yesPool += tmpl.amount;
-      } else {
-        noPool += tmpl.amount;
-      }
-
-      // Price history snapshot with post-bet pools.
-      await pgPost("/price_history", {
-        market_id: market.id,
-        implied_yes: impliedYes(yesPool, noPool),
-        yes_pool: yesPool,
-        no_pool: noPool,
-        recorded_at: createdAt,
-      });
-
+      const outcome = outcomes[tmpl.outcomeIdx % outcomes.length];
+      await placeBet(jwts[tmpl.userIdx], market.id, outcome.id, tmpl.amount);
       totalBetsInserted++;
     }
 
-    // Persist the final pool totals back to the market row.
-    await pgPatch("/markets", { id: `eq.${market.id}` }, {
-      yes_pool: yesPool,
-      no_pool: noPool,
-    });
-
-    console.log(`  Final   pools: YES=${yesPool}  NO=${noPool}  (implied YES=${impliedYes(yesPool, noPool)}%)`);
-    console.log(`  Bets inserted: ${wave.length}`);
+    console.log(`  Bets placed: ${wave.length}`);
   }
 
-  // ── 4. Verification queries ───────────────────────────────────────────────
+  // ── 4. Verification ───────────────────────────────────────────────────────
 
   console.log("\n── Verification ──────────────────────────────────────────────");
 
-  const totalBets   = await countRows("/bets", { select: "id" });
-  const totalPH     = await countRows("/price_history", { select: "id" });
+  const totalBets = await countRows("/bets", { select: "id" });
+  const totalPH = await countRows("/price_history", { select: "id" });
   const totalTxBets = await countRows("/transactions", { select: "id", type: "eq.bet_place" });
 
   console.log(`Total bets in DB:           ${totalBets}`);
   console.log(`Total price_history rows:   ${totalPH}`);
   console.log(`Total bet_place tx rows:    ${totalTxBets}`);
-  console.log(`Bets inserted this run:     ${totalBetsInserted}`);
+  console.log(`Bets placed this run:       ${totalBetsInserted}`);
 
   console.log("\nSeed user balances (HC):");
   for (let i = 0; i < SEED_USERS.length; i++) {
@@ -432,16 +455,28 @@ async function main() {
     console.log(`  ${SEED_USERS[i].email.padEnd(38)} ${balance} HC`);
   }
 
-  console.log("\nSeeded markets (final pools):");
-  for (const m of targets) {
-    const updated = await pgGet<{ yes_pool: number; no_pool: number }[]>(
-      "/markets",
-      { select: "yes_pool,no_pool", id: `eq.${m.id}` },
+  // REC-1 balances after settlement (vig_burn / seed). Open bets lock HC in
+  // pools, so delta equals Σ(bet_place) until those markets resolve/void.
+  const invariant = await pgPost<{ balanced: boolean; delta: number }>(
+    "/rpc/verify_ledger_invariant",
+    {},
+  );
+  const betPlaceRows = await pgGet<{ amount: number }[]>("/transactions", {
+    select: "amount",
+    type: "eq.bet_place",
+  });
+  const openFloat = betPlaceRows.reduce((s, t) => s + t.amount, 0);
+  console.log(`\nLedger invariant: balanced=${invariant.balanced} delta=${invariant.delta}`);
+  console.log(`Open bet_place float:       ${openFloat}`);
+  if (invariant.balanced) {
+    // fully settled economy
+  } else if (invariant.delta === openFloat) {
+    console.log("Open-market float matches REC-1 expectation (delta == Σ bet_place).");
+  } else {
+    console.error(
+      `Ledger invariant unexpected: delta=${invariant.delta} openFloat=${openFloat}`,
     );
-    const { yes_pool, no_pool } = updated[0];
-    console.log(
-      `  ${m.title.substring(0, 55).padEnd(55)} YES=${yes_pool}  NO=${no_pool}  p=${impliedYes(yes_pool, no_pool)}%`,
-    );
+    process.exit(1);
   }
 
   console.log("\nDone.");

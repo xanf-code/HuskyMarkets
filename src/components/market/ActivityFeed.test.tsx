@@ -10,7 +10,8 @@ describe("ActivityFeed", () => {
           {
             id: "b1",
             displayName: "HungryHusky42",
-            side: "yes",
+            outcomeId: "o-yes",
+            outcomeLabel: "Yes",
             amount: 50,
             price: 61,
             createdAt: new Date(Date.now() - 2 * 60_000).toISOString(),

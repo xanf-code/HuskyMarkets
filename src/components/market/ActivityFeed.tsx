@@ -21,12 +21,8 @@ export function ActivityFeed({ activity }: { activity: ActivityItem[] }) {
           <span className="text-text-muted">bet</span>
           <span className="num text-text">{formatHC(bet.amount)}</span>
           <span className="text-text-muted">on</span>
-          <span
-            className={`num font-medium ${
-              bet.side === "yes" ? "text-market-yes" : "text-market-no"
-            }`}
-          >
-            {bet.side === "yes" ? "Yes" : "No"}
+          <span className="num font-medium text-market-yes">
+            {bet.outcomeLabel}
           </span>
           <span className="num text-text-muted">
             @ {formatCents(bet.price)}

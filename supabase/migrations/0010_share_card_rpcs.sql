@@ -1,7 +1,8 @@
 -- Share-card RPCs for market and bet OG image generation.
 -- These RPCs were authored outside source control and are being committed here
--- as stubs. Their bodies will be rewritten N-outcome-aware in the Phase 1
--- schema migration (0011_multi_outcome_engine.sql).
+-- as stubs against the legacy binary schema. Their bodies are rewritten
+-- N-outcome-aware in the Phase E-1 schema migration
+-- (0011_multi_outcome_engine.sql, section 10), which supersedes them.
 --
 -- Security: definer-hardened, set search_path = '', explicit grant discipline.
 
@@ -20,7 +21,7 @@ begin
     'id', markets.id,
     'title', markets.title,
     'created_at', markets.created_at,
-    'close_time', markets.close_time,
+    'close_at', markets.close_at,
     'status', markets.status,
     'yes_pool', markets.yes_pool,
     'no_pool', markets.no_pool

@@ -55,7 +55,7 @@ beforeEach(() => {
   handlers.clear();
   supabase.rpc.mockResolvedValue({ data: 1208, error: null });
   maybeSingle.mockResolvedValue({
-    data: { title: "Will it snow?", status: "resolved_yes" },
+    data: { title: "Will it snow?", status: "resolved", winning_outcome_id: "o-yes" },
   });
 });
 
@@ -87,13 +87,22 @@ describe("LiveBalance", () => {
     expect(screen.queryByText(/resolved/)).not.toBeInTheDocument();
   });
 
-  it("toasts payouts with the market's resolution", async () => {
+  it("toasts payouts with the winning outcome's label", async () => {
+    maybeSingle
+      .mockResolvedValueOnce({
+        data: {
+          title: "Will it snow?",
+          status: "resolved",
+          winning_outcome_id: "o-yes",
+        },
+      })
+      .mockResolvedValueOnce({ data: { label: "Yes" } });
     renderChip();
 
     await emitTransaction({ type: "bet_payout", amount: 158, market_id: "m1" });
 
     expect(
-      screen.getByText('+158 HC — "Will it snow?" resolved YES'),
+      screen.getByText('+158 HC — "Will it snow?" resolved Yes'),
     ).toBeInTheDocument();
   });
 

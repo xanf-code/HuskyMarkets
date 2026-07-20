@@ -7,11 +7,12 @@
 
 import { createContext, useContext, type ReactNode } from "react";
 import { formatCents, marketVolume } from "@/lib/format";
-import { impliedYes } from "@/lib/payout";
+import { leadingOutcome, totalPool } from "@/lib/outcomes";
 import {
   useMarketChannel,
   type MarketChannelInitial,
 } from "@/lib/realtime/useMarketChannel";
+import type { PositionEntry } from "@/lib/queries/markets";
 import { ActivityFeed } from "./ActivityFeed";
 import { MarketStats } from "./MarketStats";
 import { OrderPanel } from "./OrderPanel";
@@ -50,34 +51,38 @@ export function MarketLiveProvider({
 
 export function LivePrice() {
   const { market } = useMarketLive();
-  const yes = impliedYes(market.yesPool, market.noPool);
+  const leader = leadingOutcome(market.outcomes);
+  if (!leader) return null;
   return (
     <div className="flex items-baseline gap-3">
       <p className="num text-4xl font-semibold text-text sm:text-5xl">
-        {yes}%
+        {leader.implied}%
       </p>
       <p className="num text-lg text-text-muted sm:text-xl">
-        Yes {formatCents(yes)}
+        {leader.label} {formatCents(leader.implied)}
       </p>
     </div>
   );
 }
 
 export function LiveChart() {
-  const { history } = useMarketLive();
-  return <ProbabilityChart history={history} />;
+  const { history, market } = useMarketLive();
+  return <ProbabilityChart history={history} outcomes={market.outcomes} />;
 }
-
-const STATUS_BANNERS: Record<string, string> = {
-  closed: "Closed — awaiting resolution",
-  resolved_yes: "Resolved YES",
-  resolved_no: "Resolved NO",
-  voided: "Voided — all stakes refunded",
-};
 
 export function LiveStatusBanner() {
   const { market } = useMarketLive();
-  const banner = STATUS_BANNERS[market.status];
+  let banner: string | null = null;
+  if (market.status === "closed") {
+    banner = "Closed — awaiting resolution";
+  } else if (market.status === "resolved") {
+    const label = market.outcomes.find(
+      (o) => o.id === market.winningOutcomeId,
+    )?.label;
+    banner = label ? `Resolved — ${label}` : "Resolved";
+  } else if (market.status === "voided") {
+    banner = "Voided — all stakes refunded";
+  }
   if (!banner) return null;
   return (
     <p className="rounded-md border border-hairline border-l-4 border-l-red bg-card px-4 py-3 text-sm text-text">
@@ -90,9 +95,8 @@ export function LiveStats({ bettorCount }: { bettorCount: number }) {
   const { market } = useMarketLive();
   return (
     <MarketStats
-      yesPool={market.yesPool}
-      noPool={market.noPool}
-      volume={marketVolume(market.yesPool, market.noPool)}
+      outcomes={market.outcomes}
+      volume={marketVolume(totalPool(market.outcomes), market.outcomes.length)}
       bettorCount={bettorCount}
     />
   );
@@ -106,9 +110,8 @@ export function LiveActivity() {
 interface LiveOrderPanelProps {
   marketId: string;
   closeAt: string;
-  position: { yes: number; no: number };
+  position: PositionEntry[];
   balance: number;
-  initialSide?: "yes" | "no";
   question?: string;
 }
 
@@ -119,11 +122,9 @@ export function LiveOrderPanel(props: LiveOrderPanelProps) {
       marketId={props.marketId}
       status={market.status}
       closeAt={props.closeAt}
-      yesPool={market.yesPool}
-      noPool={market.noPool}
+      outcomes={market.outcomes}
       position={props.position}
       balance={props.balance}
-      initialSide={props.initialSide}
       question={props.question}
       onFill={applyFill}
     />

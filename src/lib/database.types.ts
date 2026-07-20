@@ -14,14 +14,32 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_config: {
+        Row: {
+          key: string
+          int_val: number | null
+          updated_at: string
+        }
+        Insert: {
+          key: string
+          int_val?: number | null
+          updated_at?: string
+        }
+        Update: {
+          key?: string
+          int_val?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       bets: {
         Row: {
           amount: number
           created_at: string
           id: string
           market_id: string
+          outcome_id: string
           price_at_bet: number
-          side: Database["public"]["Enums"]["bet_side"]
           user_id: string
         }
         Insert: {
@@ -29,8 +47,8 @@ export type Database = {
           created_at?: string
           id?: string
           market_id: string
+          outcome_id: string
           price_at_bet: number
-          side: Database["public"]["Enums"]["bet_side"]
           user_id: string
         }
         Update: {
@@ -38,8 +56,8 @@ export type Database = {
           created_at?: string
           id?: string
           market_id?: string
+          outcome_id?: string
           price_at_bet?: number
-          side?: Database["public"]["Enums"]["bet_side"]
           user_id?: string
         }
         Relationships: [
@@ -49,6 +67,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "markets"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bets_outcome_fk"
+            columns: ["outcome_id", "market_id"]
+            isOneToOne: false
+            referencedRelation: "market_outcomes"
+            referencedColumns: ["id", "market_id"]
           },
           {
             foreignKeyName: "bets_user_id_fkey"
@@ -115,6 +140,44 @@ export type Database = {
           },
         ]
       }
+      market_outcomes: {
+        Row: {
+          created_at: string
+          id: string
+          is_catch_all: boolean
+          label: string
+          market_id: string
+          pool: number
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_catch_all?: boolean
+          label: string
+          market_id: string
+          pool?: number
+          sort_order: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_catch_all?: boolean
+          label?: string
+          market_id?: string
+          pool?: number
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_outcomes_market_id_fkey"
+            columns: ["market_id"]
+            isOneToOne: false
+            referencedRelation: "markets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       markets: {
         Row: {
           auto_flagged: boolean
@@ -125,14 +188,13 @@ export type Database = {
           description: string | null
           hidden: boolean
           id: string
-          no_pool: number
           resolution_criteria: string
           resolve_at: string
           resolved_at: string | null
           resolved_by: string | null
           status: Database["public"]["Enums"]["market_status"]
           title: string
-          yes_pool: number
+          winning_outcome_id: string | null
         }
         Insert: {
           auto_flagged?: boolean
@@ -143,14 +205,13 @@ export type Database = {
           description?: string | null
           hidden?: boolean
           id?: string
-          no_pool?: number
           resolution_criteria: string
           resolve_at: string
           resolved_at?: string | null
           resolved_by?: string | null
           status?: Database["public"]["Enums"]["market_status"]
           title: string
-          yes_pool?: number
+          winning_outcome_id?: string | null
         }
         Update: {
           auto_flagged?: boolean
@@ -161,16 +222,22 @@ export type Database = {
           description?: string | null
           hidden?: boolean
           id?: string
-          no_pool?: number
           resolution_criteria?: string
           resolve_at?: string
           resolved_at?: string | null
           resolved_by?: string | null
           status?: Database["public"]["Enums"]["market_status"]
           title?: string
-          yes_pool?: number
+          winning_outcome_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "markets_winning_outcome_fk"
+            columns: ["winning_outcome_id", "id"]
+            isOneToOne: false
+            referencedRelation: "market_outcomes"
+            referencedColumns: ["id", "market_id"]
+          },
           {
             foreignKeyName: "markets_creator_id_fkey"
             columns: ["creator_id"]
@@ -209,6 +276,7 @@ export type Database = {
           market_id: string | null
           moderator_id: string
           note: string | null
+          outcome_id: string | null
           target_user_id: string | null
         }
         Insert: {
@@ -218,6 +286,7 @@ export type Database = {
           market_id?: string | null
           moderator_id: string
           note?: string | null
+          outcome_id?: string | null
           target_user_id?: string | null
         }
         Update: {
@@ -227,6 +296,7 @@ export type Database = {
           market_id?: string | null
           moderator_id?: string
           note?: string | null
+          outcome_id?: string | null
           target_user_id?: string | null
         }
         Relationships: [
@@ -326,27 +396,27 @@ export type Database = {
       price_history: {
         Row: {
           id: number
-          implied_yes: number
+          implied: number
           market_id: string
-          no_pool: number
+          outcome_id: string
+          pool: number
           recorded_at: string
-          yes_pool: number
         }
         Insert: {
           id?: number
-          implied_yes: number
+          implied: number
           market_id: string
-          no_pool: number
+          outcome_id: string
+          pool: number
           recorded_at?: string
-          yes_pool: number
         }
         Update: {
           id?: number
-          implied_yes?: number
+          implied?: number
           market_id?: string
-          no_pool?: number
+          outcome_id?: string
+          pool?: number
           recorded_at?: string
-          yes_pool?: number
         }
         Relationships: [
           {
@@ -355,6 +425,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "markets"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "price_history_outcome_fk"
+            columns: ["outcome_id", "market_id"]
+            isOneToOne: false
+            referencedRelation: "market_outcomes"
+            referencedColumns: ["id", "market_id"]
           },
         ]
       }
@@ -571,6 +648,20 @@ export type Database = {
       }
       claim_bailout: { Args: never; Returns: boolean }
       claim_daily_bonus: { Args: never; Returns: boolean }
+      create_market: {
+        Args: {
+          p_auto_flagged?: boolean
+          p_catch_all?: boolean
+          p_category: Database["public"]["Enums"]["market_category"]
+          p_close_at: string
+          p_description: string
+          p_outcomes: Json
+          p_resolution_criteria: string
+          p_resolve_at: string
+          p_title: string
+        }
+        Returns: Json
+      }
       gen_anon_handle: { Args: never; Returns: string }
       get_accuracy_leaderboard: {
         Args: { p_semester_id: string }
@@ -594,17 +685,7 @@ export type Database = {
           starts_at: string
         }[]
       }
-      get_market_card: {
-        Args: { p_market_id: string }
-        Returns: {
-          category: Database["public"]["Enums"]["market_category"]
-          close_at: string
-          no_pool: number
-          status: Database["public"]["Enums"]["market_status"]
-          title: string
-          yes_pool: number
-        }[]
-      }
+      get_market_card: { Args: { p_market_id: string }; Returns: Json }
       get_my_balance: { Args: never; Returns: number }
       get_profile_stats: { Args: { p_user: string }; Returns: Json }
       get_semester_leaderboard: {
@@ -616,18 +697,7 @@ export type Database = {
           user_id: string
         }[]
       }
-      get_share_card: {
-        Args: { p_bet_id: string }
-        Returns: {
-          display_name: string
-          market_id: string
-          market_title: string
-          payout: number
-          price_at_bet: number
-          side: Database["public"]["Enums"]["bet_side"]
-          stake: number
-        }[]
-      }
+      get_share_card: { Args: { p_bet_id: string }; Returns: Json }
       handle_report: {
         Args: { p_action: string; p_note?: string; p_report_id: string }
         Returns: undefined
@@ -636,16 +706,16 @@ export type Database = {
       is_staff: { Args: never; Returns: boolean }
       lock_market: { Args: { p_market_id: string }; Returns: undefined }
       place_bet: {
-        Args: {
-          p_amount: number
-          p_market_id: string
-          p_side: Database["public"]["Enums"]["bet_side"]
-        }
+        Args: { p_amount: number; p_market_id: string; p_outcome_id: string }
         Returns: Json
       }
       reroll_anon_handle: { Args: never; Returns: string }
       resolve_market: {
-        Args: { p_market_id: string; p_outcome: string }
+        Args: {
+          p_action: string
+          p_market_id: string
+          p_winning_outcome_id?: string
+        }
         Returns: Json
       }
       review_mod_application: {
@@ -658,10 +728,10 @@ export type Database = {
         Returns: undefined
       }
       snapshot_semester: { Args: { p_semester_id: string }; Returns: number }
+      verify_ledger_invariant: { Args: never; Returns: Json }
     }
     Enums: {
       application_status: "pending" | "approved" | "rejected"
-      bet_side: "yes" | "no"
       display_mode: "real" | "anon"
       market_category:
         | "campus"
@@ -671,15 +741,9 @@ export type Database = {
         | "academics"
         | "dining"
         | "wildcard"
-      market_status:
-        | "open"
-        | "closed"
-        | "resolved_yes"
-        | "resolved_no"
-        | "voided"
+      market_status: "open" | "closed" | "resolved" | "voided"
       mod_action_type:
-        | "resolve_yes"
-        | "resolve_no"
+        | "resolve"
         | "void"
         | "lock"
         | "report_dismiss"
@@ -824,7 +888,6 @@ export const Constants = {
   public: {
     Enums: {
       application_status: ["pending", "approved", "rejected"],
-      bet_side: ["yes", "no"],
       display_mode: ["real", "anon"],
       market_category: [
         "campus",
@@ -835,16 +898,9 @@ export const Constants = {
         "dining",
         "wildcard",
       ],
-      market_status: [
-        "open",
-        "closed",
-        "resolved_yes",
-        "resolved_no",
-        "voided",
-      ],
+      market_status: ["open", "closed", "resolved", "voided"],
       mod_action_type: [
-        "resolve_yes",
-        "resolve_no",
+        "resolve",
         "void",
         "lock",
         "report_dismiss",

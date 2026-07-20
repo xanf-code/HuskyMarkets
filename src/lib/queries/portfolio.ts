@@ -1,20 +1,28 @@
 // Portfolio queries: open positions, resolved history, and the full ledger.
+// Positions group by market + outcome (FR-20); a win is the bet's outcome
+// matching the market's winning outcome (FR-19) — no yes/no branching.
 
 import { positionValue } from "@/lib/payout";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/database.types";
 
 type MarketStatus = Database["public"]["Enums"]["market_status"];
-type BetSide = Database["public"]["Enums"]["bet_side"];
 type TxType = Database["public"]["Enums"]["tx_type"];
 
 export interface BetRow {
   id: string;
   market_id: string;
-  side: BetSide;
+  outcome_id: string;
   amount: number;
   price_at_bet: number;
   created_at: string;
+}
+
+export interface OutcomeRow {
+  id: string;
+  label: string;
+  sort_order: number;
+  pool: number;
 }
 
 export interface MarketRow {
@@ -22,9 +30,9 @@ export interface MarketRow {
   title: string;
   status: MarketStatus;
   close_at: string;
-  yes_pool: number;
-  no_pool: number;
   resolved_at: string | null;
+  winning_outcome_id: string | null;
+  outcomes: OutcomeRow[];
 }
 
 export interface PayoutRow {
@@ -36,7 +44,8 @@ export interface PayoutRow {
 export interface OpenPosition {
   marketId: string;
   marketTitle: string;
-  side: BetSide;
+  outcomeId: string;
+  outcomeLabel: string;
   stake: number;
   avgPrice: number;
   impliedValue: number;
@@ -46,10 +55,16 @@ export interface OpenPosition {
 export interface ResolvedPosition {
   marketId: string;
   marketTitle: string;
-  side: BetSide;
-  outcome: "yes" | "no" | "void";
+  /** Winning outcome's label, or "Void" for refunded markets. */
+  outcomeLabel: string;
   stake: number;
   payout: number;
+  /**
+   * Estimate at bet time, derived from the recorded per-outcome bet price
+   * (FR-21): Σ round(amount × 100 / price_at_bet) over the user's bets on the
+   * winning outcome. Null for lost or voided positions.
+   */
+  estimatedPayout: number | null;
   pnl: number;
   won: boolean;
   /** Best-call winning bet (lowest price, earliest first); null unless won. */
@@ -68,13 +83,11 @@ export interface LedgerEntry {
 
 const OPEN_STATUSES: MarketStatus[] = ["open", "closed"];
 
-function outcomeFromStatus(
-  status: MarketStatus,
-): "yes" | "no" | "void" | null {
-  if (status === "resolved_yes") return "yes";
-  if (status === "resolved_no") return "no";
-  if (status === "voided") return "void";
-  return null;
+function outcomeLabel(market: MarketRow, outcomeId: string | null): string {
+  if (!outcomeId) return "Void";
+  return (
+    market.outcomes.find((o) => o.id === outcomeId)?.label ?? "—"
+  );
 }
 
 export function aggregateOpenPositions(
@@ -84,16 +97,16 @@ export function aggregateOpenPositions(
   const byId = new Map(markets.map((m) => [m.id, m]));
   const buckets = new Map<
     string,
-    { marketId: string; side: BetSide; stake: number; priceSum: number }
+    { marketId: string; outcomeId: string; stake: number; priceSum: number }
   >();
 
   for (const bet of bets) {
     const market = byId.get(bet.market_id);
     if (!market || !OPEN_STATUSES.includes(market.status)) continue;
-    const key = `${bet.market_id}:${bet.side}`;
+    const key = `${bet.market_id}:${bet.outcome_id}`;
     const bucket = buckets.get(key) ?? {
       marketId: bet.market_id,
-      side: bet.side,
+      outcomeId: bet.outcome_id,
       stake: 0,
       priceSum: 0,
     };
@@ -104,18 +117,17 @@ export function aggregateOpenPositions(
 
   return [...buckets.values()].map((b) => {
     const market = byId.get(b.marketId)!;
-    const sidePool = b.side === "yes" ? market.yes_pool : market.no_pool;
+    const outcomePool =
+      market.outcomes.find((o) => o.id === b.outcomeId)?.pool ?? 0;
+    const totalPool = market.outcomes.reduce((sum, o) => sum + o.pool, 0);
     return {
       marketId: b.marketId,
       marketTitle: market.title,
-      side: b.side,
+      outcomeId: b.outcomeId,
+      outcomeLabel: outcomeLabel(market, b.outcomeId),
       stake: b.stake,
       avgPrice: Math.round(b.priceSum / b.stake),
-      impliedValue: positionValue(
-        b.stake,
-        sidePool,
-        market.yes_pool + market.no_pool,
-      ),
+      impliedValue: positionValue(b.stake, outcomePool, totalPool),
       closeAt: market.close_at,
     };
   });
@@ -135,37 +147,34 @@ export function aggregateResolved(
     );
   }
 
-  // Aggregate total stake + dominant side per resolved market, and remember
-  // the best-call bet on the winning side for share cards.
+  // Aggregate total stake per resolved market and remember the best-call bet
+  // on the winning outcome for share cards.
   const stakes = new Map<
     string,
     {
-      yes: number;
-      no: number;
-      yesPrice: number;
-      noPrice: number;
+      total: number;
+      won: boolean;
+      estPayout: number;
       best: { id: string; price: number; createdAt: string } | null;
     }
   >();
   for (const bet of bets) {
     const market = byId.get(bet.market_id);
-    if (!market || !outcomeFromStatus(market.status)) continue;
+    if (!market || (market.status !== "resolved" && market.status !== "voided"))
+      continue;
     const bucket = stakes.get(bet.market_id) ?? {
-      yes: 0,
-      no: 0,
-      yesPrice: 0,
-      noPrice: 0,
+      total: 0,
+      won: false,
+      estPayout: 0,
       best: null,
     };
-    if (bet.side === "yes") {
-      bucket.yes += bet.amount;
-      bucket.yesPrice += bet.amount * bet.price_at_bet;
-    } else {
-      bucket.no += bet.amount;
-      bucket.noPrice += bet.amount * bet.price_at_bet;
-    }
-    const outcome = outcomeFromStatus(market.status);
-    if (outcome !== "void" && bet.side === outcome) {
+    bucket.total += bet.amount;
+    if (
+      market.status === "resolved" &&
+      bet.outcome_id === market.winning_outcome_id
+    ) {
+      bucket.won = true;
+      bucket.estPayout += Math.round((bet.amount * 100) / bet.price_at_bet);
       const best = bucket.best;
       if (
         !best ||
@@ -185,32 +194,20 @@ export function aggregateResolved(
   const rows: ResolvedPosition[] = [];
   for (const [marketId, stake] of stakes) {
     const market = byId.get(marketId)!;
-    const outcome = outcomeFromStatus(market.status)!;
-    const totalStake = stake.yes + stake.no;
-    // Prefer the side that won if present; else the only side bet; else YES.
-    const side: BetSide =
-      outcome === "yes" && stake.yes > 0
-        ? "yes"
-        : outcome === "no" && stake.no > 0
-          ? "no"
-          : stake.yes >= stake.no
-            ? "yes"
-            : "no";
     const payout = payoutByMarket.get(marketId) ?? 0;
-    const won =
-      outcome !== "void" &&
-      ((outcome === "yes" && stake.yes > 0) ||
-        (outcome === "no" && stake.no > 0));
     rows.push({
       marketId,
       marketTitle: market.title,
-      side,
-      outcome,
-      stake: totalStake,
+      outcomeLabel:
+        market.status === "voided"
+          ? "Void"
+          : outcomeLabel(market, market.winning_outcome_id),
+      stake: stake.total,
       payout,
-      pnl: payout - totalStake,
-      won,
-      shareBetId: won ? (stake.best?.id ?? null) : null,
+      estimatedPayout: stake.won ? stake.estPayout : null,
+      pnl: payout - stake.total,
+      won: stake.won,
+      shareBetId: stake.won ? (stake.best?.id ?? null) : null,
       resolvedAt: market.resolved_at ?? market.close_at,
     });
   }
@@ -232,7 +229,7 @@ export async function getPortfolio(userId: string): Promise<{
   const [{ data: bets }, { data: txs }] = await Promise.all([
     supabase
       .from("bets")
-      .select("id, market_id, side, amount, price_at_bet, created_at")
+      .select("id, market_id, outcome_id, amount, price_at_bet, created_at")
       .eq("user_id", userId)
       .order("created_at", { ascending: true }),
     supabase
@@ -256,10 +253,13 @@ export async function getPortfolio(userId: string): Promise<{
           await supabase
             .from("markets")
             .select(
-              "id, title, status, close_at, yes_pool, no_pool, resolved_at",
+              "id, title, status, close_at, resolved_at, winning_outcome_id, market_outcomes!market_outcomes_market_id_fkey(id, label, sort_order, pool)",
             )
             .in("id", marketIds)
-        ).data ?? []);
+        ).data ?? []).map(({ market_outcomes, ...m }) => ({
+          ...m,
+          outcomes: market_outcomes ?? [],
+        }));
 
   const payoutTypes = ["bet_payout", "market_refund"] as const;
   const payouts: PayoutRow[] = (txs ?? [])

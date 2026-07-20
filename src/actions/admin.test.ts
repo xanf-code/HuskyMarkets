@@ -26,19 +26,55 @@ beforeEach(() => {
   rpc.mockResolvedValue({ data: null, error: null });
 });
 
+const WINNING_OUTCOME_ID = "9f9619ff-8b86-4d01-b42d-00cf4fc964ff";
+
 describe("resolveMarketAction", () => {
-  it("calls resolve_market and revalidates queues", async () => {
+  it("resolves with an explicit action + winning outcome and revalidates queues", async () => {
     const result = await resolveMarketAction({
       marketId: MARKET_ID,
-      outcome: "yes",
+      action: "resolve",
+      winningOutcomeId: WINNING_OUTCOME_ID,
     });
     expect(result).toEqual({ ok: true });
     expect(rpc).toHaveBeenCalledWith("resolve_market", {
       p_market_id: MARKET_ID,
-      p_outcome: "yes",
+      p_action: "resolve",
+      p_winning_outcome_id: WINNING_OUTCOME_ID,
     });
     expect(revalidatePath).toHaveBeenCalledWith("/admin/resolve");
     expect(revalidatePath).toHaveBeenCalledWith("/mod");
+  });
+
+  it("voids without a winning outcome", async () => {
+    const result = await resolveMarketAction({
+      marketId: MARKET_ID,
+      action: "void",
+    });
+    expect(result).toEqual({ ok: true });
+    expect(rpc).toHaveBeenCalledWith("resolve_market", {
+      p_market_id: MARKET_ID,
+      p_action: "void",
+      p_winning_outcome_id: undefined,
+    });
+  });
+
+  it("requires a winning outcome when resolving", async () => {
+    const result = await resolveMarketAction({
+      marketId: MARKET_ID,
+      action: "resolve",
+    });
+    expect(result.ok).toBe(false);
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("rejects an unknown action", async () => {
+    const result = await resolveMarketAction({
+      marketId: MARKET_ID,
+      action: "yes",
+      winningOutcomeId: WINNING_OUTCOME_ID,
+    });
+    expect(result.ok).toBe(false);
+    expect(rpc).not.toHaveBeenCalled();
   });
 
   it("maps conflict-of-interest errors", async () => {
@@ -48,7 +84,8 @@ describe("resolveMarketAction", () => {
     });
     const result = await resolveMarketAction({
       marketId: MARKET_ID,
-      outcome: "no",
+      action: "resolve",
+      winningOutcomeId: WINNING_OUTCOME_ID,
     });
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error).toMatch(/created this market/i);

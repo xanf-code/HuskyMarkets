@@ -5,6 +5,11 @@
 export const CAP_PER_MARKET = 500;
 export const VIG_BPS = 500;
 export const HOUSE_SEED = 100;
+/** Outcome-count bounds per market, catch-all inclusive (C-1, C-2). */
+export const MIN_OUTCOMES = 2;
+export const MAX_OUTCOMES = 6;
+/** Label of the optional creator catch-all outcome (appended last). */
+export const CATCH_ALL_LABEL = "None of the above";
 export const DAILY_BONUS = 50;
 export const BAILOUT = 200;
 export const BAILOUT_THRESHOLD = 100;

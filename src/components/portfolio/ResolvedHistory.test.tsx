@@ -7,10 +7,10 @@ function row(overrides: Partial<ResolvedPosition>): ResolvedPosition {
   return {
     marketId: "m1",
     marketTitle: "Snow before finals?",
-    side: "yes",
-    outcome: "yes",
+    outcomeLabel: "Yes",
     stake: 100,
     payout: 158,
+    estimatedPayout: 200,
     pnl: 58,
     won: true,
     resolvedAt: "2026-07-02T12:00:00Z",
@@ -32,10 +32,24 @@ describe("ResolvedHistory", () => {
     render(
       <ResolvedHistory
         rows={[
-          row({ won: false, shareBetId: null, outcome: "no", side: "yes", payout: 0, pnl: -100 }),
+          row({ won: false, shareBetId: null, outcomeLabel: "No", payout: 0, pnl: -100, estimatedPayout: null }),
         ]}
       />,
     );
     expect(screen.queryByRole("link", { name: /share/i })).toBeNull();
+  });
+
+  it("shows the bet-time estimate next to the actual payout (FR-21, FR-24)", () => {
+    render(<ResolvedHistory rows={[row({})]} />);
+    expect(screen.getByText(/Est\. payout 200 HC/)).toBeInTheDocument();
+  });
+
+  it("omits the estimate for lost positions", () => {
+    render(
+      <ResolvedHistory
+        rows={[row({ won: false, shareBetId: null, payout: 0, pnl: -100, estimatedPayout: null })]}
+      />,
+    );
+    expect(screen.queryByText(/Est\. payout/)).toBeNull();
   });
 });

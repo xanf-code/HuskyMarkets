@@ -22,7 +22,7 @@ vi.mock("@/lib/queries/markets", () => ({ getMarketDetail: vi.fn() }));
 const card = {
   title: "Will it snow before finals?",
   category: "weather" as const,
-  yesPrice: 63,
+  leading: { label: "Yes", price: 63 },
   volume: 550,
   status: "open" as const,
   closeAt: "2026-07-20T00:00:00Z",

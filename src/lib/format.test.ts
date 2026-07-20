@@ -31,13 +31,14 @@ describe("formatPercent", () => {
 });
 
 describe("marketVolume", () => {
-  it("is the pools minus the 200 HC house seed", () => {
-    expect(marketVolume(450, 300)).toBe(550);
-    expect(marketVolume(100, 100)).toBe(0);
+  it("is the total pool minus the 100 HC per-outcome house seed", () => {
+    expect(marketVolume(750, 2)).toBe(550);
+    expect(marketVolume(450, 3)).toBe(150);
+    expect(marketVolume(200, 2)).toBe(0);
   });
 
   it("never goes negative", () => {
-    expect(marketVolume(90, 90)).toBe(0);
+    expect(marketVolume(180, 2)).toBe(0);
   });
 });
 

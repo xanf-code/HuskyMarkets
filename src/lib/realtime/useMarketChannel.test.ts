@@ -35,10 +35,13 @@ const { supabase, channel, handlers, maybeSingle } = vi.hoisted(() => {
 vi.mock("@/lib/supabase/client", () => ({ createClient: () => supabase }));
 
 const initial = {
-  yesPool: 200,
-  noPool: 100,
+  outcomes: [
+    { id: "o-yes", label: "Yes", sortOrder: 0, pool: 200, implied: 67 },
+    { id: "o-no", label: "No", sortOrder: 1, pool: 100, implied: 33 },
+  ],
   status: "open" as const,
-  history: [{ recordedAt: "2026-07-18T10:00:00Z", price: 67 }],
+  winningOutcomeId: null,
+  history: [{ recordedAt: "2026-07-18T10:00:00Z", outcomeId: "o-yes", price: 67 }],
   activity: [],
 };
 
@@ -53,7 +56,7 @@ beforeEach(() => {
 });
 
 describe("useMarketChannel", () => {
-  it("opens one market:{id} channel with the three scoped listeners", () => {
+  it("opens one market:{id} channel with the four scoped listeners", () => {
     renderChannel();
 
     expect(supabase.channel).toHaveBeenCalledWith("market:m1");
@@ -63,6 +66,15 @@ describe("useMarketChannel", () => {
         event: "UPDATE",
         table: "markets",
         filter: "id=eq.m1",
+      }),
+      expect.any(Function),
+    );
+    expect(channel.on).toHaveBeenCalledWith(
+      "postgres_changes",
+      expect.objectContaining({
+        event: "UPDATE",
+        table: "market_outcomes",
+        filter: "market_id=eq.m1",
       }),
       expect.any(Function),
     );
@@ -87,23 +99,36 @@ describe("useMarketChannel", () => {
     expect(channel.subscribe).toHaveBeenCalled();
   });
 
-  it("applies markets UPDATE payloads to pools and status", () => {
+  it("applies markets UPDATE payloads to status and winning outcome only", () => {
     const { result } = renderChannel();
 
     act(() => {
       handlers.get("markets:UPDATE")!({
-        new: { yes_pool: 300, no_pool: 150, status: "closed" },
+        new: { status: "resolved", winning_outcome_id: "o-yes" },
       });
     });
 
-    expect(result.current.market).toEqual({
-      yesPool: 300,
-      noPool: 150,
-      status: "closed",
-    });
+    expect(result.current.market.status).toBe("resolved");
+    expect(result.current.market.winningOutcomeId).toBe("o-yes");
+    expect(result.current.market.outcomes).toEqual(initial.outcomes);
   });
 
-  it("prepends bets INSERTs to activity with the resolved display name", async () => {
+  it("applies market_outcomes UPDATE payloads to pools and prices", () => {
+    const { result } = renderChannel();
+
+    act(() => {
+      handlers.get("market_outcomes:UPDATE")!({
+        new: { id: "o-yes", market_id: "m1", pool: 300 },
+      });
+    });
+
+    expect(result.current.market.outcomes).toEqual([
+      { id: "o-yes", label: "Yes", sortOrder: 0, pool: 300, implied: 75 },
+      { id: "o-no", label: "No", sortOrder: 1, pool: 100, implied: 25 },
+    ]);
+  });
+
+  it("prepends bets INSERTs to activity with the outcome label resolved client-side", async () => {
     const { result } = renderChannel();
 
     await act(async () => {
@@ -111,7 +136,7 @@ describe("useMarketChannel", () => {
         new: {
           id: "b9",
           user_id: "u1",
-          side: "no",
+          outcome_id: "o-no",
           amount: 75,
           price_at_bet: 33,
           created_at: "2026-07-18T11:00:00Z",
@@ -122,7 +147,8 @@ describe("useMarketChannel", () => {
     expect(result.current.activity[0]).toEqual({
       id: "b9",
       displayName: "CunningHusky42",
-      side: "no",
+      outcomeId: "o-no",
+      outcomeLabel: "No",
       amount: 75,
       price: 33,
       createdAt: "2026-07-18T11:00:00Z",
@@ -134,28 +160,33 @@ describe("useMarketChannel", () => {
 
     act(() => {
       handlers.get("price_history:INSERT")!({
-        new: { recorded_at: "2026-07-18T10:15:00Z", implied_yes: 44 },
+        new: {
+          recorded_at: "2026-07-18T10:15:00Z",
+          outcome_id: "o-no",
+          implied: 44,
+        },
       });
     });
 
     expect(result.current.history).toEqual([
-      { recordedAt: "2026-07-18T10:00:00Z", price: 67 },
-      { recordedAt: "2026-07-18T10:15:00Z", price: 44 },
+      { recordedAt: "2026-07-18T10:00:00Z", outcomeId: "o-yes", price: 67 },
+      { recordedAt: "2026-07-18T10:15:00Z", outcomeId: "o-no", price: 44 },
     ]);
   });
 
   it("applies optimistic fills from the order panel", () => {
     const { result } = renderChannel();
+    const filled = [
+      { id: "o-yes", label: "Yes", sortOrder: 0, pool: 300, implied: 75 },
+      { id: "o-no", label: "No", sortOrder: 1, pool: 100, implied: 25 },
+    ];
 
     act(() => {
-      result.current.applyFill({ yesPool: 300, noPool: 100 });
+      result.current.applyFill({ outcomes: filled });
     });
 
-    expect(result.current.market).toEqual({
-      yesPool: 300,
-      noPool: 100,
-      status: "open",
-    });
+    expect(result.current.market.outcomes).toEqual(filled);
+    expect(result.current.market.status).toBe("open");
   });
 
   it("removes the channel on unmount", () => {

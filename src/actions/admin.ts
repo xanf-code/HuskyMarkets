@@ -32,10 +32,16 @@ function revalidateStaff() {
   revalidatePath("/");
 }
 
-const resolveSchema = z.object({
-  marketId: z.uuid(),
-  outcome: z.enum(["yes", "no", "void"]),
-});
+// Explicit resolve/void discriminant — no null-sentinel void (REC-10).
+const resolveSchema = z
+  .object({
+    marketId: z.uuid(),
+    action: z.enum(["resolve", "void"]),
+    winningOutcomeId: z.uuid().optional(),
+  })
+  .refine((input) => input.action === "void" || !!input.winningOutcomeId, {
+    message: "Resolving requires a winning outcome.",
+  });
 
 export async function resolveMarketAction(
   input: unknown,
@@ -47,7 +53,8 @@ export async function resolveMarketAction(
   const supabase = await createClient();
   const { error } = await supabase.rpc("resolve_market", {
     p_market_id: parsed.data.marketId,
-    p_outcome: parsed.data.outcome,
+    p_action: parsed.data.action,
+    p_winning_outcome_id: parsed.data.winningOutcomeId,
   });
   if (error) return { ok: false, error: mapStaffError(error.message) };
   revalidateStaff();

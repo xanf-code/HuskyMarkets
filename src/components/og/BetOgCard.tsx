@@ -3,8 +3,8 @@ import type { ShareCard } from "@/lib/queries/share";
 import { OG_COLORS, OG_FONT } from "./theme";
 
 export function BetOgCard({ card }: { card: ShareCard }) {
-  const sideColor =
-    card.side === "yes" ? OG_COLORS.marketYes : OG_COLORS.marketNo;
+  // Win/loss coloring only — outcome identity is the label (A-7).
+  const sideColor = OG_COLORS.marketYes;
 
   return (
     <div
@@ -107,7 +107,7 @@ export function BetOgCard({ card }: { card: ShareCard }) {
       >
         <span>{card.displayName}</span>
         <span style={{ color: sideColor, fontWeight: 600 }}>
-          {`${card.side.toUpperCase()} · huskymarkets`}
+          {`${card.outcomeLabel} · huskymarkets`}
         </span>
       </div>
     </div>

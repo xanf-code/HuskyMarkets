@@ -17,7 +17,7 @@ export async function generateMetadata({
   if (!card) notFound();
   return {
     title: `Called it at ${formatCents(card.priceAtBet)} — HuskyMarkets`,
-    description: `${card.displayName} backed ${card.side.toUpperCase()} on "${card.marketTitle}" at ${formatCents(card.priceAtBet)} and turned ${formatHC(card.stake)} into ${formatHC(card.payout)}.`,
+    description: `${card.displayName} backed ${card.outcomeLabel} on "${card.marketTitle}" at ${formatCents(card.priceAtBet)} and turned ${formatHC(card.stake)} into ${formatHC(card.payout)}.`,
     openGraph: { images: [`/api/og/bet/${betId}`] },
   };
 }
@@ -27,7 +27,7 @@ export default async function ShareBetPage({ params }: ShareBetPageProps) {
   const card = await getShareCard(betId);
   if (!card) notFound();
 
-  const sideClass = card.side === "yes" ? "text-market-yes" : "text-market-no";
+  const sideClass = "text-market-yes";
 
   return (
     <div className="mx-auto flex min-h-[70vh] w-full max-w-2xl flex-col justify-center">
@@ -46,7 +46,7 @@ export default async function ShareBetPage({ params }: ShareBetPageProps) {
       </p>
       <p className="mt-4 text-sm text-text-muted">
         {card.displayName} backed{" "}
-        <span className={sideClass}>{card.side.toUpperCase()}</span> on
+        <span className={sideClass}>{card.outcomeLabel}</span> on
         HuskyMarkets.
       </p>
       <div className="mt-10 border-t border-hairline pt-6">

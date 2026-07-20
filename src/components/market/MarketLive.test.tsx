@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ToastProvider } from "@/components/ui/Toast";
+import type { OutcomeState } from "@/lib/outcomes";
 import type { ActivityItem } from "@/lib/queries/markets";
 import {
   LiveActivity,
@@ -17,11 +18,15 @@ const { useMarketChannel } = vi.hoisted(() => ({
 
 vi.mock("@/lib/realtime/useMarketChannel", () => ({ useMarketChannel }));
 
+const YES: OutcomeState = { id: "o-yes", label: "Yes", sortOrder: 0, pool: 200, implied: 67 };
+const NO: OutcomeState = { id: "o-no", label: "No", sortOrder: 1, pool: 100, implied: 33 };
+
 const activity: ActivityItem[] = [
   {
     id: "b1",
     displayName: "CunningHusky42",
-    side: "yes",
+    outcomeId: "o-yes",
+    outcomeLabel: "Yes",
     amount: 50,
     price: 67,
     createdAt: new Date().toISOString(),
@@ -29,15 +34,15 @@ const activity: ActivityItem[] = [
 ];
 
 const initial = {
-  yesPool: 200,
-  noPool: 100,
+  outcomes: [YES, NO],
   status: "open" as const,
+  winningOutcomeId: null,
   history: [],
   activity: [],
 };
 
 function setChannelState(
-  market: { yesPool: number; noPool: number; status: string },
+  market: { outcomes: OutcomeState[]; status: string; winningOutcomeId: string | null },
   overrides: Record<string, unknown> = {},
 ) {
   useMarketChannel.mockReturnValue({
@@ -61,11 +66,11 @@ function renderLive(children: React.ReactNode) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  setChannelState({ yesPool: 200, noPool: 100, status: "open" });
+  setChannelState({ outcomes: [YES, NO], status: "open", winningOutcomeId: null });
 });
 
 describe("MarketLive", () => {
-  it("renders the hero probability from live pools", () => {
+  it("renders the hero probability of the leading outcome", () => {
     renderLive(<LivePrice />);
 
     expect(screen.getByText("67%")).toBeInTheDocument();
@@ -73,12 +78,19 @@ describe("MarketLive", () => {
   });
 
   it("renders live pools and volume in the stats", () => {
-    setChannelState({ yesPool: 300, noPool: 150, status: "open" });
+    setChannelState({
+      outcomes: [
+        { ...YES, pool: 300, implied: 67 },
+        { ...NO, pool: 150, implied: 33 },
+      ],
+      status: "open",
+      winningOutcomeId: null,
+    });
     renderLive(<LiveStats bettorCount={4} />);
 
     // volume = 450 − 200 seed
     expect(screen.getByText("250 HC")).toBeInTheDocument();
-    expect(screen.getByText("300 / 150")).toBeInTheDocument();
+    expect(screen.getByText("Yes 300 / No 150")).toBeInTheDocument();
   });
 
   it("renders the live activity feed", () => {
@@ -87,21 +99,25 @@ describe("MarketLive", () => {
     expect(screen.getByText("CunningHusky42")).toBeInTheDocument();
   });
 
-  it("shows the status banner and disables the order panel when the market resolves", () => {
-    setChannelState({ yesPool: 200, noPool: 100, status: "resolved_yes" });
+  it("shows the winning label and disables the order panel when the market resolves", () => {
+    setChannelState({
+      outcomes: [YES, NO],
+      status: "resolved",
+      winningOutcomeId: "o-yes",
+    });
     renderLive(
       <>
         <LiveStatusBanner />
         <LiveOrderPanel
           marketId="m1"
           closeAt={new Date(Date.now() + 86_400_000).toISOString()}
-          position={{ yes: 0, no: 0 }}
+          position={[]}
           balance={400}
         />
       </>,
     );
 
-    expect(screen.getByText(/Resolved YES/)).toBeInTheDocument();
+    expect(screen.getByText(/Resolved — Yes/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /closed/i })).toBeDisabled();
   });
 

@@ -13,9 +13,10 @@ const market: MarketListItem = {
   category: "weather",
   closeAt: new Date(Date.now() + 86_400_000).toISOString(),
   createdAt: "2026-07-10T00:00:00Z",
-  yesPool: 450,
-  noPool: 300,
-  impliedYes: 60,
+  outcomes: [
+    { id: "o-yes", label: "Yes", sortOrder: 0, pool: 450, implied: 60 },
+    { id: "o-no", label: "No", sortOrder: 1, pool: 300, implied: 40 },
+  ],
   volume: 550,
   spark: [50, 67, 60],
 };
@@ -28,19 +29,63 @@ describe("MarketCard", () => {
     ).toHaveAttribute("href", "/market/m1");
   });
 
-  it("shows dual Yes/No price affordances that deep-link a side", () => {
+  it("shows both outcomes as price affordances for a binary market", () => {
     render(<MarketCard market={market} />);
     expect(screen.getByRole("link", { name: /yes\s+60¢/i })).toHaveAttribute(
       "href",
-      "/market/m1?side=yes",
+      "/market/m1",
     );
     expect(screen.getByRole("link", { name: /no\s+40¢/i })).toHaveAttribute(
       "href",
-      "/market/m1?side=no",
+      "/market/m1",
     );
   });
 
-  it("leads with a probability percentage, not a single red YES price", () => {
+  it("shows the top-2 outcomes plus a '+N more' badge for 3+-outcome markets", () => {
+    render(
+      <MarketCard
+        market={{
+          ...market,
+          outcomes: [
+            { id: "o-a", label: "Alpha", sortOrder: 0, pool: 100, implied: 20 },
+            { id: "o-b", label: "Beta", sortOrder: 1, pool: 300, implied: 60 },
+            { id: "o-c", label: "Gamma", sortOrder: 2, pool: 100, implied: 20 },
+          ],
+        }}
+      />,
+    );
+    expect(screen.getByRole("link", { name: /beta\s+60¢/i })).toBeInTheDocument();
+    expect(screen.getByText("+1 more")).toBeInTheDocument();
+  });
+
+  it("collapses a 6-outcome market to the top-2 by pool plus '+4 more'", () => {
+    const outcomes = Array.from({ length: 6 }, (_, i) => ({
+      id: `o-${i}`,
+      label: `Outcome ${i + 1}`,
+      sortOrder: i,
+      pool: 100,
+      implied: 17,
+    }));
+    outcomes[3].pool = 500;
+    outcomes[3].implied = 56;
+    outcomes[1].pool = 200;
+    outcomes[1].implied = 22;
+
+    render(<MarketCard market={{ ...market, outcomes }} />);
+
+    expect(
+      screen.getByRole("link", { name: /outcome 4\s+56¢/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /outcome 2\s+22¢/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: /outcome 1/i }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("+4 more")).toBeInTheDocument();
+  });
+
+  it("leads with the leading outcome's probability percentage", () => {
     render(<MarketCard market={market} />);
     expect(screen.getByText("60%")).toBeInTheDocument();
     expect(screen.getByRole("progressbar")).toHaveAttribute(

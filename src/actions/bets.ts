@@ -3,12 +3,16 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { CAP_PER_MARKET } from "@/lib/constants";
+import {
+  outcomeStateFromRpc,
+  type OutcomeState,
+} from "@/lib/outcomes";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResult } from "./profile";
 
 const placeBetSchema = z.object({
   marketId: z.uuid(),
-  side: z.enum(["yes", "no"]),
+  outcomeId: z.uuid(),
   amount: z
     .number()
     .int("Whole HC only.")
@@ -18,9 +22,8 @@ const placeBetSchema = z.object({
 
 export interface BetFill {
   betId: string;
-  yesPool: number;
-  noPool: number;
-  impliedYes: number;
+  /** Full per-outcome pool/price map, ordered by sort_order (REC-12). */
+  outcomes: OutcomeState[];
   newBalance: number;
 }
 
@@ -33,7 +36,10 @@ function friendlyBetError(message: string): string {
     return "You don't have enough HC for that bet.";
   }
   if (message.includes("per-market cap")) {
-    return `You can stake at most ${CAP_PER_MARKET} HC per market, across both sides.`;
+    return `You can stake at most ${CAP_PER_MARKET} HC per market, across all outcomes.`;
+  }
+  if (message.includes("outcome does not belong to this market")) {
+    return "That outcome doesn't belong to this market.";
   }
   if (message.includes("bet amount")) {
     return `Bets must be between 1 and ${CAP_PER_MARKET} HC.`;
@@ -49,11 +55,11 @@ export async function placeBet(
     return { ok: false, error: parsed.error.issues[0].message };
   }
 
-  const { marketId, side, amount } = parsed.data;
+  const { marketId, outcomeId, amount } = parsed.data;
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("place_bet", {
     p_market_id: marketId,
-    p_side: side,
+    p_outcome_id: outcomeId,
     p_amount: amount,
   });
 
@@ -61,10 +67,8 @@ export async function placeBet(
 
   const fill = data as {
     bet_id: string;
-    yes_pool: number;
-    no_pool: number;
-    implied_yes: number;
     new_balance: number;
+    outcomes: unknown;
   };
 
   revalidatePath(`/market/${marketId}`);
@@ -73,9 +77,7 @@ export async function placeBet(
   return {
     ok: true,
     betId: fill.bet_id,
-    yesPool: fill.yes_pool,
-    noPool: fill.no_pool,
-    impliedYes: fill.implied_yes,
+    outcomes: outcomeStateFromRpc(fill.outcomes),
     newBalance: fill.new_balance,
   };
 }

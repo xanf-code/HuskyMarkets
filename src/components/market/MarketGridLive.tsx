@@ -1,13 +1,17 @@
 "use client";
 
-// Home grid enhancement: one unfiltered `markets:list` UPDATE channel patches
-// price/volume on visible cards (fine at campus scale). The server-fetched
-// list is the source of truth — filter navigation reseeds via props.
+// Home grid enhancement: one unfiltered `markets:list` channel patches the
+// visible cards — `markets` UPDATEs remove closed/hidden cards, and
+// `market_outcomes` UPDATEs move prices (REC-13). The server-fetched list is
+// the source of truth — filter navigation reseeds via props.
 
 import { useEffect, useState } from "react";
 import type { Tables } from "@/lib/database.types";
 import type { MarketListItem } from "@/lib/queries/markets";
-import { patchMarketList } from "@/lib/realtime/live-state";
+import {
+  patchMarketList,
+  patchMarketListOutcome,
+} from "@/lib/realtime/live-state";
 import { createClient } from "@/lib/supabase/client";
 import { MarketGrid } from "./MarketGrid";
 
@@ -32,6 +36,18 @@ export function MarketGridLive({ initial }: { initial: MarketListItem[] }) {
         (payload) => {
           setMarkets((current) =>
             patchMarketList(current, payload.new as Partial<Tables<"markets">>),
+          );
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "market_outcomes" },
+        (payload) => {
+          setMarkets((current) =>
+            patchMarketListOutcome(
+              current,
+              payload.new as Partial<Tables<"market_outcomes">>,
+            ),
           );
         },
       )

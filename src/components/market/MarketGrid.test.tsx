@@ -14,9 +14,10 @@ function item(id: string, title: string): MarketListItem {
     category: "campus",
     closeAt: new Date(Date.now() + 86_400_000).toISOString(),
     createdAt: "2026-07-10T00:00:00Z",
-    yesPool: 100,
-    noPool: 100,
-    impliedYes: 50,
+    outcomes: [
+      { id: `${id}-yes`, label: "Yes", sortOrder: 0, pool: 100, implied: 50 },
+      { id: `${id}-no`, label: "No", sortOrder: 1, pool: 100, implied: 50 },
+    ],
     volume: 0,
     spark: [50],
   };

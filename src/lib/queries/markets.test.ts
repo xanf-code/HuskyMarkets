@@ -18,6 +18,9 @@ vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({ from, rpc }),
 }));
 
+const YES = { id: "o-yes", label: "Yes", sortOrder: 0, pool: 200, implied: 67 };
+const NO = { id: "o-no", label: "No", sortOrder: 1, pool: 100, implied: 33 };
+
 function item(overrides: Partial<MarketListItem>): MarketListItem {
   return {
     id: "m1",
@@ -25,9 +28,7 @@ function item(overrides: Partial<MarketListItem>): MarketListItem {
     category: "weather",
     closeAt: "2026-07-20T00:00:00Z",
     createdAt: "2026-07-10T00:00:00Z",
-    yesPool: 200,
-    noPool: 100,
-    impliedYes: 67,
+    outcomes: [YES, NO],
     volume: 100,
     spark: [50, 67],
     ...overrides,
@@ -73,17 +74,17 @@ describe("filterAndSortMarkets", () => {
 });
 
 describe("groupSparklines", () => {
-  it("keeps up to N most-recent points per market in chronological order", () => {
+  it("keeps up to N most-recent points per market+outcome in chronological order", () => {
     // rows arrive newest-first, as fetched
     const rows = [
-      { market_id: "a", implied_yes: 70 },
-      { market_id: "b", implied_yes: 40 },
-      { market_id: "a", implied_yes: 60 },
-      { market_id: "a", implied_yes: 50 },
+      { market_id: "a", outcome_id: "o1", implied: 70 },
+      { market_id: "a", outcome_id: "o2", implied: 30 },
+      { market_id: "a", outcome_id: "o1", implied: 60 },
+      { market_id: "a", outcome_id: "o1", implied: 50 },
     ];
     const grouped = groupSparklines(rows, 2);
-    expect(grouped.get("a")).toEqual([60, 70]);
-    expect(grouped.get("b")).toEqual([40]);
+    expect(grouped.get("a:o1")).toEqual([60, 70]);
+    expect(grouped.get("a:o2")).toEqual([30]);
   });
 });
 
@@ -92,17 +93,23 @@ describe("getMarketList", () => {
     vi.clearAllMocks();
   });
 
+  const selectSpy = vi.fn();
+
   function chainable(result: { data: unknown; error: null }) {
     const builder: Record<string, unknown> = {};
-    for (const method of ["select", "eq", "in", "order", "limit"]) {
+    for (const method of ["eq", "in", "order", "limit"]) {
       builder[method] = vi.fn(() => builder);
     }
+    builder.select = vi.fn((arg: string) => {
+      selectSpy(arg);
+      return builder;
+    });
     builder.then = (resolve: (value: unknown) => unknown) =>
       Promise.resolve(result).then(resolve);
     return builder;
   }
 
-  it("batches markets + sparkline points and shapes list items", async () => {
+  it("fetches markets with embedded outcomes in one query and shapes list items", async () => {
     const marketsBuilder = chainable({
       data: [
         {
@@ -111,16 +118,19 @@ describe("getMarketList", () => {
           category: "weather",
           close_at: "2026-07-20T00:00:00Z",
           created_at: "2026-07-10T00:00:00Z",
-          yes_pool: 200,
-          no_pool: 100,
+          market_outcomes: [
+            { id: "o-no", label: "No", sort_order: 1, pool: 100 },
+            { id: "o-yes", label: "Yes", sort_order: 0, pool: 200 },
+          ],
         },
       ],
       error: null,
     });
     const historyBuilder = chainable({
       data: [
-        { market_id: "m1", implied_yes: 67 },
-        { market_id: "m1", implied_yes: 50 },
+        { market_id: "m1", outcome_id: "o-yes", implied: 67 },
+        { market_id: "m1", outcome_id: "o-no", implied: 33 },
+        { market_id: "m1", outcome_id: "o-yes", implied: 50 },
       ],
       error: null,
     });
@@ -130,6 +140,11 @@ describe("getMarketList", () => {
 
     const list = await getMarketList({});
 
+    // Outcomes ride the markets query as an embedded resource — one round
+    // trip, no N+1 (REC-19) — and come out in canonical sort_order.
+    expect(selectSpy).toHaveBeenCalledWith(
+      expect.stringContaining("market_outcomes"),
+    );
     expect(list).toEqual([
       {
         id: "m1",
@@ -137,9 +152,10 @@ describe("getMarketList", () => {
         category: "weather",
         closeAt: "2026-07-20T00:00:00Z",
         createdAt: "2026-07-10T00:00:00Z",
-        yesPool: 200,
-        noPool: 100,
-        impliedYes: 67,
+        outcomes: [
+          { id: "o-yes", label: "Yes", sortOrder: 0, pool: 200, implied: 67 },
+          { id: "o-no", label: "No", sortOrder: 1, pool: 100, implied: 33 },
+        ],
         volume: 100,
         spark: [50, 67],
       },

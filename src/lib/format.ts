@@ -18,9 +18,9 @@ export function formatPercent(price: number): string {
   return `${price}%`;
 }
 
-/** Real money wagered: pools minus the 100/100 house seed. */
-export function marketVolume(yesPool: number, noPool: number): number {
-  return Math.max(yesPool + noPool - 2 * HOUSE_SEED, 0);
+/** Real money wagered: total pool minus the 100 HC per-outcome house seed. */
+export function marketVolume(totalPool: number, outcomeCount: number): number {
+  return Math.max(totalPool - HOUSE_SEED * outcomeCount, 0);
 }
 
 /**

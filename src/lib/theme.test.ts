@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { theme } from "./theme";
+import { outcomeColor, theme } from "./theme";
+
+// WCAG relative luminance, used to document the palette's grayscale
+// distinguishability contract (NFR-7).
+function luminance(hex: string): number {
+  const channel = (i: number) => {
+    const c = parseInt(hex.slice(i, i + 2), 16) / 255;
+    return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  };
+  return 0.2126 * channel(1) + 0.7152 * channel(3) + 0.0722 * channel(5);
+}
 
 describe("theme (Kalshi × NEU hybrid)", () => {
   it("uses a light product page surface, not pure black", () => {
@@ -31,5 +41,33 @@ describe("theme (Kalshi × NEU hybrid)", () => {
     expect(theme.radius.lg).toBe("12px");
     expect(theme.radius.md).toBe("8px");
     expect(theme.radius.pill).toBe("999px");
+  });
+});
+
+describe("outcome palette (D-3, NFR-7)", () => {
+  it("has exactly 6 tokens, one per possible outcome", () => {
+    expect(theme.outcomePalette).toHaveLength(6);
+  });
+
+  it("reuses no color — every token is distinct", () => {
+    expect(new Set(theme.outcomePalette).size).toBe(6);
+  });
+
+  it("keeps binary continuity: tokens 0/1 are the Yes/No hues", () => {
+    expect(theme.outcomePalette[0]).toBe(theme.colors.marketYes);
+    expect(theme.outcomePalette[1]).toBe(theme.colors.marketNo);
+  });
+
+  it("alternates light/dark luminance so neighbors stay grayscale-distinguishable", () => {
+    const lums = theme.outcomePalette.map(luminance);
+    for (let i = 1; i < lums.length; i++) {
+      expect(Math.abs(lums[i] - lums[i - 1])).toBeGreaterThanOrEqual(0.1);
+    }
+  });
+
+  it("indexes by sort_order, wrapping past the palette length", () => {
+    expect(outcomeColor(0)).toBe(theme.outcomePalette[0]);
+    expect(outcomeColor(5)).toBe(theme.outcomePalette[5]);
+    expect(outcomeColor(6)).toBe(theme.outcomePalette[0]);
   });
 });
