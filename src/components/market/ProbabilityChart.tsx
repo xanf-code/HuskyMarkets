@@ -1,14 +1,16 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import {
   Area,
   AreaChart,
   CartesianGrid,
+  ReferenceArea,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
+  type MouseHandlerDataParam,
 } from "recharts";
 import { buildChartSeries, type ChartVariant } from "@/lib/chart-series";
 import { formatPercent } from "@/lib/format";
@@ -124,6 +126,45 @@ export function ProbabilityChart({
     fontSize: 11,
   };
 
+  // Drag-to-zoom: mousedown starts a selection, mousemove extends it, and
+  // mouseup commits it as the new X-axis domain. Dragging back to the start
+  // (or off the chart) cancels instead of zooming to a zero-width range.
+  const [zoomDomain, setZoomDomain] = useState<[number, number] | null>(null);
+  const [dragStart, setDragStart] = useState<number | null>(null);
+  const [dragEnd, setDragEnd] = useState<number | null>(null);
+
+  const labelToNumber = (state: MouseHandlerDataParam): number | null => {
+    const { activeLabel } = state;
+    return activeLabel === undefined ? null : Number(activeLabel);
+  };
+
+  const handleMouseDown = (state: MouseHandlerDataParam) => {
+    const value = labelToNumber(state);
+    if (value === null) return;
+    setDragStart(value);
+    setDragEnd(value);
+  };
+
+  const handleMouseMove = (state: MouseHandlerDataParam) => {
+    if (dragStart === null) return;
+    const value = labelToNumber(state);
+    if (value === null) return;
+    setDragEnd(value);
+  };
+
+  const commitZoom = () => {
+    if (dragStart !== null && dragEnd !== null && dragStart !== dragEnd) {
+      setZoomDomain([
+        Math.min(dragStart, dragEnd),
+        Math.max(dragStart, dragEnd),
+      ]);
+    }
+    setDragStart(null);
+    setDragEnd(null);
+  };
+
+  const resetZoom = () => setZoomDomain(null);
+
   if (history.length === 0) {
     return (
       <div className="card-surface flex h-56 items-center justify-center px-4 sm:h-72">
@@ -148,10 +189,7 @@ export function ProbabilityChart({
     .map((row) => {
       const out: Record<string, number> = { t: row.t };
       for (const s of series) {
-        out[s.key] = s.outcomeIds.reduce(
-          (sum, id) => sum + (row[id] ?? 0),
-          0,
-        );
+        out[s.key] = s.outcomeIds.reduce((sum, id) => sum + (row[id] ?? 0), 0);
       }
       return out;
     });
@@ -161,55 +199,92 @@ export function ProbabilityChart({
 
   return (
     <div className="card-surface w-full overflow-hidden">
-      <div className="h-56 w-full sm:h-72" aria-hidden="true">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -24 }}>
-            <CartesianGrid stroke={colors.hairline} vertical={false} />
-            <XAxis
-              dataKey="t"
-              type="number"
-              domain={["dataMin", "dataMax"]}
-              tickFormatter={(t: number) => TIME.format(new Date(t))}
-              tick={tickStyle}
-              tickLine={false}
-              axisLine={{ stroke: colors.hairline }}
-              minTickGap={48}
-            />
-            <YAxis
-              domain={[0, 100]}
-              ticks={[0, 25, 50, 75, 100]}
-              tickFormatter={(v: number) => `${v}%`}
-              tick={tickStyle}
-              tickLine={false}
-              axisLine={false}
-            />
-            <Tooltip
-              content={<CrosshairTooltip />}
-              cursor={{
-                stroke: colors.textTertiary,
-                strokeWidth: 1,
-              }}
-            />
-            {series.map((s) => (
-              <Area
-                key={s.key}
-                type="stepAfter"
-                dataKey={s.key}
-                name={s.label}
-                stroke={colorFor(s.colorIndex)}
-                strokeWidth={2}
-                fill={`${colorFor(s.colorIndex)}1F`}
-                activeDot={{
-                  r: 3.5,
-                  strokeWidth: 2,
-                  stroke: colors.card,
-                }}
-                isAnimationActive={false}
-                connectNulls
+      <div className="relative">
+        {zoomDomain && (
+          <button
+            type="button"
+            onClick={resetZoom}
+            className="absolute right-3 top-1 z-10 rounded-full border border-hairline bg-card px-2 py-0.5 text-xs text-text-muted hover:text-text"
+          >
+            Reset zoom
+          </button>
+        )}
+        <div
+          className="h-56 w-full select-none px-1 pt-2 sm:h-72 sm:px-2"
+          aria-hidden="true"
+        >
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart
+              data={data}
+              margin={{ top: 8, right: 12, bottom: 0, left: 4 }}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={commitZoom}
+              onMouseLeave={commitZoom}
+            >
+              <CartesianGrid stroke={colors.hairline} vertical={false} />
+              <XAxis
+                dataKey="t"
+                type="number"
+                domain={zoomDomain ?? ["dataMin", "dataMax"]}
+                allowDataOverflow
+                tickFormatter={(t: number) => TIME.format(new Date(t))}
+                tick={tickStyle}
+                tickLine={false}
+                axisLine={{ stroke: colors.hairline }}
+                minTickGap={48}
               />
-            ))}
-          </AreaChart>
-        </ResponsiveContainer>
+              <YAxis
+                domain={[0, 100]}
+                ticks={[0, 25, 50, 75, 100]}
+                tickFormatter={(v: number) => `${v}%`}
+                tick={tickStyle}
+                tickLine={false}
+                axisLine={false}
+                width={34}
+              />
+              {dragStart === null && (
+                <Tooltip
+                  content={<CrosshairTooltip />}
+                  cursor={{
+                    stroke: colors.textTertiary,
+                    strokeWidth: 1,
+                  }}
+                />
+              )}
+              {dragStart !== null &&
+                dragEnd !== null &&
+                dragStart !== dragEnd && (
+                  <ReferenceArea
+                    x1={Math.min(dragStart, dragEnd)}
+                    x2={Math.max(dragStart, dragEnd)}
+                    stroke={colors.textTertiary}
+                    strokeOpacity={0.4}
+                    fill={colors.textTertiary}
+                    fillOpacity={0.12}
+                  />
+                )}
+              {series.map((s) => (
+                <Area
+                  key={s.key}
+                  type="stepAfter"
+                  dataKey={s.key}
+                  name={s.label}
+                  stroke={colorFor(s.colorIndex)}
+                  strokeWidth={2}
+                  fill={`${colorFor(s.colorIndex)}1F`}
+                  activeDot={{
+                    r: 3.5,
+                    strokeWidth: 2,
+                    stroke: colors.card,
+                  }}
+                  isAnimationActive={false}
+                  connectNulls
+                />
+              ))}
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
       </div>
       {/* Labels, not color alone, carry outcome identity (NFR-7). */}
       <ul
@@ -217,7 +292,10 @@ export function ProbabilityChart({
         className="flex flex-wrap gap-x-4 gap-y-1 px-4 pb-3"
       >
         {series.map((s) => (
-          <li key={s.key} className="flex items-center gap-1.5 text-xs text-text-muted">
+          <li
+            key={s.key}
+            className="flex items-center gap-1.5 text-xs text-text-muted"
+          >
             <span
               data-swatch
               aria-hidden="true"
