@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Hanken_Grotesk, IBM_Plex_Mono, Source_Serif_4 } from "next/font/google";
+import { cookies } from "next/headers";
 import { Suspense } from "react";
 import "./globals.css";
 import { BalanceChip } from "@/components/layout/BalanceChip";
@@ -7,6 +8,7 @@ import { DailyBonusClaimer } from "@/components/layout/DailyBonusClaimer";
 import { Header } from "@/components/layout/Header";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ToastProvider } from "@/components/ui/Toast";
+import { APPEARANCE_COOKIE } from "@/lib/appearance";
 import { getSession } from "@/lib/dal";
 
 const sourceSerif = Source_Serif_4({
@@ -39,13 +41,14 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await getSession();
+  const [session, cookieStore] = await Promise.all([getSession(), cookies()]);
   const user = session ? { id: session.userId } : null;
+  const isDark = cookieStore.get(APPEARANCE_COOKIE)?.value === "dark";
 
   return (
     <html
       lang="en"
-      className={`${sourceSerif.variable} ${hanken.variable} ${plexMono.variable} h-full antialiased`}
+      className={`${sourceSerif.variable} ${hanken.variable} ${plexMono.variable} h-full antialiased ${isDark ? "dark" : ""}`}
     >
       <body className="min-h-full bg-page font-sans text-text">
         <ToastProvider>

@@ -36,6 +36,31 @@ export const theme = {
     "#00B8D4", // 4 — teal
     "#9B59D0", // 5 — purple
   ],
+  // Mirrors `colors`, swapped for the .dark surface stack in globals.css.
+  // JS-side twin for values recharts needs as SVG attrs, where CSS custom
+  // properties aren't available. Brand/market/outcome hues are unchanged —
+  // see the .dark rule in globals.css for why.
+  darkColors: {
+    page: "#0B0D10",
+    card: "#15181D",
+    muted: "#1E2228",
+    inverse: "#1A1E24",
+    ink: "#0A0A0A",
+    red: "#D41B2C",
+    redHover: "#B01524",
+    redBright: "#E31837",
+    text: "#F2F3F5",
+    textMuted: "#9AA1AC",
+    textTertiary: "#6B7280",
+    hairline: "#262B32",
+    borderStrong: "#363C45",
+    marketYes: "#00CE8E",
+    marketYesBg: "#0D2B22",
+    marketNo: "#FF3B5C",
+    marketNoBg: "#33131B",
+    marketNeutral: "#8B929E",
+    focusRing: "rgba(212,27,44,0.35)",
+  },
   fonts: {
     serif: "var(--font-source-serif)",
     sans: "var(--font-hanken)",

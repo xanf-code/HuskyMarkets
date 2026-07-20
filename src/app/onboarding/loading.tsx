@@ -12,6 +12,7 @@ export default function Loading() {
         {["a", "b"].map((k) => (
           <Skeleton key={k} className="h-12 w-full" />
         ))}
+        <Skeleton className="h-12 w-full" />
         <Skeleton className="h-11 w-full" />
       </div>
     </div>

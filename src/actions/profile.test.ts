@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { APPEARANCE_COOKIE, APPEARANCE_COOKIE_OPTIONS } from "@/lib/appearance";
 import {
   ONBOARDED_COOKIE,
   ONBOARDED_COOKIE_OPTIONS,
@@ -103,6 +104,26 @@ describe("completeOnboarding", () => {
     await completeOnboarding({ displayMode: "anon" });
 
     expect(cookieSet).not.toHaveBeenCalled();
+  });
+
+  it("defaults the appearance cookie to light when omitted", async () => {
+    await completeOnboarding({ displayMode: "anon" });
+
+    expect(cookieSet).toHaveBeenCalledWith(
+      APPEARANCE_COOKIE,
+      "light",
+      APPEARANCE_COOKIE_OPTIONS,
+    );
+  });
+
+  it("stamps the appearance cookie with the chosen theme", async () => {
+    await completeOnboarding({ displayMode: "anon", appearance: "dark" });
+
+    expect(cookieSet).toHaveBeenCalledWith(
+      APPEARANCE_COOKIE,
+      "dark",
+      APPEARANCE_COOKIE_OPTIONS,
+    );
   });
 });
 

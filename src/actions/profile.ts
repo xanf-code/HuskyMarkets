@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { z } from "zod";
+import { APPEARANCE_COOKIE, APPEARANCE_COOKIE_OPTIONS } from "@/lib/appearance";
 import { getSession } from "@/lib/dal";
 import {
   ONBOARDED_COOKIE,
@@ -23,6 +24,7 @@ const onboardingSchema = z
       .min(1, "Enter your name to use real-name mode.")
       .max(80, "That name is too long.")
       .optional(),
+    appearance: z.enum(["light", "dark"]).optional().default("light"),
   })
   .refine((input) => input.displayMode === "anon" || Boolean(input.realName), {
     message: "Enter your name to use real-name mode.",
@@ -52,8 +54,16 @@ export async function completeOnboarding(
   if (error) return { ok: false, error: error.message };
 
   // Stamp the presence-based onboarding cookie so future requests skip the
-  // per-request profiles.onboarded lookup in the proxy.
-  (await cookies()).set(ONBOARDED_COOKIE, "1", ONBOARDED_COOKIE_OPTIONS);
+  // per-request profiles.onboarded lookup in the proxy, and persist the
+  // chosen appearance so the very next render (the redirect to "/") is
+  // already in the right theme.
+  const cookieStore = await cookies();
+  cookieStore.set(ONBOARDED_COOKIE, "1", ONBOARDED_COOKIE_OPTIONS);
+  cookieStore.set(
+    APPEARANCE_COOKIE,
+    parsed.data.appearance,
+    APPEARANCE_COOKIE_OPTIONS,
+  );
 
   revalidatePath("/", "layout");
   return { ok: true };

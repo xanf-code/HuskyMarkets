@@ -21,6 +21,7 @@ vi.mock("next/navigation", () => ({
 beforeEach(() => {
   vi.clearAllMocks();
   completeOnboarding.mockResolvedValue({ ok: true });
+  document.documentElement.classList.remove("dark");
 });
 
 describe("OnboardingForm", () => {
@@ -48,9 +49,31 @@ describe("OnboardingForm", () => {
 
     await user.click(screen.getByRole("button", { name: /start trading/i }));
 
-    expect(completeOnboarding).toHaveBeenCalledWith({ displayMode: "anon" });
+    expect(completeOnboarding).toHaveBeenCalledWith({
+      displayMode: "anon",
+      appearance: "light",
+    });
     expect(push).toHaveBeenCalledWith("/");
     expect(refresh).toHaveBeenCalled();
+  });
+
+  it("defaults to the light theme and previews dark instantly on selection", async () => {
+    const user = userEvent.setup();
+    render(<OnboardingForm initialHandle="FrostyHusky07" />);
+
+    expect(screen.getByRole("radio", { name: /light/i })).toBeChecked();
+    expect(document.documentElement.classList.contains("dark")).toBe(false);
+
+    await user.click(screen.getByRole("radio", { name: /^dark$/i }));
+
+    expect(document.documentElement.classList.contains("dark")).toBe(true);
+
+    await user.click(screen.getByRole("button", { name: /start trading/i }));
+
+    expect(completeOnboarding).toHaveBeenCalledWith({
+      displayMode: "anon",
+      appearance: "dark",
+    });
   });
 
   it("requires a name in real-name mode before calling the server", async () => {
@@ -75,6 +98,7 @@ describe("OnboardingForm", () => {
     expect(completeOnboarding).toHaveBeenCalledWith({
       displayMode: "real",
       realName: "Dana Husky",
+      appearance: "light",
     });
     expect(push).toHaveBeenCalledWith("/");
   });

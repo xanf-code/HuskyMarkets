@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { AppearanceToggle } from "@/components/layout/AppearanceToggle";
 import { buttonStyles } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { HcAmount } from "@/components/ui/HcAmount";
 import { StatBlock } from "@/components/ui/StatBlock";
+import { APPEARANCE_COOKIE } from "@/lib/appearance";
 import { BAILOUT_THRESHOLD } from "@/lib/constants";
 import { verifySession } from "@/lib/dal";
 import { getProfileStats } from "@/lib/queries/leaderboard";
@@ -18,6 +21,9 @@ export const metadata: Metadata = {
 export default async function ProfilePage() {
   const { userId } = await verifySession();
   const supabase = await createClient();
+  const cookieStore = await cookies();
+  const initialAppearance =
+    cookieStore.get(APPEARANCE_COOKIE)?.value === "dark" ? "dark" : "light";
 
   const [{ data: profile }, { data: balanceData }, stats, { data: pendingApp }] =
     await Promise.all([
@@ -116,6 +122,13 @@ export default async function ProfilePage() {
           />
           <StatBlock label="Current streak" value={streakLabel} />
         </div>
+      </section>
+
+      <section className="card-surface p-4 sm:p-6">
+        <h2 className="mb-3 text-sm font-semibold text-text-muted">
+          Appearance
+        </h2>
+        <AppearanceToggle initialAppearance={initialAppearance} />
       </section>
 
       {balance < BAILOUT_THRESHOLD ? (

@@ -5,6 +5,8 @@ import { useState, type FormEvent } from "react";
 import { completeOnboarding, rerollAnonHandle } from "@/actions/profile";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import type { Appearance } from "@/lib/appearance";
+import { applyAppearance } from "@/lib/use-appearance";
 
 type DisplayMode = "real" | "anon";
 
@@ -17,9 +19,17 @@ export function OnboardingForm({ initialHandle }: OnboardingFormProps) {
   const [mode, setMode] = useState<DisplayMode>("anon");
   const [handle, setHandle] = useState(initialHandle);
   const [realName, setRealName] = useState("");
+  const [appearance, setAppearance] = useState<Appearance>("light");
   const [error, setError] = useState<string | null>(null);
   const [rerolling, setRerolling] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  function onChooseAppearance(next: Appearance) {
+    setAppearance(next);
+    // Live preview: the pick only persists once the form is submitted
+    // (below), but the whole page should reflect it immediately.
+    applyAppearance(next);
+  }
 
   async function onReroll() {
     setRerolling(true);
@@ -45,8 +55,8 @@ export function OnboardingForm({ initialHandle }: OnboardingFormProps) {
     setSubmitting(true);
     const result = await completeOnboarding(
       mode === "real"
-        ? { displayMode: "real", realName: name }
-        : { displayMode: "anon" },
+        ? { displayMode: "real", realName: name, appearance }
+        : { displayMode: "anon", appearance },
     );
     setSubmitting(false);
 
@@ -134,6 +144,39 @@ export function OnboardingForm({ initialHandle }: OnboardingFormProps) {
               />
             </div>
           ) : null}
+        </div>
+      </fieldset>
+
+      <fieldset className="space-y-3">
+        <legend className="mb-3 text-sm font-semibold text-text">
+          Pick your theme
+        </legend>
+        <div className="grid grid-cols-2 gap-3">
+          {(
+            [
+              { value: "light", label: "Light" },
+              { value: "dark", label: "Dark" },
+            ] as const
+          ).map((option) => (
+            <label
+              key={option.value}
+              className={`flex cursor-pointer items-center justify-center gap-2 rounded-lg border bg-card p-4 font-semibold text-text transition-colors duration-200 ease-standard ${
+                appearance === option.value
+                  ? "border-red"
+                  : "border-hairline hover:border-border-strong"
+              }`}
+            >
+              <input
+                type="radio"
+                name="appearance"
+                value={option.value}
+                checked={appearance === option.value}
+                onChange={() => onChooseAppearance(option.value)}
+                className="h-4 w-4 accent-red"
+              />
+              {option.label}
+            </label>
+          ))}
         </div>
       </fieldset>
 

@@ -15,12 +15,7 @@ import { formatPercent } from "@/lib/format";
 import type { OutcomeState } from "@/lib/outcomes";
 import type { HistoryPoint } from "@/lib/queries/markets";
 import { outcomeColor, theme } from "@/lib/theme";
-
-const TICK_STYLE = {
-  fill: theme.colors.textMuted,
-  fontFamily: theme.fonts.sans,
-  fontSize: 11,
-};
+import { useAppearance } from "@/lib/use-appearance";
 
 const TIME = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -121,6 +116,13 @@ export function ProbabilityChart({
 }: ProbabilityChartProps) {
   const detected = useChartVariant();
   const series = buildChartSeries(outcomes, variant ?? detected);
+  const appearance = useAppearance();
+  const colors = appearance === "dark" ? theme.darkColors : theme.colors;
+  const tickStyle = {
+    fill: colors.textMuted,
+    fontFamily: theme.fonts.sans,
+    fontSize: 11,
+  };
 
   if (history.length === 0) {
     return (
@@ -155,36 +157,36 @@ export function ProbabilityChart({
     });
 
   const colorFor = (colorIndex: number) =>
-    colorIndex < 0 ? theme.colors.marketNeutral : outcomeColor(colorIndex);
+    colorIndex < 0 ? colors.marketNeutral : outcomeColor(colorIndex);
 
   return (
     <div className="card-surface w-full overflow-hidden">
       <div className="h-56 w-full sm:h-72" aria-hidden="true">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -24 }}>
-            <CartesianGrid stroke={theme.colors.hairline} vertical={false} />
+            <CartesianGrid stroke={colors.hairline} vertical={false} />
             <XAxis
               dataKey="t"
               type="number"
               domain={["dataMin", "dataMax"]}
               tickFormatter={(t: number) => TIME.format(new Date(t))}
-              tick={TICK_STYLE}
+              tick={tickStyle}
               tickLine={false}
-              axisLine={{ stroke: theme.colors.hairline }}
+              axisLine={{ stroke: colors.hairline }}
               minTickGap={48}
             />
             <YAxis
               domain={[0, 100]}
               ticks={[0, 25, 50, 75, 100]}
               tickFormatter={(v: number) => `${v}%`}
-              tick={TICK_STYLE}
+              tick={tickStyle}
               tickLine={false}
               axisLine={false}
             />
             <Tooltip
               content={<CrosshairTooltip />}
               cursor={{
-                stroke: theme.colors.textTertiary,
+                stroke: colors.textTertiary,
                 strokeWidth: 1,
               }}
             />
@@ -200,7 +202,7 @@ export function ProbabilityChart({
                 activeDot={{
                   r: 3.5,
                   strokeWidth: 2,
-                  stroke: theme.colors.card,
+                  stroke: colors.card,
                 }}
                 isAnimationActive={false}
                 connectNulls
