@@ -207,7 +207,7 @@ const WAVE_SPANS_SECS = [
 ];
 
 const BET_WAVES: SeedBet[][] = [
-  // Wave 1 — outcome-0 heavy (strong consensus)
+  // Wave 1 — 4 predictors, outcome-0 heavy (strong consensus)
   [
     { userIdx: 0, outcomeIdx: 0, amount: 80,  secsAgo: 0 },
     { userIdx: 1, outcomeIdx: 0, amount: 120, secsAgo: 0 },
@@ -220,20 +220,18 @@ const BET_WAVES: SeedBet[][] = [
     { userIdx: 0, outcomeIdx: 0, amount: 30,  secsAgo: 0 },
     { userIdx: 1, outcomeIdx: 1, amount: 20,  secsAgo: 0 },
   ],
-  // Wave 2 — contested 50/50
+  // Wave 2 — 2 predictors, contested 50/50 (alice vs bob only)
   [
-    { userIdx: 2, outcomeIdx: 0, amount: 50,  secsAgo: 0 },
-    { userIdx: 3, outcomeIdx: 1, amount: 60,  secsAgo: 0 },
-    { userIdx: 0, outcomeIdx: 0, amount: 70,  secsAgo: 0 },
-    { userIdx: 1, outcomeIdx: 1, amount: 80,  secsAgo: 0 },
-    { userIdx: 2, outcomeIdx: 0, amount: 40,  secsAgo: 0 },
-    { userIdx: 3, outcomeIdx: 1, amount: 35,  secsAgo: 0 },
-    { userIdx: 0, outcomeIdx: 0, amount: 55,  secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 0, amount: 80,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 1, amount: 90,  secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 0, amount: 60,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 1, amount: 75,  secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 1, amount: 40,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 0, amount: 55,  secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 0, amount: 30,  secsAgo: 0 },
     { userIdx: 1, outcomeIdx: 1, amount: 45,  secsAgo: 0 },
-    { userIdx: 2, outcomeIdx: 0, amount: 25,  secsAgo: 0 },
-    { userIdx: 3, outcomeIdx: 1, amount: 30,  secsAgo: 0 },
   ],
-  // Wave 3 — outcome-1 heavy
+  // Wave 3 — 4 predictors, outcome-1 heavy
   [
     { userIdx: 1, outcomeIdx: 1, amount: 150, secsAgo: 0 },
     { userIdx: 0, outcomeIdx: 0, amount: 40,  secsAgo: 0 },
@@ -246,33 +244,27 @@ const BET_WAVES: SeedBet[][] = [
     { userIdx: 0, outcomeIdx: 0, amount: 20,  secsAgo: 0 },
     { userIdx: 1, outcomeIdx: 1, amount: 45,  secsAgo: 0 },
   ],
-  // Wave 4 — volatile (money swings between outcomes)
+  // Wave 4 — 1 predictor, solo whale (carol dominates)
   [
-    { userIdx: 3, outcomeIdx: 0, amount: 100, secsAgo: 0 },
-    { userIdx: 0, outcomeIdx: 1, amount: 120, secsAgo: 0 },
-    { userIdx: 1, outcomeIdx: 0, amount: 90,  secsAgo: 0 },
-    { userIdx: 2, outcomeIdx: 1, amount: 110, secsAgo: 0 },
-    { userIdx: 3, outcomeIdx: 0, amount: 70,  secsAgo: 0 },
-    { userIdx: 0, outcomeIdx: 1, amount: 85,  secsAgo: 0 },
-    { userIdx: 1, outcomeIdx: 0, amount: 60,  secsAgo: 0 },
-    { userIdx: 2, outcomeIdx: 1, amount: 95,  secsAgo: 0 },
-    { userIdx: 3, outcomeIdx: 0, amount: 50,  secsAgo: 0 },
-    { userIdx: 0, outcomeIdx: 1, amount: 40,  secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 0, amount: 200, secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 0, amount: 150, secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 1, amount: 100, secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 0, amount: 50,  secsAgo: 0 },
   ],
-  // Wave 5 — small stakes, casual bettors
+  // Wave 5 — 3 predictors, small stakes, casual (alice, bob, carol)
   [
-    { userIdx: 0, outcomeIdx: 0, amount: 15,  secsAgo: 0 },
-    { userIdx: 1, outcomeIdx: 0, amount: 20,  secsAgo: 0 },
-    { userIdx: 2, outcomeIdx: 1, amount: 10,  secsAgo: 0 },
-    { userIdx: 3, outcomeIdx: 0, amount: 25,  secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 0, amount: 25,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 0, amount: 30,  secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 1, amount: 20,  secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 1, amount: 18,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 0, amount: 35,  secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 1, amount: 40,  secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 0, amount: 22,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 1, amount: 28,  secsAgo: 0 },
+    { userIdx: 2, outcomeIdx: 0, amount: 15,  secsAgo: 0 },
     { userIdx: 0, outcomeIdx: 1, amount: 12,  secsAgo: 0 },
-    { userIdx: 1, outcomeIdx: 0, amount: 18,  secsAgo: 0 },
-    { userIdx: 2, outcomeIdx: 1, amount: 22,  secsAgo: 0 },
-    { userIdx: 3, outcomeIdx: 0, amount: 30,  secsAgo: 0 },
-    { userIdx: 0, outcomeIdx: 0, amount: 10,  secsAgo: 0 },
-    { userIdx: 1, outcomeIdx: 1, amount: 15,  secsAgo: 0 },
   ],
-  // Wave 6 — late outcome-0 surge
+  // Wave 6 — 4 predictors, late outcome-0 surge
   [
     { userIdx: 2, outcomeIdx: 1, amount: 150, secsAgo: 0 },
     { userIdx: 3, outcomeIdx: 1, amount: 130, secsAgo: 0 },
@@ -285,33 +277,29 @@ const BET_WAVES: SeedBet[][] = [
     { userIdx: 2, outcomeIdx: 1, amount: 40,  secsAgo: 0 },
     { userIdx: 3, outcomeIdx: 0, amount: 60,  secsAgo: 0 },
   ],
-  // Wave 7 — moderate volume, mixed sentiment
+  // Wave 7 — 2 predictors, volatile swing (bob vs dan)
   [
-    { userIdx: 1, outcomeIdx: 0, amount: 45,  secsAgo: 0 },
-    { userIdx: 2, outcomeIdx: 1, amount: 55,  secsAgo: 0 },
-    { userIdx: 3, outcomeIdx: 0, amount: 35,  secsAgo: 0 },
-    { userIdx: 0, outcomeIdx: 1, amount: 65,  secsAgo: 0 },
-    { userIdx: 1, outcomeIdx: 0, amount: 40,  secsAgo: 0 },
-    { userIdx: 2, outcomeIdx: 1, amount: 30,  secsAgo: 0 },
-    { userIdx: 3, outcomeIdx: 0, amount: 50,  secsAgo: 0 },
-    { userIdx: 0, outcomeIdx: 0, amount: 25,  secsAgo: 0 },
-    { userIdx: 1, outcomeIdx: 1, amount: 20,  secsAgo: 0 },
-    { userIdx: 2, outcomeIdx: 0, amount: 15,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 0, amount: 120, secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 1, amount: 140, secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 1, amount: 90,  secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 0, amount: 100, secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 0, amount: 70,  secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 1, amount: 80,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 0, amount: 50,  secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 0, amount: 40,  secsAgo: 0 },
   ],
-  // Wave 8 — high-volume, big stakes
+  // Wave 8 — 3 predictors, high-volume (alice, bob, dan)
   [
     { userIdx: 0, outcomeIdx: 0, amount: 300, secsAgo: 0 },
     { userIdx: 1, outcomeIdx: 1, amount: 250, secsAgo: 0 },
-    { userIdx: 2, outcomeIdx: 0, amount: 200, secsAgo: 0 },
-    { userIdx: 3, outcomeIdx: 1, amount: 150, secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 0, amount: 200, secsAgo: 0 },
     { userIdx: 0, outcomeIdx: 0, amount: 100, secsAgo: 0 },
     { userIdx: 1, outcomeIdx: 0, amount: 80,  secsAgo: 0 },
-    { userIdx: 2, outcomeIdx: 1, amount: 60,  secsAgo: 0 },
-    { userIdx: 3, outcomeIdx: 0, amount: 40,  secsAgo: 0 },
+    { userIdx: 3, outcomeIdx: 1, amount: 60,  secsAgo: 0 },
     { userIdx: 0, outcomeIdx: 1, amount: 30,  secsAgo: 0 },
     { userIdx: 1, outcomeIdx: 1, amount: 20,  secsAgo: 0 },
   ],
-  // Wave 9 — hedged across 3 outcomes (exercises 3+-outcome markets, FR-8)
+  // Wave 9 — 3 predictors, hedged across 3 outcomes (alice, bob, carol; FR-8)
   [
     { userIdx: 0, outcomeIdx: 0, amount: 120, secsAgo: 0 },
     { userIdx: 0, outcomeIdx: 2, amount: 60,  secsAgo: 0 },
@@ -319,10 +307,10 @@ const BET_WAVES: SeedBet[][] = [
     { userIdx: 1, outcomeIdx: 0, amount: 50,  secsAgo: 0 },
     { userIdx: 2, outcomeIdx: 2, amount: 110, secsAgo: 0 },
     { userIdx: 2, outcomeIdx: 1, amount: 70,  secsAgo: 0 },
-    { userIdx: 3, outcomeIdx: 0, amount: 90,  secsAgo: 0 },
-    { userIdx: 3, outcomeIdx: 1, amount: 80,  secsAgo: 0 },
+    { userIdx: 0, outcomeIdx: 1, amount: 80,  secsAgo: 0 },
+    { userIdx: 1, outcomeIdx: 2, amount: 60,  secsAgo: 0 },
   ],
-  // Wave 10 — spread across up to 5 outcomes
+  // Wave 10 — 4 predictors, spread across up to 5 outcomes
   [
     { userIdx: 0, outcomeIdx: 3, amount: 100, secsAgo: 0 },
     { userIdx: 1, outcomeIdx: 4, amount: 90,  secsAgo: 0 },
