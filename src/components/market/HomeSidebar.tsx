@@ -35,7 +35,10 @@ export function HomeSidebar({ markets }: { markets: MarketListItem[] }) {
   return (
     <section aria-label="Top movers" className="flex flex-col gap-2 sm:gap-3">
       <h2 className="eyebrow text-text-muted">Top movers</h2>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Mobile: horizontal snap-scroll carousel so the feed below stays
+          within reach — a stacked grid here pushed users too far down.
+          sm+: reverts to a static grid, plenty of width to spare. */}
+      <div className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto sm:grid sm:snap-none sm:grid-cols-2 sm:overflow-visible lg:grid-cols-4">
         {moverRows.map((row) => (
           <MoverCard key={row.market.id} row={row} />
         ))}
@@ -51,7 +54,7 @@ function MoverCard({ row }: { row: MoverRow }) {
   return (
     <Link
       href={`/market/${market.id}`}
-      className="card-surface flex items-center gap-3 px-4 py-3 transition-colors duration-200 ease-standard hover:bg-muted focus-visible:outline-red"
+      className="card-surface flex w-[78%] shrink-0 snap-start items-center gap-3 px-4 py-3 transition-colors duration-200 ease-standard hover:bg-muted focus-visible:outline-red sm:w-auto sm:shrink"
     >
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="line-clamp-2 text-sm font-medium text-text">

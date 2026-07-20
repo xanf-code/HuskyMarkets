@@ -78,6 +78,14 @@
   font-family: var(--font-serif);
 }
 
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @utility card-surface {
   background: var(--color-card);
   border: 1px solid var(--color-hairline);
