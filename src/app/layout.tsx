@@ -13,6 +13,7 @@ import { ToastProvider } from "@/components/ui/Toast";
 import { APPEARANCE_COOKIE } from "@/lib/appearance";
 import { getSession } from "@/lib/dal";
 import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const sourceSerif = Source_Serif_4({
   subsets: ["latin"],
@@ -60,6 +61,7 @@ export default async function RootLayout({
       className={`${sourceSerif.variable} ${hanken.variable} ${plexMono.variable} bg-page antialiased ${isDark ? "dark" : ""}`}
     >
       <Analytics/>
+      <SpeedInsights/>
       <body className="flex min-h-dvh flex-col bg-page font-sans text-text">
         <ToastProvider>
           <SignInPromptProvider>
