@@ -14,7 +14,7 @@ export default function LoginPage() {
           Sign in
         </h1>
         <p className="mt-2 text-pretty text-sm text-text-muted">
-          Northeastern email — we&apos;ll send a one-tap link.
+          Northeastern email - we&apos;ll send a one-tap link.
         </p>
       </div>
       {/* useSearchParams (the ?next= return path) requires a Suspense boundary. */}
