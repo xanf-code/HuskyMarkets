@@ -32,6 +32,7 @@ describe("PositionsTable", () => {
     expect(screen.getByText("55%")).toBeInTheDocument();
     expect(screen.getByLabelText("237 HC")).toBeInTheDocument();
     expect(screen.getByText(/waiting on resolution/i)).toBeInTheDocument();
+    expect(screen.getByText(/under Resolved/i)).toBeInTheDocument();
   });
 
   it("shows an empty state with a browse CTA when there are no positions", () => {

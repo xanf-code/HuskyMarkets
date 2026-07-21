@@ -65,17 +65,17 @@ export function ResolvedHistory({ rows }: { rows: ResolvedPosition[] }) {
             ) : null}
           </p>
           {r.won && r.shareBetId ? (
-            <div className="mt-3 flex flex-wrap items-center gap-3">
-              <Link
-                href={`/share/bet/${r.shareBetId}`}
-                className="text-sm font-semibold text-red hover:text-red-hover focus-visible:outline-red"
-              >
-                View card
-              </Link>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
               <ShareActions
                 path={`/share/bet/${r.shareBetId}`}
                 title={`Called it — ${r.marketTitle}`}
               />
+              <Link
+                href={`/share/bet/${r.shareBetId}`}
+                className="inline-flex min-h-11 items-center px-1 text-sm font-semibold text-red hover:text-red-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+              >
+                View card
+              </Link>
             </div>
           ) : null}
         </li>

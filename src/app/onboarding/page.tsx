@@ -32,14 +32,14 @@ export default async function OnboardingPage() {
 
       <ol className="flex flex-col gap-3 rounded-lg bg-muted px-4 py-4 sm:px-5">
         <li className="flex gap-3 text-sm">
-          <span className="num shrink-0 font-semibold text-red">1</span>
+          <span className="num shrink-0 font-semibold text-text">1</span>
           <span className="text-pretty text-text-muted">
             <span className="font-semibold text-text">Odds</span> are the
             chance the board implies right now — not a guarantee.
           </span>
         </li>
         <li className="flex gap-3 text-sm">
-          <span className="num shrink-0 font-semibold text-red">2</span>
+          <span className="num shrink-0 font-semibold text-text">2</span>
           <span className="text-pretty text-text-muted">
             <span className="font-semibold text-text">Stake</span> free
             HuskyCoin on an outcome. One bet puts you on the semester
@@ -47,10 +47,10 @@ export default async function OnboardingPage() {
           </span>
         </li>
         <li className="flex gap-3 text-sm">
-          <span className="num shrink-0 font-semibold text-red">3</span>
+          <span className="num shrink-0 font-semibold text-text">3</span>
           <span className="text-pretty text-text-muted">
             <span className="font-semibold text-text">Win</span> and Portfolio
-            unlocks a share card — brag the take that paid.
+            → Resolved unlocks a share card — brag the take that paid.
           </span>
         </li>
       </ol>

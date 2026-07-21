@@ -65,7 +65,7 @@ export function PositionsTable({ positions }: { positions: OpenPosition[] }) {
             </div>
           </dl>
           <p className="mt-3 text-xs text-text-tertiary">
-            Waiting on resolution — a win unlocks a share card in Settled.
+            Waiting on resolution — a win unlocks a share card under Resolved.
           </p>
         </li>
       ))}

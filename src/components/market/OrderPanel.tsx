@@ -297,17 +297,19 @@ export function OrderPanel(props: OrderPanelProps) {
           </dd>
         </div>
         {showOddsTip ? (
-          <p className="rounded-md bg-muted px-3 py-2 text-xs text-pretty text-text-muted">
-            Higher % means the board thinks that outcome is likelier. Your
-            stake buys a share of the winning pool.{" "}
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-muted px-3 py-2">
+            <p className="min-w-0 flex-1 text-xs text-pretty text-text-muted">
+              Higher % means the board thinks that outcome is likelier. Your
+              stake buys a share of the winning pool.
+            </p>
             <button
               type="button"
               onClick={dismissOddsTip}
-              className="font-semibold text-red hover:text-red-hover focus-visible:outline-red"
+              className="inline-flex min-h-11 shrink-0 cursor-pointer items-center px-1 text-xs font-semibold text-red hover:text-red-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
             >
               Got it
             </button>
-          </p>
+          </div>
         ) : null}
         <div className="flex items-baseline justify-between gap-3">
           <dt className="shrink-0 text-text-muted">Balance</dt>

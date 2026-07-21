@@ -21,7 +21,7 @@ export function FirstBetCelebration({
     <Dialog open={open} onClose={onClose} title="You're on the board">
       <p className="text-pretty text-sm text-text-muted">
         That stake put you on this semester&apos;s leaderboard. When a market
-        resolves your way, Portfolio → Settled unlocks a share card for the
+        resolves your way, Portfolio → Resolved unlocks a share card for the
         win.
       </p>
       <div className="mt-6 flex flex-wrap gap-3">

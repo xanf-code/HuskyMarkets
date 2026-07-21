@@ -54,11 +54,14 @@ export default async function ShareBetPage({ params }: ShareBetPageProps) {
         <span className="font-semibold text-market-yes">{card.outcomeLabel}</span>
         .
       </p>
-      <div className="mt-10 flex flex-wrap items-center gap-4 border-t border-hairline pt-6">
-        <Link href={`/market/${card.marketId}`} className={buttonStyles()}>
+      <div className="mt-10 flex flex-col gap-4 border-t border-hairline pt-6 sm:flex-row sm:flex-wrap sm:items-center">
+        <ShareActions path={sharePath} title={shareTitle} primary />
+        <Link
+          href={`/market/${card.marketId}`}
+          className={buttonStyles({ variant: "ghost", size: "sm" })}
+        >
           See the market
         </Link>
-        <ShareActions path={sharePath} title={shareTitle} />
       </div>
     </div>
   );
