@@ -50,14 +50,20 @@ export default async function Home({ searchParams }: HomeProps) {
   const hasMovers = getTopMovers(allMarkets).length > 0;
 
   return (
-    <div className="flex flex-col gap-5 sm:gap-6">
+    <div className="flex flex-col gap-8 sm:gap-10">
       <h1 className="sr-only">HuskyMarkets — Campus Prediction Markets</h1>
       {!showGroups && (
         <Suspense>
           <MarketFilters />
         </Suspense>
       )}
-      {!session && <GuestHeroBanner />}
+      {/* Intro strip: guest orientation + top movers, grouped tightly above the board */}
+      {(!session || hasMovers) && (
+        <div className="flex flex-col gap-4">
+          {!session && <GuestHeroBanner />}
+          {hasMovers && <HomeSidebar markets={allMarkets} />}
+        </div>
+      )}
       <div className="min-w-0">
         {showGroups ? (
           <HomeShowcase markets={markets} />
@@ -65,8 +71,11 @@ export default async function Home({ searchParams }: HomeProps) {
           <MarketGridLive initial={markets} />
         )}
       </div>
-      {hasMovers && <HomeSidebar markets={allMarkets} />}
-      {!session && <GuestScrollPrompt />}
+      {!session && (
+        <div className="pt-2 sm:pt-4">
+          <GuestScrollPrompt />
+        </div>
+      )}
     </div>
   );
 }

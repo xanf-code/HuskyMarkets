@@ -5,6 +5,10 @@ import { useSignInPrompt } from "./SignInPromptProvider";
 
 const SESSION_KEY = "hm-guest-prompted";
 
+/**
+ * Elevated conversion CTA after browsing — card-surface + dismiss, distinct
+ * from the quiet GuestHeroBanner orientation strip at the top.
+ */
 export function GuestScrollPrompt() {
   const { promptSignIn } = useSignInPrompt();
   const cardRef = useRef<HTMLDivElement>(null);
@@ -54,19 +58,22 @@ export function GuestScrollPrompt() {
       ref={cardRef}
       role="region"
       aria-label="Sign in prompt"
-      className="card-surface p-4 sm:p-5 rounded-lg flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4"
+      className="card-surface flex flex-col items-start gap-3 rounded-lg p-4 sm:flex-row sm:items-center sm:gap-4"
     >
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-text">Place your first prediction.</p>
-        <p className="text-sm text-text-muted mt-0.5">
-          Sign in to bet HuskyCoin on campus events and see how you stack up on the leaderboard.
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-text">
+          Place your first prediction.
+        </p>
+        <p className="mt-1 text-sm text-text-muted">
+          Sign in to bet HuskyCoin on campus events and see how you stack up on
+          the leaderboard.
         </p>
       </div>
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex shrink-0 items-center gap-2">
         <button
           type="button"
           onClick={promptSignIn}
-          className="bg-red text-white text-sm font-medium px-4 py-2 rounded-md focus-visible:outline-red"
+          className="rounded-md bg-red px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-red-hover focus-visible:outline-red"
         >
           Sign in
         </button>
@@ -74,7 +81,7 @@ export function GuestScrollPrompt() {
           type="button"
           onClick={() => setDismissed(true)}
           aria-label="Dismiss sign-in prompt"
-          className="text-text-muted hover:text-text text-sm px-2 py-2 rounded-md focus-visible:outline-red"
+          className="rounded-md px-2 py-2 text-sm text-text-muted hover:text-text focus-visible:outline-red"
         >
           ×
         </button>

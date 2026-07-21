@@ -22,19 +22,19 @@ describe("MarketCard", () => {
   it("links the card to the market detail page", () => {
     render(<MarketCard market={market} />);
     expect(
-      screen.getByRole("link", { name: /will it snow in boston/i }),
+      screen.getByRole("heading", { level: 3 }).closest("a"),
     ).toHaveAttribute("href", "/market/m1");
   });
 
   it("shows both outcomes as price affordances for a binary market", () => {
     render(<MarketCard market={market} />);
-    expect(screen.getByRole("link", { name: /yes\s+60%/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /bet yes/i })).toHaveAttribute(
       "href",
-      "/market/m1",
+      "/market/m1?outcome=o-yes",
     );
-    expect(screen.getByRole("link", { name: /no\s+40%/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /bet no/i })).toHaveAttribute(
       "href",
-      "/market/m1",
+      "/market/m1?outcome=o-no",
     );
   });
 
@@ -51,7 +51,7 @@ describe("MarketCard", () => {
         }}
       />,
     );
-    expect(screen.getByRole("link", { name: /beta\s+60%/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /bet beta/i })).toBeInTheDocument();
     expect(screen.getByText("+1 more")).toBeInTheDocument();
   });
 
@@ -71,13 +71,13 @@ describe("MarketCard", () => {
     render(<MarketCard market={{ ...market, outcomes }} />);
 
     expect(
-      screen.getByRole("link", { name: /outcome 4\s+56%/i }),
+      screen.getByRole("link", { name: /bet outcome 4/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: /outcome 2\s+22%/i }),
+      screen.getByRole("link", { name: /bet outcome 2/i }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole("link", { name: /outcome 1/i }),
+      screen.queryByRole("link", { name: /bet outcome 1/i }),
     ).not.toBeInTheDocument();
     expect(screen.getByText("+4 more")).toBeInTheDocument();
   });

@@ -2,13 +2,17 @@
 
 import { useSignInPrompt } from "./SignInPromptProvider";
 
+/**
+ * Orientation strip for guests — quiet surface so it leads into the board
+ * without competing with the elevated conversion CTA at the bottom.
+ */
 export function GuestHeroBanner() {
   const { promptSignIn } = useSignInPrompt();
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-hairline bg-card px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-      <div className="flex flex-col gap-0.5">
-        <p className="text-sm font-semibold text-text">
+    <div className="flex flex-col gap-3 rounded-lg bg-muted px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:py-4">
+      <div className="flex flex-col gap-1">
+        <p className="text-balance text-sm font-semibold text-text">
           Predict campus events. Win bragging rights.
         </p>
         <p className="text-sm text-text-muted">

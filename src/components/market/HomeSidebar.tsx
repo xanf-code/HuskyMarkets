@@ -23,9 +23,9 @@ export function getTopMovers(markets: readonly MarketListItem[]): MoverRow[] {
 }
 
 /**
- * Top-movers banner strip: sits below search/filters, above the main feed.
- * Derived from the already-fetched market list — no extra queries. Only
- * rendered on category pages.
+ * Top-movers banner strip: sits below search/filters (and guest intro),
+ * above the main feed. Derived from the already-fetched market list —
+ * no extra queries.
  */
 export function HomeSidebar({ markets }: { markets: MarketListItem[] }) {
   const moverRows = getTopMovers(markets);

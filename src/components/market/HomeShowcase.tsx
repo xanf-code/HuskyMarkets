@@ -51,7 +51,11 @@ export function HomeShowcase({ markets }: { markets: MarketListItem[] }) {
             </Link>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 [&>article]:h-full">
               {list.map((market) => (
-                <MarketCard key={market.id} market={market} />
+                <MarketCard
+                  key={market.id}
+                  market={market}
+                  hideCategory
+                />
               ))}
             </div>
           </section>
