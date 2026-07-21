@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { GuestHeroBanner } from "@/components/auth/GuestHeroBanner";
 import { GuestScrollPrompt } from "@/components/auth/GuestScrollPrompt";
 import { HomeShowcase } from "@/components/market/HomeShowcase";
 import { getTopMovers, HomeSidebar } from "@/components/market/HomeSidebar";
@@ -50,12 +51,13 @@ export default async function Home({ searchParams }: HomeProps) {
 
   return (
     <div className="flex flex-col gap-5 sm:gap-6">
+      <h1 className="sr-only">HuskyMarkets — Campus Prediction Markets</h1>
       {!showGroups && (
         <Suspense>
           <MarketFilters />
         </Suspense>
       )}
-      {hasMovers && <HomeSidebar markets={allMarkets} />}
+      {!session && <GuestHeroBanner />}
       <div className="min-w-0">
         {showGroups ? (
           <HomeShowcase markets={markets} />
@@ -63,6 +65,7 @@ export default async function Home({ searchParams }: HomeProps) {
           <MarketGridLive initial={markets} />
         )}
       </div>
+      {hasMovers && <HomeSidebar markets={allMarkets} />}
       {!session && <GuestScrollPrompt />}
     </div>
   );

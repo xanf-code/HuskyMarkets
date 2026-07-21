@@ -54,7 +54,7 @@ function MoverCard({ row }: { row: MoverRow }) {
   return (
     <Link
       href={`/market/${market.id}`}
-      className="card-surface flex w-[78%] shrink-0 snap-start items-center gap-3 px-4 py-3 transition-colors duration-200 ease-standard hover:bg-muted focus-visible:outline-red sm:w-auto sm:shrink"
+      className="card-surface flex w-[78%] shrink-0 snap-start items-center gap-3 px-4 py-3 transition-[box-shadow,border-color,background-color] duration-200 ease-standard hover:border-border-strong hover:bg-muted hover:shadow-card-hover focus-visible:outline-red sm:w-auto sm:shrink"
     >
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="line-clamp-2 text-sm font-medium text-text">
@@ -78,7 +78,11 @@ function MoverCard({ row }: { row: MoverRow }) {
           }`}
           aria-label={`${up ? "up" : "down"} ${Math.abs(delta).toFixed(1)} points`}
         >
-          <span aria-hidden="true">{up ? "▲" : "▼"}</span>
+          {up ? (
+            <svg aria-hidden="true" width="8" height="8" viewBox="0 0 8 8" fill="currentColor"><path d="M4 1L7 6H1L4 1Z"/></svg>
+          ) : (
+            <svg aria-hidden="true" width="8" height="8" viewBox="0 0 8 8" fill="currentColor"><path d="M4 7L1 2H7L4 7Z"/></svg>
+          )}
           {Math.abs(delta).toFixed(1)}
         </span>
       </div>

@@ -57,7 +57,7 @@ export function MarketCard({ market }: { market: MarketListItem }) {
         href={`/market/${market.id}`}
         className="focus-visible:outline-red"
       >
-        <h3 className="line-clamp-2 text-[15px] font-semibold leading-snug text-text sm:text-base">
+        <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-text sm:text-base">
           {market.title}
         </h3>
       </Link>
@@ -87,8 +87,8 @@ export function MarketCard({ market }: { market: MarketListItem }) {
         {top.map((outcome) => (
           <Link
             key={outcome.id}
-            href={`/market/${market.id}`}
-            aria-label={`${outcome.label} ${formatPercent(outcome.implied)}`}
+            href={`/market/${market.id}?outcome=${outcome.id}`}
+            aria-label={`Bet ${outcome.label} — ${formatPercent(outcome.implied)} — ${market.title}`}
             className="flex items-center justify-between rounded-md border border-hairline bg-muted px-3 py-2.5 text-sm font-semibold text-text transition-transform duration-200 ease-standard hover:scale-[0.98] hover:border-border-strong focus-visible:outline-red"
           >
             <span className="truncate">{outcome.label}</span>

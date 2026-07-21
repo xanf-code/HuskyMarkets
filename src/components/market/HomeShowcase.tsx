@@ -13,10 +13,13 @@ const CARDS_PER_CATEGORY = 6;
 export function HomeShowcase({ markets }: { markets: MarketListItem[] }) {
   if (markets.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-2 rounded-lg bg-muted px-4 py-12 text-center sm:px-6">
+      <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-red/10 bg-muted px-4 py-12 text-center sm:px-6">
         <p className="text-sm text-text-muted">
-          No open markets right now — check back soon.
+          No markets in this category yet.
         </p>
+        <Link href="/" className="text-sm font-medium text-red hover:text-red-hover">
+          Browse all markets →
+        </Link>
       </div>
     );
   }

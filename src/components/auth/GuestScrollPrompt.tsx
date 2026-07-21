@@ -1,26 +1,18 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSignInPrompt } from "./SignInPromptProvider";
 
 const SESSION_KEY = "hm-guest-prompted";
 
-/**
- * Homepage funnel for guests: scrolling near the bottom opens the sign-in
- * dialog once per session (sessionStorage flag; private-mode storage failures
- * just fall back to once per page view).
- *
- * The observer is gated behind the first scroll event so the dialog does not
- * pop immediately on short pages where the sentinel is already in the viewport
- * at mount.
- */
 export function GuestScrollPrompt() {
   const { promptSignIn } = useSignInPrompt();
-  const sentinelRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
+    const card = cardRef.current;
+    if (!card) return;
 
     let alreadyPrompted = false;
     try {
@@ -44,10 +36,8 @@ export function GuestScrollPrompt() {
       { rootMargin: "200px" },
     );
 
-    // Attach the observer only after the first scroll so the dialog doesn't
-    // fire immediately when the sentinel is already visible on a short page.
     function onScroll() {
-      observer.observe(sentinel!);
+      observer.observe(card!);
     }
     window.addEventListener("scroll", onScroll, { once: true, passive: true });
 
@@ -57,5 +47,38 @@ export function GuestScrollPrompt() {
     };
   }, [promptSignIn]);
 
-  return <div ref={sentinelRef} aria-hidden="true" className="h-px" />;
+  if (dismissed) return null;
+
+  return (
+    <div
+      ref={cardRef}
+      role="region"
+      aria-label="Sign in prompt"
+      className="card-surface p-4 sm:p-5 rounded-lg flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4"
+    >
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-text">Place your first prediction.</p>
+        <p className="text-sm text-text-muted mt-0.5">
+          Sign in to bet HuskyCoin on campus events and see how you stack up on the leaderboard.
+        </p>
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        <button
+          type="button"
+          onClick={promptSignIn}
+          className="bg-red text-white text-sm font-medium px-4 py-2 rounded-md focus-visible:outline-red"
+        >
+          Sign in
+        </button>
+        <button
+          type="button"
+          onClick={() => setDismissed(true)}
+          aria-label="Dismiss sign-in prompt"
+          className="text-text-muted hover:text-text text-sm px-2 py-2 rounded-md focus-visible:outline-red"
+        >
+          ×
+        </button>
+      </div>
+    </div>
+  );
 }
