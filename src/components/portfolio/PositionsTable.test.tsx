@@ -9,7 +9,7 @@ vi.mock("@/components/market/Countdown", () => ({
 }));
 
 describe("PositionsTable", () => {
-  it("renders stake, avg price, and implied value for an open position", () => {
+  it("renders stake, avg price, and est. value for an open position", () => {
     render(
       <PositionsTable
         positions={[
@@ -35,6 +35,6 @@ describe("PositionsTable", () => {
 
   it("shows a plain empty state when there are no positions", () => {
     render(<PositionsTable positions={[]} />);
-    expect(screen.getByText(/no open positions/i)).toBeInTheDocument();
+    expect(screen.getByText(/no open positions yet/i)).toBeInTheDocument();
   });
 });

@@ -80,7 +80,7 @@ export function Header({ authenticated, balance }: HeaderProps) {
             href="/login"
             className="shrink-0 rounded-md bg-red px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 ease-standard hover:bg-red/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
           >
-            Log in
+            Sign in
           </Link>
         )}
       </div>

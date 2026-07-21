@@ -16,10 +16,10 @@ export const metadata: Metadata = {
 function Hero() {
   return (
     <div className="rounded-lg bg-inverse px-6 py-8 text-white sm:px-8">
-      <h1 className="text-3xl font-semibold sm:text-4xl">By the numbers</h1>
+      <h1 className="text-3xl font-semibold sm:text-4xl">Climb the board</h1>
       <p className="mt-2 text-sm text-white/72">
-        Semester scores start everyone at 1,000 HuskyCoin. Accuracy needs ten
-        resolved bets.
+        Everyone starts the semester at 1,000 HuskyCoin. Accuracy needs ten
+        settled bets.
       </p>
     </div>
   );

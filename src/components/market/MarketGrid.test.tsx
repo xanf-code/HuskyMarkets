@@ -39,7 +39,7 @@ describe("MarketGrid", () => {
   it("shows a plain empty state when nothing matches", () => {
     render(<MarketGrid markets={[]} />);
     expect(
-      screen.getByText(/no markets match these filters/i),
+      screen.getByText(/no markets match\. clear filters/i),
     ).toBeInTheDocument();
     expect(screen.queryByText(/>/)).not.toBeInTheDocument();
   });

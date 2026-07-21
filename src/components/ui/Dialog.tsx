@@ -26,13 +26,13 @@ export function Dialog({ open, onClose, title, children }: DialogProps) {
       <div
         aria-hidden="true"
         onClick={onClose}
-        className="absolute inset-0 bg-page/80"
+        className="dialog-backdrop-enter absolute inset-0 bg-page/80"
       />
       <div
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="relative w-full max-w-md rounded-lg border border-hairline bg-card p-6 shadow-card"
+        className="dialog-panel-enter relative w-full max-w-md rounded-lg border border-hairline bg-card p-6 shadow-card"
       >
         <div className="mb-4 flex items-start justify-between gap-4">
           <h2 className="text-xl font-semibold text-text">{title}</h2>

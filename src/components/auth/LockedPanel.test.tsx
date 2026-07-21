@@ -31,7 +31,7 @@ describe("LockedPanel", () => {
     render(<LockedPanel variant="leaderboard" />);
 
     expect(
-      screen.getByText(/the leaderboard is for members/i),
+      screen.getByText(/see who's climbing the board/i),
     ).toBeInTheDocument();
   });
 });

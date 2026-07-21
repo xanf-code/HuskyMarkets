@@ -62,18 +62,17 @@ export function GuestScrollPrompt() {
     >
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold text-text">
-          Place your first prediction.
+          Ready to put a take on the board?
         </p>
-        <p className="mt-1 text-sm text-text-muted">
-          Sign in to bet HuskyCoin on campus events and see how you stack up on
-          the leaderboard.
+        <p className="mt-1 text-sm text-pretty text-text-muted">
+          Sign in to stake HuskyCoin and climb the leaderboard.
         </p>
       </div>
       <div className="flex shrink-0 items-center gap-2">
         <button
           type="button"
           onClick={promptSignIn}
-          className="rounded-md bg-red px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-red-hover focus-visible:outline-red"
+          className="rounded-md bg-red px-4 py-2 text-sm font-semibold text-white transition-[colors,transform] duration-200 ease-standard hover:bg-red-hover active:scale-[0.98] focus-visible:outline-red"
         >
           Sign in
         </button>
@@ -81,7 +80,7 @@ export function GuestScrollPrompt() {
           type="button"
           onClick={() => setDismissed(true)}
           aria-label="Dismiss sign-in prompt"
-          className="rounded-md px-2 py-2 text-sm text-text-muted hover:text-text focus-visible:outline-red"
+          className="rounded-md px-2 py-2 text-sm text-text-muted transition-colors duration-200 ease-standard hover:text-text focus-visible:outline-red"
         >
           ×
         </button>

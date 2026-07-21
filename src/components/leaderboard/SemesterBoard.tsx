@@ -20,7 +20,7 @@ export function SemesterBoard({ entries, currentUserId }: SemesterBoardProps) {
   if (entries.length === 0) {
     return (
       <p className="rounded-md bg-muted px-4 py-8 text-center text-sm text-text-muted">
-        No eligible traders this semester yet.
+        Nobody on the board yet this semester. Place a bet to climb.
       </p>
     );
   }
@@ -28,8 +28,8 @@ export function SemesterBoard({ entries, currentUserId }: SemesterBoardProps) {
   return (
     <div>
       <p className="mb-4 text-sm text-text-muted">
-        Bailout claimers are hidden for the current ET week and reappear next
-        Monday.
+        If you claimed a bailout this week, you&apos;re hidden until next Monday
+        (ET).
       </p>
       <ol className="card-surface divide-y divide-hairline overflow-hidden">
         {visibleItems.map((e) => {

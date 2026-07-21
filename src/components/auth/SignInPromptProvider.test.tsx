@@ -33,7 +33,7 @@ describe("SignInPromptProvider", () => {
     await user.click(screen.getByRole("button", { name: "gated action" }));
 
     expect(
-      screen.getByRole("dialog", { name: /sign in to keep going/i }),
+      screen.getByRole("dialog", { name: /got a take\? put huskycoin on it/i }),
     ).toBeInTheDocument();
   });
 
@@ -48,7 +48,7 @@ describe("SignInPromptProvider", () => {
     await user.click(screen.getByRole("button", { name: "gated action" }));
 
     expect(
-      screen.getByRole("link", { name: /log in with northeastern email/i }),
+      screen.getByRole("link", { name: /sign in with northeastern email/i }),
     ).toHaveAttribute("href", "/login?next=%2Fmarket%2Fabc-123");
   });
 
@@ -62,7 +62,7 @@ describe("SignInPromptProvider", () => {
 
     await user.click(screen.getByRole("button", { name: "gated action" }));
     await user.click(
-      screen.getByRole("link", { name: /log in with northeastern email/i }),
+      screen.getByRole("link", { name: /sign in with northeastern email/i }),
     );
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();

@@ -7,7 +7,7 @@ export function ResolvedHistory({ rows }: { rows: ResolvedPosition[] }) {
   if (rows.length === 0) {
     return (
       <p className="rounded-md bg-muted px-4 py-8 text-center text-sm text-text-muted">
-        No resolved bets yet.
+        No settled bets yet. Wins and losses show up here when markets resolve.
       </p>
     );
   }

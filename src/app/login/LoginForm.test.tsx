@@ -31,7 +31,7 @@ describe("LoginForm", () => {
     render(<LoginForm />);
 
     await user.type(screen.getByLabelText(/email/i), "husky@gmail.com");
-    await user.click(screen.getByRole("button", { name: /magic link/i }));
+    await user.click(screen.getByRole("button", { name: /sign-in link/i }));
 
     expect(
       await screen.findByText(/@northeastern\.edu/),
@@ -39,18 +39,18 @@ describe("LoginForm", () => {
     expect(signInWithOtp).not.toHaveBeenCalled();
   });
 
-  it("sends a magic link to an NEU email via the auth callback", async () => {
+  it("sends a sign-in link to an NEU email via the auth callback", async () => {
     const user = userEvent.setup();
     render(<LoginForm />);
 
     await user.type(screen.getByLabelText(/email/i), "husky@northeastern.edu");
-    await user.click(screen.getByRole("button", { name: /magic link/i }));
+    await user.click(screen.getByRole("button", { name: /sign-in link/i }));
 
     expect(signInWithOtp).toHaveBeenCalledWith({
       email: "husky@northeastern.edu",
       options: { emailRedirectTo: "http://localhost:3000/auth/callback" },
     });
-    expect(await screen.findByText(/check your email/i)).toBeInTheDocument();
+    expect(await screen.findByText(/link's on its way/i)).toBeInTheDocument();
   });
 
   it("shows the Supabase error when the link fails to send", async () => {
@@ -61,7 +61,7 @@ describe("LoginForm", () => {
     render(<LoginForm />);
 
     await user.type(screen.getByLabelText(/email/i), "husky@northeastern.edu");
-    await user.click(screen.getByRole("button", { name: /magic link/i }));
+    await user.click(screen.getByRole("button", { name: /sign-in link/i }));
 
     expect(await screen.findByText("rate limit exceeded")).toBeInTheDocument();
   });
@@ -72,7 +72,7 @@ describe("LoginForm", () => {
     render(<LoginForm />);
 
     await user.type(screen.getByLabelText(/email/i), "husky@northeastern.edu");
-    await user.click(screen.getByRole("button", { name: /magic link/i }));
+    await user.click(screen.getByRole("button", { name: /sign-in link/i }));
 
     expect(signInWithOtp).toHaveBeenCalledWith({
       email: "husky@northeastern.edu",
@@ -89,7 +89,7 @@ describe("LoginForm", () => {
     render(<LoginForm />);
 
     await user.type(screen.getByLabelText(/email/i), "husky@northeastern.edu");
-    await user.click(screen.getByRole("button", { name: /magic link/i }));
+    await user.click(screen.getByRole("button", { name: /sign-in link/i }));
 
     expect(signInWithOtp).toHaveBeenCalledWith({
       email: "husky@northeastern.edu",

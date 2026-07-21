@@ -16,7 +16,7 @@ export function ActivityFeed({ activity }: { activity: ActivityItem[] }) {
   if (activity.length === 0) {
     return (
       <p className="rounded-md bg-muted px-4 py-6 text-center text-sm text-text-muted">
-        No bets yet — be the first.
+        No bets yet. Be the first to stake on this market.
       </p>
     );
   }

@@ -6,7 +6,7 @@ export function MarketGrid({ markets }: { markets: MarketListItem[] }) {
     return (
       <div className="flex flex-col items-center justify-center gap-2 rounded-lg bg-muted px-4 py-12 text-center sm:px-6">
         <p className="text-sm text-text-muted">
-          No markets match these filters.
+          No markets match. Clear filters or try a different search.
         </p>
       </div>
     );

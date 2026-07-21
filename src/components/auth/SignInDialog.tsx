@@ -15,20 +15,19 @@ export function SignInDialog({ open, onClose }: SignInDialogProps) {
   const loginHref = `/login?next=${encodeURIComponent(pathname)}`;
 
   return (
-    <Dialog open={open} onClose={onClose} title="Sign in to keep going">
+    <Dialog open={open} onClose={onClose} title="Got a take? Put HuskyCoin on it.">
       <div className="flex flex-col gap-4">
-        <p className="text-sm text-text-muted">
+        <p className="text-sm text-pretty text-text-muted">
           HuskyMarkets is for Northeastern students. Sign in with your{" "}
           <span className="font-semibold text-text">@northeastern.edu</span>{" "}
-          email to place predictions, track your portfolio, and climb the
-          leaderboard.
+          email to stake HuskyCoin, track your book, and climb the board.
         </p>
         <Link
           href={loginHref}
           onClick={onClose}
           className={`${buttonStyles({ size: "lg" })} w-full`}
         >
-          Log in with Northeastern email
+          Sign in with Northeastern email
         </Link>
       </div>
     </Dialog>

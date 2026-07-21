@@ -27,7 +27,7 @@ export function BailoutButton() {
       );
       return;
     }
-    push(`+${BAILOUT} HC — bailout claimed`);
+    push(`+${BAILOUT} HC — back in the game`);
   }
 
   return (

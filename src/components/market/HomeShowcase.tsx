@@ -15,7 +15,7 @@ export function HomeShowcase({ markets }: { markets: MarketListItem[] }) {
     return (
       <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-red/10 bg-muted px-4 py-12 text-center sm:px-6">
         <p className="text-sm text-text-muted">
-          No markets in this category yet.
+          No markets in this category yet. Check back soon, or browse everything.
         </p>
         <Link href="/" className="text-sm font-medium text-red hover:text-red-hover">
           Browse all markets →

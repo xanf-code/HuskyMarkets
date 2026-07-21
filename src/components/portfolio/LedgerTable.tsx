@@ -4,20 +4,20 @@ import { timeAgo } from "@/lib/format";
 import type { LedgerEntry } from "@/lib/queries/portfolio";
 
 const TYPE_LABELS: Record<string, string> = {
-  signup_grant: "Signup grant",
+  signup_grant: "Welcome bonus",
   daily_bonus: "Daily bonus",
   bailout: "Bailout",
   bet_place: "Bet",
   bet_payout: "Payout",
   market_refund: "Refund",
-  vig_burn: "Vig burn",
+  vig_burn: "House fee",
 };
 
 export function LedgerTable({ entries }: { entries: LedgerEntry[] }) {
   if (entries.length === 0) {
     return (
       <p className="rounded-md bg-muted px-4 py-8 text-center text-sm text-text-muted">
-        Ledger empty.
+        Ledger&apos;s quiet. Stakes, bonuses, and payouts land here.
       </p>
     );
   }

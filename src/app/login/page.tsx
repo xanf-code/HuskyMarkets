@@ -10,11 +10,12 @@ export default function LoginPage() {
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-6 py-8 sm:py-16">
       <div>
-        <h1 className="text-3xl font-semibold text-text sm:text-4xl">
-          Sign in
+        <h1 className="text-balance text-3xl font-semibold text-text sm:text-4xl">
+          Back to the board
         </h1>
-        <p className="mt-2 text-sm text-text-muted">
-          Magic-link sign-in for Northeastern students. No password needed.
+        <p className="mt-2 text-pretty text-sm text-text-muted">
+          Northeastern email only. We&apos;ll send a one-tap link — no password
+          needed.
         </p>
       </div>
       {/* useSearchParams (the ?next= return path) requires a Suspense boundary. */}

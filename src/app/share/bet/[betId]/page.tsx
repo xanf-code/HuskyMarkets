@@ -45,14 +45,14 @@ export default async function ShareBetPage({ params }: ShareBetPageProps) {
           <HcAmount amount={card.payout} size={36} />
         </span>
       </p>
-      <p className="mt-4 text-sm text-text-muted">
+      <p className="mt-4 text-pretty text-sm text-text-muted">
         {card.displayName} backed{" "}
-        <span className="text-market-yes">{card.outcomeLabel}</span> on
-        HuskyMarkets.
+        <span className="font-semibold text-market-yes">{card.outcomeLabel}</span>{" "}
+        — and the board paid out.
       </p>
       <div className="mt-10 border-t border-hairline pt-6">
         <Link href={`/market/${card.marketId}`} className={buttonStyles()}>
-          View the market
+          See the market
         </Link>
       </div>
     </div>

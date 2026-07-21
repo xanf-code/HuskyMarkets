@@ -305,7 +305,7 @@ describe("OrderPanel", () => {
       expect(balanceRow.textContent).toContain("—");
       expect(balanceRow.textContent).not.toContain("0 HC");
 
-      const capRow = screen.getByText("Cap remaining").parentElement!;
+      const capRow = screen.getByText("Stake cap left").parentElement!;
       expect(capRow.textContent).toContain("—");
     });
   });

@@ -20,7 +20,7 @@ export function LoginForm() {
     const value = email.trim();
     if (!isNeuEmail(value)) {
       setError(
-        "HuskyMarkets is open to Northeastern students only — use your @northeastern.edu email.",
+        "Use your @northeastern.edu email. HuskyMarkets is for Northeastern students only.",
       );
       return;
     }
@@ -48,11 +48,11 @@ export function LoginForm() {
   if (sentTo) {
     return (
       <div className="card-surface p-6">
-        <p className="text-2xl font-semibold text-text">Check your email</p>
-        <p className="mt-2 text-sm text-text-muted">
-          We sent a magic link to{" "}
+        <p className="text-2xl font-semibold text-text">Link&apos;s on its way</p>
+        <p className="mt-2 text-pretty text-sm text-text-muted">
+          Sent a sign-in link to{" "}
           <span className="font-semibold text-text">{sentTo}</span>. Open it on
-          this device to sign in.
+          this device — then you&apos;re on the board.
         </p>
       </div>
     );
@@ -89,7 +89,7 @@ export function LoginForm() {
         disabled={loading}
         className="w-full sm:w-auto"
       >
-        {loading ? "Sending…" : "Send magic link"}
+        {loading ? "Sending…" : "Email me a sign-in link"}
       </Button>
     </form>
   );

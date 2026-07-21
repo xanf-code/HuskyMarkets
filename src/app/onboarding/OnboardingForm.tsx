@@ -75,7 +75,7 @@ export function OnboardingForm({ initialHandle }: OnboardingFormProps) {
     <form onSubmit={onSubmit} noValidate className="space-y-6">
       <fieldset className="space-y-3">
         <legend className="mb-3 text-sm font-semibold text-text">
-          How should you appear to other traders?
+          How should others see you?
         </legend>
 
         <div
@@ -95,7 +95,7 @@ export function OnboardingForm({ initialHandle }: OnboardingFormProps) {
             <span className="font-semibold text-text">Anonymous</span>
           </label>
           <p className="text-sm text-text-muted">
-            Trade under a generated handle. You can switch later.
+            Bet under a generated handle. You can switch later.
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-3 pl-7">
             <span className="num rounded-md bg-muted px-3 py-1.5 text-sm font-semibold text-red">
@@ -191,7 +191,7 @@ export function OnboardingForm({ initialHandle }: OnboardingFormProps) {
         disabled={submitting}
         className="w-full sm:w-auto"
       >
-        {submitting ? "Saving…" : "Start trading"}
+        {submitting ? "Saving…" : "Join the board"}
       </Button>
     </form>
   );

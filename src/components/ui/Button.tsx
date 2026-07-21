@@ -22,7 +22,7 @@ export function buttonStyles({
 }
 
 const base =
-  "inline-flex items-center justify-center gap-2 font-semibold leading-none rounded-md border transition-colors duration-200 ease-standard disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer";
+  "inline-flex items-center justify-center gap-2 font-semibold leading-none rounded-md border transition-[colors,transform] duration-200 ease-standard active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 cursor-pointer";
 
 const variants: Record<Variant, string> = {
   primary:

@@ -126,7 +126,7 @@ export function OrderPanel(props: OrderPanelProps) {
     // Est. payout repeats at the moment of purchase, not just on the panel —
     // this is where the parimutuel expectation is actually set (FR-24).
     toast.push(
-      `Predicted ${formatHC(amount)} on ${selected.label} · chance ${formatPercent(priceNow)} · est. ${formatHC(estimate)}`,
+      `Locked in · ${formatHC(amount)} on ${selected.label} · ${formatPercent(priceNow)} · est. ${formatHC(estimate)}`,
     );
   }
 
@@ -256,7 +256,7 @@ export function OrderPanel(props: OrderPanelProps) {
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
-          <dt className="shrink-0 text-text-muted">Cap remaining</dt>
+          <dt className="shrink-0 text-text-muted">Stake cap left</dt>
           <dd className="whitespace-nowrap text-text">
             {guest ? "—" : <HcAmount amount={capRemaining} size={14} />}
           </dd>

@@ -173,13 +173,13 @@ export function describePayout(
 ): string | null {
   switch (tx.type) {
     case "bet_payout":
-      if (!market) return `+${tx.amount} HC — market resolved`;
+      if (!market) return `+${tx.amount} HC — you called it`;
       return market.winningLabel
-        ? `+${tx.amount} HC — "${market.title}" resolved ${market.winningLabel}`
-        : `+${tx.amount} HC — "${market.title}" resolved`;
+        ? `+${tx.amount} HC — called it on "${market.title}" (${market.winningLabel})`
+        : `+${tx.amount} HC — called it on "${market.title}"`;
     case "market_refund":
       return market
-        ? `+${tx.amount} HC — stake refunded on "${market.title}"`
+        ? `+${tx.amount} HC — stake back on "${market.title}"`
         : `+${tx.amount} HC — stake refunded`;
     default:
       return null;

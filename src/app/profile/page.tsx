@@ -135,9 +135,9 @@ export default async function ProfilePage() {
         <section className="card-surface p-4 sm:p-6">
           <h2 className="text-xl font-semibold text-text">Broke?</h2>
           <p className="mt-2 mb-4 text-sm text-text-muted">
-            Your balance is below {BAILOUT_THRESHOLD} HuskyCoin, so you can take
-            one bailout per week. It keeps you trading, but it counts against
-            you on the leaderboard.
+            Your balance is below {BAILOUT_THRESHOLD} HuskyCoin, so you can claim
+            one bailout per week. It tops you back up, but hides you from the
+            leaderboard until next Monday.
           </p>
           <BailoutButton />
         </section>

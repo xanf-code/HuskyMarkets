@@ -5,7 +5,7 @@ export function HallOfFame({ entries }: { entries: HallOfFameEntry[] }) {
   if (entries.length === 0) {
     return (
       <p className="rounded-md bg-muted px-4 py-8 text-center text-sm text-text-muted">
-        No frozen semesters yet.
+        No past semester winners yet. Rankings lock in when a semester ends.
       </p>
     );
   }

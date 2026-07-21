@@ -247,14 +247,16 @@ describe("describePayout", () => {
 
   it("announces payouts with the winning outcome's label", () => {
     expect(describePayout({ type: "bet_payout", amount: 158 }, market)).toBe(
-      '+158 HC — "Will it snow in Boston before finals week?" resolved Yes',
+      '+158 HC — called it on "Will it snow in Boston before finals week?" (Yes)',
     );
     expect(
       describePayout(
         { type: "bet_payout", amount: 96 },
         { ...market, winningLabel: "Gamma" },
       ),
-    ).toBe('+96 HC — "Will it snow in Boston before finals week?" resolved Gamma');
+    ).toBe(
+      '+96 HC — called it on "Will it snow in Boston before finals week?" (Gamma)',
+    );
   });
 
   it("degrades to generic copy when the label or market cannot be read", () => {
@@ -263,9 +265,9 @@ describe("describePayout", () => {
         { type: "bet_payout", amount: 158 },
         { title: market.title, status: "resolved" },
       ),
-    ).toBe('+158 HC — "Will it snow in Boston before finals week?" resolved');
+    ).toBe('+158 HC — called it on "Will it snow in Boston before finals week?"');
     expect(describePayout({ type: "bet_payout", amount: 158 }, null)).toBe(
-      "+158 HC — market resolved",
+      "+158 HC — you called it",
     );
   });
 
@@ -273,7 +275,7 @@ describe("describePayout", () => {
     expect(
       describePayout({ type: "market_refund", amount: 100 }, market),
     ).toBe(
-      '+100 HC — stake refunded on "Will it snow in Boston before finals week?"',
+      '+100 HC — stake back on "Will it snow in Boston before finals week?"',
     );
   });
 

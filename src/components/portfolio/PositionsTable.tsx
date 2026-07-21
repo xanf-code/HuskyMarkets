@@ -8,7 +8,7 @@ export function PositionsTable({ positions }: { positions: OpenPosition[] }) {
   if (positions.length === 0) {
     return (
       <p className="rounded-md bg-muted px-4 py-8 text-center text-sm text-text-muted">
-        No open positions.
+        No open positions yet. Browse markets to place a bet.
       </p>
     );
   }
@@ -47,7 +47,7 @@ export function PositionsTable({ positions }: { positions: OpenPosition[] }) {
             </div>
             <div>
               <dt className="text-xs font-medium text-text-muted">
-                Implied value
+                Est. value
               </dt>
               <dd className="mt-1 font-semibold text-text">
                 <HcAmount amount={p.impliedValue} size={14} />
