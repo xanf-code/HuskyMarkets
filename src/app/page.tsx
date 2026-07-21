@@ -58,21 +58,11 @@ export default async function Home({ searchParams }: HomeProps) {
           <MarketFilters />
         </Suspense>
       )}
-      {/* Full-width board — movers as a strip, never a side rail that
-          squeezes the 3-col card grid. On showcase, demote movers below
-          the first category so the feed leads. */}
+      {hasMovers ? <HomeSidebar markets={allMarkets} /> : null}
       {showGroups ? (
-        <HomeShowcase
-          markets={markets}
-          afterFirstSection={
-            hasMovers ? <HomeSidebar markets={allMarkets} /> : null
-          }
-        />
+        <HomeShowcase markets={markets} />
       ) : (
-        <>
-          {hasMovers ? <HomeSidebar markets={allMarkets} /> : null}
-          <MarketGridLive initial={markets} />
-        </>
+        <MarketGridLive initial={markets} />
       )}
       {!session && <GuestScrollPrompt />}
     </div>

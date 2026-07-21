@@ -56,9 +56,9 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${sourceSerif.variable} ${hanken.variable} ${plexMono.variable} h-full antialiased ${isDark ? "dark" : ""}`}
+      className={`${sourceSerif.variable} ${hanken.variable} ${plexMono.variable} h-full bg-page antialiased ${isDark ? "dark" : ""}`}
     >
-      <body className="min-h-full bg-page font-sans text-text">
+      <body className="flex min-h-full flex-col bg-page font-sans text-text">
         <ToastProvider>
           <SignInPromptProvider>
             <Header
@@ -75,7 +75,7 @@ export default async function RootLayout({
             />
             {user ? <DailyBonusClaimer /> : null}
             <main
-              className={`mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-10 ${
+              className={`mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 sm:py-10 ${
                 user ? "max-md:pb-24" : ""
               }`}
             >
