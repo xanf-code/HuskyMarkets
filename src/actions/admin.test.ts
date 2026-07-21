@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  closeSemester,
   handleReportAction,
+  reopenSemester,
   resolveMarketAction,
   reviewModApplication,
   setMarketHidden,
@@ -20,6 +22,7 @@ vi.mock("next/cache", () => ({ revalidatePath }));
 const MARKET_ID = "6f9619ff-8b86-4d01-b42d-00cf4fc964ff";
 const REPORT_ID = "7f9619ff-8b86-4d01-b42d-00cf4fc964ff";
 const APP_ID = "8f9619ff-8b86-4d01-b42d-00cf4fc964ff";
+const SEMESTER_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -137,5 +140,39 @@ describe("setMarketHidden", () => {
       p_market_id: MARKET_ID,
       p_hidden: true,
     });
+  });
+});
+
+describe("closeSemester", () => {
+  it("calls snapshot_semester and revalidates", async () => {
+    const result = await closeSemester({ semesterId: SEMESTER_ID });
+    expect(result).toEqual({ ok: true });
+    expect(rpc).toHaveBeenCalledWith("snapshot_semester", {
+      p_semester_id: SEMESTER_ID,
+    });
+    expect(revalidatePath).toHaveBeenCalledWith("/admin/semesters");
+    expect(revalidatePath).toHaveBeenCalledWith("/leaderboard");
+  });
+});
+
+describe("reopenSemester", () => {
+  it("calls reopen_semester and revalidates", async () => {
+    const result = await reopenSemester({ semesterId: SEMESTER_ID });
+    expect(result).toEqual({ ok: true });
+    expect(rpc).toHaveBeenCalledWith("reopen_semester", {
+      p_semester_id: SEMESTER_ID,
+    });
+    expect(revalidatePath).toHaveBeenCalledWith("/admin/semesters");
+    expect(revalidatePath).toHaveBeenCalledWith("/leaderboard");
+  });
+
+  it("surfaces admin-only rejection", async () => {
+    rpc.mockResolvedValue({
+      data: null,
+      error: { message: "admin only" },
+    });
+    const result = await reopenSemester({ semesterId: SEMESTER_ID });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/admins/i);
   });
 });

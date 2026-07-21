@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { closeSemester, upsertSemester } from "@/actions/admin";
+import { closeSemester, reopenSemester, upsertSemester } from "@/actions/admin";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { InlineError } from "@/components/ui/InlineError";
@@ -19,6 +19,7 @@ export function SemesterForm({ semesters }: { semesters: SemesterRow[] }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
 
   async function onCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -40,15 +41,47 @@ export function SemesterForm({ semesters }: { semesters: SemesterRow[] }) {
   }
 
   async function onClose(semesterId: string, name: string) {
-    setError(null);
-    setMessage(null);
-    const result = await closeSemester({ semesterId });
-    if (!result.ok) {
-      setError(result.error);
+    if (
+      !window.confirm(
+        `Freeze Hall of Fame top 10 for ${name}? This can be undone with Re-open.`,
+      )
+    ) {
       return;
     }
-    setMessage(`Froze top 10 for ${name}.`);
-    router.refresh();
+    setError(null);
+    setMessage(null);
+    setBusy(`${semesterId}:close`);
+    try {
+      const result = await closeSemester({ semesterId });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      setMessage(`Froze top 10 for ${name}.`);
+      router.refresh();
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function onReopen(semesterId: string, name: string) {
+    if (!window.confirm(`Clear Hall of Fame snapshot for ${name}?`)) {
+      return;
+    }
+    setError(null);
+    setMessage(null);
+    setBusy(`${semesterId}:reopen`);
+    try {
+      const result = await reopenSemester({ semesterId });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      setMessage(`Re-opened ${name}.`);
+      router.refresh();
+    } finally {
+      setBusy(null);
+    }
   }
 
   return (
@@ -66,7 +99,7 @@ export function SemesterForm({ semesters }: { semesters: SemesterRow[] }) {
           <Input id="startsAt" name="startsAt" label="Starts" type="datetime-local" required />
           <Input id="endsAt" name="endsAt" label="Ends" type="datetime-local" required />
         </div>
-        <Button type="submit" className="w-full sm:w-auto">
+        <Button type="submit" className="w-full sm:w-auto" disabled={busy !== null}>
           Create semester
         </Button>
       </form>
@@ -75,22 +108,45 @@ export function SemesterForm({ semesters }: { semesters: SemesterRow[] }) {
         <EmptyState title="No semesters configured yet" />
       ) : (
         <ul className="card-surface divide-y divide-hairline overflow-hidden">
-          {semesters.map((s) => (
-            <li
-              key={s.id}
-              className="flex flex-wrap items-center justify-between gap-3 bg-card px-4 py-4 sm:px-5"
-            >
-              <div>
-                <p className="font-semibold text-text">{s.name}</p>
-                <p className="num mt-1 text-xs text-text-muted">
-                  {toLocalInput(s.startsAt)} &ndash; {toLocalInput(s.endsAt)}
-                </p>
-              </div>
-              <Button size="sm" variant="secondary" onClick={() => onClose(s.id, s.name)}>
-                Close semester
-              </Button>
-            </li>
-          ))}
+          {semesters.map((s) => {
+            const closeKey = `${s.id}:close`;
+            const reopenKey = `${s.id}:reopen`;
+            return (
+              <li
+                key={s.id}
+                className="flex flex-wrap items-center justify-between gap-3 bg-card px-4 py-4 sm:px-5"
+              >
+                <div>
+                  <p className="font-semibold text-text">{s.name}</p>
+                  <p className="num mt-1 text-xs text-text-muted">
+                    {toLocalInput(s.startsAt)} &ndash; {toLocalInput(s.endsAt)}
+                    {s.isClosed ? " · Hall of Fame frozen" : ""}
+                  </p>
+                </div>
+                {s.isClosed ? (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    disabled={busy !== null}
+                    loading={busy === reopenKey}
+                    onClick={() => onReopen(s.id, s.name)}
+                  >
+                    Re-open semester
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    disabled={busy !== null}
+                    loading={busy === closeKey}
+                    onClick={() => onClose(s.id, s.name)}
+                  >
+                    Close semester
+                  </Button>
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

@@ -727,6 +727,7 @@ export type Database = {
         Args: { p_hidden: boolean; p_market_id: string }
         Returns: undefined
       }
+      reopen_semester: { Args: { p_semester_id: string }; Returns: number }
       snapshot_semester: { Args: { p_semester_id: string }; Returns: number }
       verify_ledger_invariant: { Args: never; Returns: Json }
     }
