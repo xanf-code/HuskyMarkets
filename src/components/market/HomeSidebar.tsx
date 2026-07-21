@@ -12,12 +12,8 @@ interface MoverRow {
 
 export function getTopMovers(markets: readonly MarketListItem[]): MoverRow[] {
   return markets
-    .map((market) => {
-      const spark = market.spark;
-      if (spark.length < 2) return { market, delta: 0 };
-      return { market, delta: spark[spark.length - 1] - spark[0] };
-    })
-    .filter((row) => row.delta !== 0)
+    .filter((market) => market.change24h !== null && market.change24h !== 0)
+    .map((market) => ({ market, delta: market.change24h! }))
     .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
     .slice(0, BANNER_SIZE);
 }
@@ -44,7 +40,10 @@ export function HomeSidebar({
 
   return (
     <section aria-label="Top movers" className="flex flex-col gap-2 sm:gap-3">
-      <h2 className="text-sm font-semibold text-text">Top movers</h2>
+      <div className="flex flex-col gap-0.5">
+        <h2 className="text-sm font-semibold text-text">Top movers</h2>
+        <p className="text-xs text-text-muted">Last 24 hours</p>
+      </div>
       <div className={listClass}>
         {moverRows.map((row) => (
           <MoverCard key={row.market.id} row={row} layout={layout} />

@@ -47,6 +47,11 @@ export interface MarketListItem {
    * realtime cut-over; the sparkline always tracks the leader.
    */
   spark: number[];
+  /**
+   * Rolling 24h implied-price delta for the leading outcome.
+   * null = fewer than 2 price_history points in the 24h window → not a mover.
+   */
+  change24h: number | null;
 }
 
 /** A single price-history sample for one outcome of one market. */
@@ -108,6 +113,21 @@ export function groupSparklines(
   return grouped;
 }
 
+/**
+ * Compute the rolling 24h price delta for the leading outcome.
+ * `rows` are ascending price_history points in the 24h window for one market.
+ * Returns null when the window has fewer than 2 rows for the leader (no meaningful delta).
+ */
+export function change24hForLeader(
+  rows: readonly { outcome_id: string; implied: number }[],
+  leaderId: string,
+  currentImplied: number,
+): number | null {
+  const leaderRows = rows.filter((r) => r.outcome_id === leaderId);
+  if (leaderRows.length < 2) return null;
+  return currentImplied - leaderRows[0].implied;
+}
+
 interface OutcomeRow {
   id: string;
   label: string;
@@ -149,7 +169,9 @@ export async function getMarketList(
   const session = await getSession();
   const isGuest = !session;
 
-  const [{ data: points }, betsResponse] = await Promise.all([
+  const iso24hAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+  const [{ data: points }, betsResponse, { data: history24h }] = await Promise.all([
     supabase
       .from("price_history")
       .select("market_id, outcome_id, implied")
@@ -159,6 +181,12 @@ export async function getMarketList(
     isGuest
       ? Promise.resolve(null)
       : supabase.from("bets").select("market_id, user_id").in("market_id", ids),
+    supabase
+      .from("price_history")
+      .select("market_id, outcome_id, implied, recorded_at")
+      .in("market_id", ids)
+      .gte("recorded_at", iso24hAgo)
+      .order("recorded_at", { ascending: true }),
   ]);
 
   const sparks = groupSparklines(points ?? []);
@@ -169,10 +197,13 @@ export async function getMarketList(
     bettorsByMarket.set(bet.market_id, set);
   }
 
+  const allHistory24h = history24h ?? [];
+
   const items = markets.map((m) => {
     const outcomes = toOutcomeStates(m.market_outcomes ?? []);
     const total = totalPool(outcomes);
     const leader = leadingOutcome(outcomes);
+    const market24hRows = allHistory24h.filter((r) => r.market_id === m.id);
     return {
       id: m.id,
       title: m.title,
@@ -185,6 +216,9 @@ export async function getMarketList(
       spark: leader
         ? (sparks.get(`${m.id}:${leader.id}`) ?? [leader.implied])
         : [],
+      change24h: leader
+        ? change24hForLeader(market24hRows, leader.id, leader.implied)
+        : null,
     };
   });
 

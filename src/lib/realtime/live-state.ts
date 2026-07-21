@@ -147,18 +147,24 @@ export function patchMarketListOutcome(
 
   const leader = leadingOutcome(outcomes);
   const previousLeader = leadingOutcome(current.outcomes);
-  const spark =
-    leader && previousLeader && leader.id === previousLeader.id
-      ? [...current.spark, leader.implied].slice(-SPARK_POINTS)
-      : leader
-        ? [leader.implied]
-        : current.spark;
+  const sameLeader = leader && previousLeader && leader.id === previousLeader.id;
+  const spark = sameLeader
+    ? [...current.spark, leader.implied].slice(-SPARK_POINTS)
+    : leader
+      ? [leader.implied]
+      : current.spark;
+  const change24h = sameLeader
+    ? current.change24h !== null
+      ? current.change24h + (leader.implied - previousLeader.implied)
+      : null
+    : null;
 
   const patched: MarketListItem = {
     ...current,
     outcomes,
     volume: marketVolume(totalPool(outcomes), outcomes.length),
     spark,
+    change24h,
   };
   return items.map((item) => (item.id === row.market_id ? patched : item));
 }

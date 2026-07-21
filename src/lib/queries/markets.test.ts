@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  change24hForLeader,
   filterAndSortMarkets,
   groupSparklines,
   getMarketDetail,
@@ -33,6 +34,7 @@ function item(overrides: Partial<MarketListItem>): MarketListItem {
     volume: 100,
     bettorCount: 2,
     spark: [50, 67],
+    change24h: null,
     ...overrides,
   };
 }
@@ -99,7 +101,7 @@ describe("getMarketList", () => {
 
   function chainable(result: { data: unknown; error: null }) {
     const builder: Record<string, unknown> = {};
-    for (const method of ["eq", "in", "order", "limit"]) {
+    for (const method of ["eq", "in", "order", "limit", "gte"]) {
       builder[method] = vi.fn(() => builder);
     }
     builder.select = vi.fn((arg: string) => {
@@ -203,6 +205,7 @@ describe("getMarketList", () => {
         volume: 100,
         bettorCount: 2,
         spark: [50, 67],
+        change24h: 0,
       },
     ]);
   });
@@ -338,5 +341,44 @@ describe("getMarketDetail", () => {
     expect(detail!.position).toEqual([
       { outcomeId: "o-yes", label: "Yes", stake: 50 },
     ]);
+  });
+});
+
+describe("change24hForLeader", () => {
+  const baseRow = (outcomeId: string, implied: number) => ({
+    outcome_id: outcomeId,
+    implied,
+  });
+
+  it("returns null for an empty window", () => {
+    expect(change24hForLeader([], "o-yes", 67)).toBeNull();
+  });
+
+  it("returns null for a single point in the window", () => {
+    expect(change24hForLeader([baseRow("o-yes", 50)], "o-yes", 67)).toBeNull();
+  });
+
+  it("computes delta from oldest in-window point to currentImplied", () => {
+    const rows = [
+      baseRow("o-yes", 50),
+      baseRow("o-yes", 60),
+      baseRow("o-yes", 65),
+    ];
+    expect(change24hForLeader(rows, "o-yes", 67)).toBeCloseTo(17);
+  });
+
+  it("ignores rows for other outcomes", () => {
+    const rows = [
+      baseRow("o-no", 45),
+      baseRow("o-no", 48),
+      baseRow("o-yes", 55),
+    ];
+    // Only 1 row for o-yes → null
+    expect(change24hForLeader(rows, "o-yes", 67)).toBeNull();
+  });
+
+  it("handles a negative delta (price dropped)", () => {
+    const rows = [baseRow("o-yes", 80), baseRow("o-yes", 70)];
+    expect(change24hForLeader(rows, "o-yes", 60)).toBeCloseTo(-20);
   });
 });

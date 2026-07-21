@@ -155,6 +155,7 @@ describe("patchMarketList", () => {
     volume: 100,
     bettorCount: 2,
     spark: [50, 67],
+    change24h: 5,
   };
 
   it("drops a card once its market leaves the open state or is hidden", () => {
@@ -195,6 +196,7 @@ describe("patchMarketListOutcome", () => {
     volume: 100,
     bettorCount: 2,
     spark: [50, 67],
+    change24h: 10,
   };
 
   it("patches pools, implied prices, volume, and the spark tail", () => {
@@ -214,6 +216,26 @@ describe("patchMarketListOutcome", () => {
     expect(listItem.outcomes[0].pool).toBe(200);
   });
 
+  it("adjusts change24h by the implied delta when the leader stays the same", () => {
+    // o-yes moves from 67 → 75; change24h should grow by 8
+    const next = patchMarketListOutcome([listItem], {
+      market_id: "m1",
+      id: "o-yes",
+      pool: 300,
+    });
+    expect(next[0].change24h).toBeCloseTo(18); // 10 + (75 - 67)
+  });
+
+  it("preserves a null change24h when the leader stays the same", () => {
+    const nullItem: MarketListItem = { ...listItem, change24h: null };
+    const next = patchMarketListOutcome([nullItem], {
+      market_id: "m1",
+      id: "o-yes",
+      pool: 300,
+    });
+    expect(next[0].change24h).toBeNull();
+  });
+
   it("re-anchors the spark to the new leading outcome when the lead flips", () => {
     const next = patchMarketListOutcome([listItem], {
       market_id: "m1",
@@ -224,6 +246,15 @@ describe("patchMarketListOutcome", () => {
     // o-no now leads at 500/700 → 71¢
     expect(next[0].spark).toEqual([71]);
     expect(next[0].volume).toBe(500);
+  });
+
+  it("sets change24h to null on leader flip (client has no 24h series for new leader)", () => {
+    const next = patchMarketListOutcome([listItem], {
+      market_id: "m1",
+      id: "o-no",
+      pool: 500,
+    });
+    expect(next[0].change24h).toBeNull();
   });
 
   it("leaves the list untouched for an unknown market or outcome", () => {
