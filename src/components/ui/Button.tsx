@@ -6,6 +6,8 @@ type Size = "sm" | "md" | "lg";
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
   size?: Size;
+  /** Disables the button and sets aria-busy while an async action runs. */
+  loading?: boolean;
 }
 
 export interface ButtonStyleOptions {
@@ -48,6 +50,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       className = "",
       children,
       type = "button",
+      loading = false,
+      disabled,
       ...rest
     },
     ref,
@@ -57,9 +61,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         type={type}
         className={`${buttonStyles({ variant, size })} ${className}`}
+        disabled={disabled || loading}
+        aria-busy={loading || undefined}
         {...rest}
       >
-        <span>{children}</span>
+        <span className="min-w-0 truncate">{children}</span>
       </button>
     );
   },

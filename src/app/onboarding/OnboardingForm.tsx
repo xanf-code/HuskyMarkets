@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { completeOnboarding, rerollAnonHandle } from "@/actions/profile";
 import { Button } from "@/components/ui/Button";
+import { InlineError } from "@/components/ui/InlineError";
 import { Input } from "@/components/ui/Input";
 import type { Appearance } from "@/lib/appearance";
 import { applyAppearance } from "@/lib/use-appearance";
@@ -98,14 +99,14 @@ export function OnboardingForm({ initialHandle }: OnboardingFormProps) {
             Generated handle — you can switch later.
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-3 pl-7">
-            <span className="num rounded-md bg-muted px-3 py-1.5 text-sm font-semibold text-red">
+            <span className="num max-w-full truncate rounded-md bg-muted px-3 py-1.5 text-sm font-semibold text-red">
               {handle}
             </span>
             <Button
               type="button"
               variant="secondary"
               size="sm"
-              disabled={rerolling}
+              loading={rerolling}
               onClick={onReroll}
             >
               {rerolling ? "Rerolling…" : "Reroll"}
@@ -141,6 +142,7 @@ export function OnboardingForm({ initialHandle }: OnboardingFormProps) {
                 value={realName}
                 onChange={(event) => setRealName(event.target.value)}
                 placeholder="Dana Husky"
+                maxLength={80}
               />
             </div>
           ) : null}
@@ -180,15 +182,11 @@ export function OnboardingForm({ initialHandle }: OnboardingFormProps) {
         </div>
       </fieldset>
 
-      {error ? (
-        <p role="alert" className="text-sm text-market-no">
-          {error}
-        </p>
-      ) : null}
+      {error ? <InlineError>{error}</InlineError> : null}
 
       <Button
         type="submit"
-        disabled={submitting}
+        loading={submitting}
         className="w-full sm:w-auto"
       >
         {submitting ? "Saving…" : "Continue"}

@@ -12,7 +12,7 @@ export function Chip({
 }: ChipProps) {
   return (
     <span
-      className={`inline-flex items-center rounded-pill px-2.5 py-1 text-xs font-medium ${
+      className={`inline-flex max-w-full items-center truncate rounded-pill px-2.5 py-1 text-xs font-medium ${
         active
           ? "bg-red/10 text-red"
           : "bg-muted text-text-muted"

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CATEGORIES } from "@/lib/constants";
 import type { MarketListItem } from "@/lib/queries/markets";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { MarketCard } from "./MarketCard";
 
 const CARDS_PER_CATEGORY = 6;
@@ -13,20 +14,23 @@ const CARDS_PER_CATEGORY = 6;
 export function HomeShowcase({ markets }: { markets: MarketListItem[] }) {
   if (markets.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-2 rounded-lg bg-muted px-4 py-12 text-center sm:px-6">
-        <p className="text-sm text-text-muted">
-          No markets in this category yet.
-        </p>
-        <Link href="/" className="text-sm font-medium text-red hover:text-red-hover">
-          Browse all markets
-        </Link>
-      </div>
+      <EmptyState
+        title="No markets in this category yet"
+        description="Check back soon, or browse the full board."
+        action={
+          <Link
+            href="/"
+            className="text-sm font-semibold text-red hover:text-red-hover focus-visible:outline-red"
+          >
+            Browse all markets
+          </Link>
+        }
+      />
     );
   }
 
   return (
     <div className="flex flex-col gap-8 sm:gap-10">
-
       {CATEGORIES.map((category) => {
         const list = markets
           .filter((m) => m.category === category.value)

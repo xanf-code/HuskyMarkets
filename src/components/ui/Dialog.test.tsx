@@ -54,4 +54,22 @@ describe("Dialog", () => {
 
     expect(onClose).toHaveBeenCalledOnce();
   });
+
+  it("locks body scroll while open and restores on close", () => {
+    const { rerender } = render(
+      <Dialog open={true} onClose={() => {}} title="Report market">
+        <p>dialog body</p>
+      </Dialog>,
+    );
+
+    expect(document.body.style.overflow).toBe("hidden");
+
+    rerender(
+      <Dialog open={false} onClose={() => {}} title="Report market">
+        <p>dialog body</p>
+      </Dialog>,
+    );
+
+    expect(document.body.style.overflow).toBe("");
+  });
 });

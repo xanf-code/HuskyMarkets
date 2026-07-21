@@ -5,6 +5,24 @@ import { useState, type FormEvent } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { isNeuEmail, safeReturnPath } from "@/lib/auth";
 import { Button } from "@/components/ui/Button";
+import { InlineError } from "@/components/ui/InlineError";
+import { Input } from "@/components/ui/Input";
+
+/** Map raw auth/network failures to actionable copy. */
+function friendlyLoginError(raw: string): string {
+  const lower = raw.toLowerCase();
+  if (lower.includes("rate limit") || lower.includes("too many")) {
+    return "Too many sign-in attempts. Wait a minute and try again.";
+  }
+  if (
+    lower.includes("network") ||
+    lower.includes("fetch") ||
+    lower.includes("failed to fetch")
+  ) {
+    return "Couldn't reach the sign-in service. Check your connection and try again.";
+  }
+  return raw;
+}
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
@@ -31,18 +49,25 @@ export function LoginForm() {
       : `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`;
 
     setLoading(true);
-    const supabase = createClient();
-    const { error: otpError } = await supabase.auth.signInWithOtp({
-      email: value,
-      options: { emailRedirectTo },
-    });
-    setLoading(false);
+    try {
+      const supabase = createClient();
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: value,
+        options: { emailRedirectTo },
+      });
 
-    if (otpError) {
-      setError(otpError.message);
-      return;
+      if (otpError) {
+        setError(friendlyLoginError(otpError.message));
+        return;
+      }
+      setSentTo(value);
+    } catch {
+      setError(
+        "Couldn't reach the sign-in service. Check your connection and try again.",
+      );
+    } finally {
+      setLoading(false);
     }
-    setSentTo(value);
   }
 
   if (sentTo) {
@@ -51,8 +76,8 @@ export function LoginForm() {
         <p className="text-xl font-semibold text-text">Check your email</p>
         <p className="mt-2 text-pretty text-sm text-text-muted">
           Sign-in link sent to{" "}
-          <span className="font-semibold text-text">{sentTo}</span>. Open it on
-          this device.
+          <span className="break-all font-semibold text-text">{sentTo}</span>.
+          Open it on this device.
         </p>
       </div>
     );
@@ -60,35 +85,25 @@ export function LoginForm() {
 
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-5">
-      <div>
-        <label
-          htmlFor="login-email"
-          className="mb-2 block text-sm font-semibold text-text"
-        >
-          Northeastern email
-        </label>
-        <input
-          id="login-email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          required
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          placeholder="you@northeastern.edu"
-          className="w-full rounded-md border border-hairline bg-card px-4 py-3 text-base text-text placeholder:text-text-tertiary transition-colors duration-200 ease-standard focus:border-red focus:outline-none sm:px-5"
-        />
-      </div>
-      {error ? (
-        <p role="alert" className="text-sm text-market-no">
-          {error}
-        </p>
+      <Input
+        id="login-email"
+        name="email"
+        type="email"
+        autoComplete="email"
+        required
+        label="Northeastern email"
+        value={email}
+        onChange={(event) => setEmail(event.target.value)}
+        placeholder="you@northeastern.edu"
+        maxLength={254}
+        error={
+          error?.includes("@northeastern.edu") ? error : undefined
+        }
+      />
+      {error && !error.includes("@northeastern.edu") ? (
+        <InlineError>{error}</InlineError>
       ) : null}
-      <Button
-        type="submit"
-        disabled={loading}
-        className="w-full sm:w-auto"
-      >
+      <Button type="submit" loading={loading} className="w-full sm:w-auto">
         {loading ? "Sending…" : "Email me a sign-in link"}
       </Button>
     </form>

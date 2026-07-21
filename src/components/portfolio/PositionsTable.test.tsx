@@ -33,8 +33,11 @@ describe("PositionsTable", () => {
     expect(screen.getByLabelText("237 HC")).toBeInTheDocument();
   });
 
-  it("shows a plain empty state when there are no positions", () => {
+  it("shows an empty state with a browse CTA when there are no positions", () => {
     render(<PositionsTable positions={[]} />);
     expect(screen.getByText(/no open positions yet/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /browse markets/i }),
+    ).toHaveAttribute("href", "/");
   });
 });

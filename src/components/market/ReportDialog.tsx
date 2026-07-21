@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { submitReport } from "@/actions/reports";
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
+import { InlineError } from "@/components/ui/InlineError";
 
 interface ReportDialogProps {
   marketId: string;
@@ -20,13 +21,19 @@ export function ReportDialog({ marketId }: ReportDialogProps) {
     event.preventDefault();
     setError(null);
     setLoading(true);
-    const result = await submitReport({ marketId, reason });
-    setLoading(false);
-    if (!result.ok) {
-      setError(result.error);
-      return;
+    try {
+      const result = await submitReport({ marketId, reason });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      setDone(true);
+      setReason("");
+    } catch {
+      setError("Couldn't submit the report. Check your connection and try again.");
+    } finally {
+      setLoading(false);
     }
-    setDone(true);
   }
 
   return (
@@ -54,7 +61,7 @@ export function ReportDialog({ marketId }: ReportDialogProps) {
           </p>
         ) : (
           <form onSubmit={onSubmit} className="flex flex-col gap-4">
-            <label htmlFor="report-reason" className="block">
+            <label htmlFor="report-reason" className="block min-w-0">
               <span className="mb-2 block text-sm font-semibold text-text">
                 Why is this market a problem?
               </span>
@@ -62,17 +69,22 @@ export function ReportDialog({ marketId }: ReportDialogProps) {
                 id="report-reason"
                 required
                 rows={4}
+                minLength={10}
+                maxLength={1000}
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                className="w-full rounded-md border border-hairline bg-card px-4 py-3 text-base text-text focus:border-red focus:outline-none"
+                aria-invalid={error ? true : undefined}
+                aria-describedby={error ? "report-reason-error" : undefined}
+                className={`w-full min-w-0 rounded-md border ${error ? "border-red" : "border-hairline"} bg-card px-4 py-3 text-base text-text focus:border-red focus:outline-none`}
               />
+              <span className="mt-1 block text-xs text-text-tertiary">
+                {reason.length}/1000
+              </span>
             </label>
             {error ? (
-              <p role="alert" className="text-sm text-market-no">
-                {error}
-              </p>
+              <InlineError id="report-reason-error">{error}</InlineError>
             ) : null}
-            <Button type="submit" disabled={loading} className="w-full">
+            <Button type="submit" loading={loading} className="w-full">
               {loading ? "Submitting…" : "Submit report"}
             </Button>
           </form>

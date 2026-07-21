@@ -6,6 +6,7 @@ import { createMarket } from "@/actions/markets";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { InlineError } from "@/components/ui/InlineError";
 import {
   CATCH_ALL_LABEL,
   CATEGORIES,
@@ -195,7 +196,7 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
           name="description"
           rows={3}
           maxLength={2000}
-          className="w-full rounded-md border border-hairline bg-card px-4 py-3 text-base text-text focus:border-red focus:outline-none sm:px-5 sm:py-4"
+          className="w-full min-w-0 rounded-md border border-hairline bg-card px-4 py-3 text-base text-text focus:border-red focus:outline-none sm:px-5 sm:py-4"
         />
       </label>
 
@@ -308,14 +309,15 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
           name="resolutionCriteria"
           required
           minLength={20}
+          maxLength={2000}
           rows={4}
           aria-describedby={fieldErrors.resolutionCriteria ? "resolutionCriteria-error" : undefined}
           aria-invalid={fieldErrors.resolutionCriteria ? true : undefined}
-          className={`w-full rounded-md border ${fieldErrors.resolutionCriteria ? "border-red" : "border-hairline"} bg-card px-4 py-3 text-base text-text focus:border-red focus:outline-none sm:px-5 sm:py-4`}
+          className={`w-full min-w-0 rounded-md border ${fieldErrors.resolutionCriteria ? "border-red" : "border-hairline"} bg-card px-4 py-3 text-base text-text focus:border-red focus:outline-none sm:px-5 sm:py-4`}
           placeholder="Resolves to the outcome matching the official MBTA Tracker on-time report for Friday service."
         />
         {fieldErrors.resolutionCriteria ? (
-          <p id="resolutionCriteria-error" role="alert" className="mt-1 text-xs text-market-no">
+          <p id="resolutionCriteria-error" role="alert" className="mt-1 text-xs text-market-no break-words">
             {fieldErrors.resolutionCriteria}
           </p>
         ) : null}
@@ -334,13 +336,9 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
         </span>
       </label>
 
-      {error ? (
-        <p role="alert" className="text-sm text-market-no">
-          {error}
-        </p>
-      ) : null}
+      {error ? <InlineError>{error}</InlineError> : null}
 
-      <Button type="submit" disabled={loading} className="w-full sm:w-auto">
+      <Button type="submit" loading={loading} className="w-full sm:w-auto">
         {loading ? "Creating…" : "Create market"}
       </Button>
     </form>

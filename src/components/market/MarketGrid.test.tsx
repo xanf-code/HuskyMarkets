@@ -36,11 +36,11 @@ describe("MarketGrid", () => {
     expect(grid?.className).not.toMatch(/gap-px/);
   });
 
-  it("shows a plain empty state when nothing matches", () => {
+  it("shows an empty state with a browse CTA when nothing matches", () => {
     render(<MarketGrid markets={[]} />);
+    expect(screen.getByText(/no markets match/i)).toBeInTheDocument();
     expect(
-      screen.getByText(/no markets match\. clear filters/i),
-    ).toBeInTheDocument();
-    expect(screen.queryByText(/>/)).not.toBeInTheDocument();
+      screen.getByRole("link", { name: /browse all markets/i }),
+    ).toHaveAttribute("href", "/");
   });
 });

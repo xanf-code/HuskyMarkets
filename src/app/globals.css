@@ -99,6 +99,8 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /* Unbreakable strings (long titles, handles) wrap instead of blowing layout. */
+  overflow-wrap: anywhere;
 }
 
 :focus-visible {

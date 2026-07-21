@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import {
   InfiniteScrollSentinel,
   useLoadMore,
 } from "@/components/ui/LoadMore";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { HcAmount } from "@/components/ui/HcAmount";
 import { LEADERBOARD_PAGE_SIZE } from "@/lib/constants";
 import type { SemesterEntry } from "@/lib/queries/leaderboard";
@@ -19,9 +21,18 @@ export function SemesterBoard({ entries, currentUserId }: SemesterBoardProps) {
 
   if (entries.length === 0) {
     return (
-      <p className="rounded-md bg-muted px-4 py-8 text-center text-sm text-text-muted">
-        Nobody on the board yet this semester. Place a bet to climb.
-      </p>
+      <EmptyState
+        title="Nobody on the board yet"
+        description="Place a bet this semester to climb the rankings."
+        action={
+          <Link
+            href="/"
+            className="text-sm font-semibold text-red hover:text-red-hover focus-visible:outline-red"
+          >
+            Browse markets
+          </Link>
+        }
+      />
     );
   }
 

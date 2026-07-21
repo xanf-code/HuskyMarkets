@@ -53,7 +53,7 @@ describe("LoginForm", () => {
     expect(await screen.findByText(/check your email/i)).toBeInTheDocument();
   });
 
-  it("shows the Supabase error when the link fails to send", async () => {
+  it("maps rate-limit failures to actionable copy", async () => {
     signInWithOtp.mockResolvedValue({
       error: { message: "rate limit exceeded" },
     });
@@ -63,7 +63,22 @@ describe("LoginForm", () => {
     await user.type(screen.getByLabelText(/email/i), "husky@northeastern.edu");
     await user.click(screen.getByRole("button", { name: /sign-in link/i }));
 
-    expect(await screen.findByText("rate limit exceeded")).toBeInTheDocument();
+    expect(
+      await screen.findByText(/too many sign-in attempts/i),
+    ).toBeInTheDocument();
+  });
+
+  it("maps network failures to a retry-friendly message", async () => {
+    signInWithOtp.mockRejectedValue(new Error("Failed to fetch"));
+    const user = userEvent.setup();
+    render(<LoginForm />);
+
+    await user.type(screen.getByLabelText(/email/i), "husky@northeastern.edu");
+    await user.click(screen.getByRole("button", { name: /sign-in link/i }));
+
+    expect(
+      await screen.findByText(/couldn't reach the sign-in service/i),
+    ).toBeInTheDocument();
   });
 
   it("carries a valid next return path into the auth callback", async () => {

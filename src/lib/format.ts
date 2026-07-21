@@ -4,9 +4,14 @@ import { HOUSE_SEED } from "@/lib/constants";
 
 const HC = new Intl.NumberFormat("en-US");
 
+/** Coerce non-finite amounts to 0 so UI never renders "NaN" / "Infinity". */
+function safeAmount(amount: number): number {
+  return Number.isFinite(amount) ? amount : 0;
+}
+
 /** Thousands-separated amount with no unit — pair with HuskyCoinIcon in UI. */
 export function formatHCNumber(amount: number): string {
-  return HC.format(amount);
+  return HC.format(safeAmount(amount));
 }
 
 /**
@@ -14,11 +19,12 @@ export function formatHCNumber(amount: number): string {
  * where the coin icon cannot render: "1,000 HC".
  */
 export function formatHC(amount: number): string {
-  return `${HC.format(amount)} HC`;
+  return `${HC.format(safeAmount(amount))} HC`;
 }
 
 /** Implied probability (1–99) as a percent: "62%". */
 export function formatPercent(price: number): string {
+  if (!Number.isFinite(price)) return "—";
   return `${price}%`;
 }
 

@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { reviewModApplication, revokeModerator } from "@/actions/admin";
 import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { InlineError } from "@/components/ui/InlineError";
 import { timeAgo } from "@/lib/format";
 import type { ModApplicationRow, ModeratorRow } from "@/lib/queries/admin";
 
@@ -41,26 +43,20 @@ export function ModApplications({
 
   return (
     <div className="flex flex-col gap-8">
-      {error ? (
-        <p role="alert" className="text-sm text-market-no">
-          {error}
-        </p>
-      ) : null}
+      {error ? <InlineError>{error}</InlineError> : null}
 
       <section>
         <h2 className="mb-3 text-sm font-semibold text-text">
           Pending applications
         </h2>
         {applications.length === 0 ? (
-          <p className="rounded-md bg-muted px-4 py-8 text-center text-sm text-text-muted">
-            No pending applications.
-          </p>
+          <EmptyState title="No pending applications" className="py-8" />
         ) : (
           <ul className="card-surface divide-y divide-hairline overflow-hidden">
             {applications.map((a) => (
               <li key={a.id} className="bg-card p-4 sm:p-5">
-                <p className="font-semibold text-text">{a.displayName}</p>
-                <p className="mt-2 text-sm text-text-muted">{a.statement}</p>
+                <p className="truncate font-semibold text-text">{a.displayName}</p>
+                <p className="mt-2 break-words text-sm text-text-muted">{a.statement}</p>
                 <p className="mt-1 text-xs text-text-muted">
                   {timeAgo(a.createdAt)}
                 </p>
@@ -87,9 +83,7 @@ export function ModApplications({
           Current moderators
         </h2>
         {moderators.length === 0 ? (
-          <p className="rounded-md bg-muted px-4 py-8 text-center text-sm text-text-muted">
-            No moderators assigned yet.
-          </p>
+          <EmptyState title="No moderators assigned yet" className="py-8" />
         ) : (
           <ul className="card-surface divide-y divide-hairline overflow-hidden">
             {moderators.map((m) => (
@@ -97,9 +91,9 @@ export function ModApplications({
                 key={m.id}
                 className="flex flex-wrap items-center justify-between gap-3 bg-card px-4 py-3 sm:px-5"
               >
-                <div>
-                  <p className="font-semibold text-text">{m.displayName}</p>
-                  <p className="text-xs text-text-muted">{m.email}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold text-text">{m.displayName}</p>
+                  <p className="truncate text-xs text-text-muted">{m.email}</p>
                 </div>
                 <Button
                   size="sm"

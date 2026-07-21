@@ -146,11 +146,11 @@ export function OrderPanel(props: OrderPanelProps) {
         <HuskyCoinIcon size={18} className="mb-2" />
       </div>
 
-      <div className="flex flex-col gap-1">
+      <div className="flex min-w-0 flex-col gap-1">
         {props.question ? (
-          <p className="text-xs text-text-muted">{props.question}</p>
+          <p className="line-clamp-2 text-xs text-text-muted">{props.question}</p>
         ) : null}
-        <p className="text-2xl leading-tight font-bold text-text">
+        <p className="truncate text-2xl leading-tight font-bold text-text">
           {selected?.label ?? "—"}
         </p>
       </div>
@@ -163,6 +163,7 @@ export function OrderPanel(props: OrderPanelProps) {
               key={outcome.id}
               type="button"
               aria-pressed={selectedOutcome}
+              aria-label={`${outcome.label} ${formatPercent(outcome.implied)}`}
               onClick={() =>
                 guest ? promptSignIn() : setOutcomeId(outcome.id)
               }
@@ -173,14 +174,17 @@ export function OrderPanel(props: OrderPanelProps) {
                   : "border-hairline bg-muted text-text hover:border-border-strong hover:bg-card active:bg-card"
               }`}
             >
-              <span className={`flex items-center gap-2 ${selectedOutcome ? "font-semibold" : ""}`}>
+              <span
+                className={`flex min-w-0 items-center gap-2 ${selectedOutcome ? "font-semibold" : ""}`}
+              >
                 {selectedOutcome && (
-                  <span className="h-1.5 w-1.5 rounded-full bg-red shrink-0" />
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-red" />
                 )}
-                {outcome.label}
+                <span className="truncate" aria-hidden="true">
+                  {outcome.label}
+                </span>
               </span>
-              {" "}
-              <span className="num shrink-0 text-text-muted">
+              <span className="num shrink-0 text-text-muted" aria-hidden="true">
                 {formatPercent(outcome.implied)}
               </span>
             </button>
@@ -275,15 +279,16 @@ export function OrderPanel(props: OrderPanelProps) {
       </p>
 
       {error ? (
-        <p role="alert" className="text-sm text-market-no">
+        <p role="alert" className="text-sm text-market-no break-words">
           {error}
         </p>
       ) : null}
 
       <Button
         onClick={submit}
-        disabled={!open || (!guest && (!valid || pending))}
-        className="w-full"
+        disabled={!open || (!guest && !valid)}
+        loading={pending}
+        className="w-full max-w-full"
       >
         {submitLabel}
       </Button>

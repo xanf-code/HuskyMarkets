@@ -86,11 +86,11 @@ export default async function MarketPage({
               <Chip>{categoryLabel}</Chip>
               <Countdown closeAt={market.close_at} />
             </div>
-            <h1 className="mt-3 text-balance text-2xl font-semibold leading-snug text-text sm:text-4xl">
+            <h1 className="mt-3 break-words text-balance text-2xl font-semibold leading-snug text-text sm:text-4xl">
               {market.title}
             </h1>
             {market.description ? (
-              <p className="mt-2 max-w-2xl text-sm text-text-muted sm:text-base">
+              <p className="mt-2 max-w-2xl text-pretty break-words text-sm text-text-muted sm:text-base">
                 {market.description}
               </p>
             ) : null}
@@ -115,7 +115,7 @@ export default async function MarketPage({
                 <span key={p.outcomeId} className="inline-flex items-center gap-1">
                   {i > 0 ? <span aria-hidden="true">·</span> : null}
                   <HcAmount amount={p.stake} size={12} />
-                  <span>{p.label}</span>
+                  <span className="truncate">{p.label}</span>
                 </span>
               ))}
             </p>
@@ -137,7 +137,7 @@ export default async function MarketPage({
               Rules
             </h2>
             <div className="flex flex-col gap-3 px-4 py-4 text-sm">
-              <p className="text-text">{market.resolution_criteria}</p>
+              <p className="break-words text-text">{market.resolution_criteria}</p>
               <dl className="grid grid-cols-1 gap-2 text-text-muted sm:grid-cols-2">
                 <div>
                   <dt className="text-xs font-medium">Closes</dt>
@@ -153,7 +153,7 @@ export default async function MarketPage({
                 </div>
                 <div>
                   <dt className="text-xs font-medium">Created by</dt>
-                  <dd className="mt-1 text-text">{detail.creatorName}</dd>
+                  <dd className="mt-1 truncate text-text">{detail.creatorName}</dd>
                 </div>
                 <div>
                   <dt className="text-xs font-medium">Category</dt>
