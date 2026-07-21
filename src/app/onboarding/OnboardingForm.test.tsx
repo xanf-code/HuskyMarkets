@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { FIRST_RUN_KEY } from "@/lib/onboarding-flags";
 import { OnboardingForm } from "./OnboardingForm";
 
 const { completeOnboarding, rerollAnonHandle, push, refresh } = vi.hoisted(
@@ -20,6 +21,7 @@ vi.mock("next/navigation", () => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
+  localStorage.clear();
   completeOnboarding.mockResolvedValue({ ok: true });
   document.documentElement.classList.remove("dark");
 });
@@ -43,16 +45,17 @@ describe("OnboardingForm", () => {
     expect(screen.queryByText("FrostyHusky07")).not.toBeInTheDocument();
   });
 
-  it("submits the anonymous choice and navigates home", async () => {
+  it("submits the anonymous choice, stamps first-run, and navigates home", async () => {
     const user = userEvent.setup();
     render(<OnboardingForm initialHandle="FrostyHusky07" />);
 
-    await user.click(screen.getByRole("button", { name: /continue/i }));
+    await user.click(screen.getByRole("button", { name: /enter the board/i }));
 
     expect(completeOnboarding).toHaveBeenCalledWith({
       displayMode: "anon",
       appearance: "light",
     });
+    expect(localStorage.getItem(FIRST_RUN_KEY)).toBe("1");
     expect(push).toHaveBeenCalledWith("/");
     expect(refresh).toHaveBeenCalled();
   });
@@ -68,7 +71,7 @@ describe("OnboardingForm", () => {
 
     expect(document.documentElement.classList.contains("dark")).toBe(true);
 
-    await user.click(screen.getByRole("button", { name: /continue/i }));
+    await user.click(screen.getByRole("button", { name: /enter the board/i }));
 
     expect(completeOnboarding).toHaveBeenCalledWith({
       displayMode: "anon",
@@ -81,7 +84,7 @@ describe("OnboardingForm", () => {
     render(<OnboardingForm initialHandle="FrostyHusky07" />);
 
     await user.click(screen.getByRole("radio", { name: /real name/i }));
-    await user.click(screen.getByRole("button", { name: /continue/i }));
+    await user.click(screen.getByRole("button", { name: /enter the board/i }));
 
     expect(await screen.findByRole("alert")).toBeInTheDocument();
     expect(completeOnboarding).not.toHaveBeenCalled();
@@ -93,7 +96,7 @@ describe("OnboardingForm", () => {
 
     await user.click(screen.getByRole("radio", { name: /real name/i }));
     await user.type(screen.getByLabelText(/your name/i), "Dana Husky");
-    await user.click(screen.getByRole("button", { name: /continue/i }));
+    await user.click(screen.getByRole("button", { name: /enter the board/i }));
 
     expect(completeOnboarding).toHaveBeenCalledWith({
       displayMode: "real",
@@ -108,9 +111,10 @@ describe("OnboardingForm", () => {
     const user = userEvent.setup();
     render(<OnboardingForm initialHandle="FrostyHusky07" />);
 
-    await user.click(screen.getByRole("button", { name: /continue/i }));
+    await user.click(screen.getByRole("button", { name: /enter the board/i }));
 
     expect(await screen.findByText("boom")).toBeInTheDocument();
     expect(push).not.toHaveBeenCalled();
+    expect(localStorage.getItem(FIRST_RUN_KEY)).toBeNull();
   });
 });

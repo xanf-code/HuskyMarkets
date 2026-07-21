@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ToastProvider } from "@/components/ui/Toast";
 import ShareBetPage, { generateMetadata } from "./page";
 
 const { getShareCard, notFound } = vi.hoisted(() => ({
@@ -15,6 +16,7 @@ vi.mock("next/navigation", () => ({ notFound }));
 const card = {
   marketId: "m1",
   marketTitle: "Will it snow before finals?",
+  outcomeLabel: "No",
   side: "no" as const,
   priceAtBet: 22,
   stake: 250,
@@ -43,8 +45,10 @@ describe("share/bet/[betId] generateMetadata", () => {
 });
 
 describe("ShareBetPage", () => {
-  it("renders the public card content", async () => {
-    render(await ShareBetPage({ params }));
+  it("renders the public card content with share actions", async () => {
+    render(
+      <ToastProvider>{await ShareBetPage({ params })}</ToastProvider>,
+    );
     expect(screen.getByText(/Called it at 22%/)).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Will it snow before finals?" }),
@@ -55,6 +59,9 @@ describe("ShareBetPage", () => {
     expect(
       screen.getByRole("link", { name: /see the market/i }),
     ).toHaveAttribute("href", "/market/m1");
+    expect(
+      screen.getByRole("button", { name: /copy link/i }),
+    ).toBeInTheDocument();
   });
 
   it("404s for losing or unresolved bets", async () => {

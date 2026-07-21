@@ -8,6 +8,7 @@ import { InlineError } from "@/components/ui/InlineError";
 import { Input } from "@/components/ui/Input";
 import type { Appearance } from "@/lib/appearance";
 import { dismissKeyboard } from "@/lib/dismiss-keyboard";
+import { markFirstRunPending } from "@/lib/onboarding-flags";
 import { applyAppearance } from "@/lib/use-appearance";
 
 type DisplayMode = "real" | "anon";
@@ -67,6 +68,7 @@ export function OnboardingForm({ initialHandle }: OnboardingFormProps) {
       setError(result.error);
       return;
     }
+    markFirstRunPending();
     router.push("/");
     router.refresh();
   }
@@ -191,7 +193,7 @@ export function OnboardingForm({ initialHandle }: OnboardingFormProps) {
         loading={submitting}
         className="w-full sm:w-auto"
       >
-        {submitting ? "Saving…" : "Continue"}
+        {submitting ? "Saving…" : "Enter the board"}
       </Button>
     </form>
   );

@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { buttonStyles } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { HcAmount } from "@/components/ui/HcAmount";
+import { ShareActions } from "@/components/share/ShareActions";
 import type { ResolvedPosition } from "@/lib/queries/portfolio";
 
 export function ResolvedHistory({ rows }: { rows: ResolvedPosition[] }) {
@@ -9,7 +9,7 @@ export function ResolvedHistory({ rows }: { rows: ResolvedPosition[] }) {
     return (
       <EmptyState
         title="No settled bets yet"
-        description="Wins and losses show up here when markets resolve."
+        description="When a market resolves, wins land here — and winners get a share card for the board."
         action={
           <Link
             href="/"
@@ -65,12 +65,18 @@ export function ResolvedHistory({ rows }: { rows: ResolvedPosition[] }) {
             ) : null}
           </p>
           {r.won && r.shareBetId ? (
-            <Link
-              href={`/share/bet/${r.shareBetId}`}
-              className={`mt-3 ${buttonStyles({ variant: "secondary", size: "sm" })}`}
-            >
-              Share
-            </Link>
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <Link
+                href={`/share/bet/${r.shareBetId}`}
+                className="text-sm font-semibold text-red hover:text-red-hover focus-visible:outline-red"
+              >
+                View card
+              </Link>
+              <ShareActions
+                path={`/share/bet/${r.shareBetId}`}
+                title={`Called it — ${r.marketTitle}`}
+              />
+            </div>
           ) : null}
         </li>
       ))}

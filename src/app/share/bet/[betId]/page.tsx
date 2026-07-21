@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { buttonStyles } from "@/components/ui/Button";
 import { HcAmount } from "@/components/ui/HcAmount";
+import { ShareActions } from "@/components/share/ShareActions";
 import { formatHC, formatPercent } from "@/lib/format";
 import { getShareCard } from "@/lib/queries/share";
 
@@ -28,6 +29,9 @@ export default async function ShareBetPage({ params }: ShareBetPageProps) {
   const card = await getShareCard(betId);
   if (!card) notFound();
 
+  const sharePath = `/share/bet/${betId}`;
+  const shareTitle = `Called it at ${formatPercent(card.priceAtBet)} — ${card.marketTitle}`;
+
   return (
     <div className="mx-auto flex min-h-[70vh] w-full max-w-2xl flex-col justify-center">
       <p className="num text-lg font-semibold text-market-yes sm:text-xl">
@@ -50,10 +54,11 @@ export default async function ShareBetPage({ params }: ShareBetPageProps) {
         <span className="font-semibold text-market-yes">{card.outcomeLabel}</span>
         .
       </p>
-      <div className="mt-10 border-t border-hairline pt-6">
+      <div className="mt-10 flex flex-wrap items-center gap-4 border-t border-hairline pt-6">
         <Link href={`/market/${card.marketId}`} className={buttonStyles()}>
           See the market
         </Link>
+        <ShareActions path={sharePath} title={shareTitle} />
       </div>
     </div>
   );
