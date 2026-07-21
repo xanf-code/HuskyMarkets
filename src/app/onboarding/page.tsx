@@ -26,7 +26,7 @@ export default async function OnboardingPage() {
           Set your board name
         </h1>
         <p className="mt-2 text-pretty text-sm text-text-muted">
-          1,000 HuskyCoin to start. About a minute — then pick a campus take.
+          1,000 HuskyCoin to start. About a minute - then pick a campus take.
         </p>
       </div>
 
@@ -35,7 +35,7 @@ export default async function OnboardingPage() {
           <span className="num shrink-0 font-semibold text-text">1</span>
           <span className="text-pretty text-text-muted">
             <span className="font-semibold text-text">Odds</span> are the
-            chance the board implies right now — not a guarantee.
+            chance the board implies right now - not a guarantee.
           </span>
         </li>
         <li className="flex gap-3 text-sm">
@@ -49,8 +49,8 @@ export default async function OnboardingPage() {
         <li className="flex gap-3 text-sm">
           <span className="num shrink-0 font-semibold text-text">3</span>
           <span className="text-pretty text-text-muted">
-            <span className="font-semibold text-text">Win</span> and Portfolio
-            → Resolved unlocks a share card — brag the take that paid.
+            <span className="font-semibold text-text">Win</span>&nbsp;and Portfolio
+            &rarr; Resolved unlocks a share card - brag the take that paid.
           </span>
         </li>
       </ol>
