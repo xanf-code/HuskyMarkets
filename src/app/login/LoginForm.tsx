@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { isNeuEmail, safeReturnPath } from "@/lib/auth";
+import { dismissKeyboard } from "@/lib/dismiss-keyboard";
 import { Button } from "@/components/ui/Button";
 import { InlineError } from "@/components/ui/InlineError";
 import { Input } from "@/components/ui/Input";
@@ -33,6 +34,7 @@ export function LoginForm() {
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    dismissKeyboard();
     setError(null);
 
     const value = email.trim();

@@ -14,6 +14,7 @@ import {
   MAX_OUTCOMES,
   MIN_OUTCOMES,
 } from "@/lib/constants";
+import { dismissKeyboard } from "@/lib/dismiss-keyboard";
 
 interface CreateMarketFormProps {
   /** Configured outcome cap read from app_config; falls back to MAX_OUTCOMES. */
@@ -115,6 +116,7 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    dismissKeyboard();
     setError(null);
     const form = new FormData(event.currentTarget);
 

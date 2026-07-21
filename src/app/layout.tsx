@@ -60,8 +60,6 @@ export default async function RootLayout({
       lang="en"
       className={`${sourceSerif.variable} ${hanken.variable} ${plexMono.variable} bg-page antialiased ${isDark ? "dark" : ""}`}
     >
-      <Analytics/>
-      <SpeedInsights/>
       <body className="flex min-h-dvh flex-col bg-page font-sans text-text">
         <ToastProvider>
           <SignInPromptProvider>
@@ -88,6 +86,8 @@ export default async function RootLayout({
             {user ? <BottomNav /> : null}
           </SignInPromptProvider>
         </ToastProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

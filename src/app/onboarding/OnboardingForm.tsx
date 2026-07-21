@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { InlineError } from "@/components/ui/InlineError";
 import { Input } from "@/components/ui/Input";
 import type { Appearance } from "@/lib/appearance";
+import { dismissKeyboard } from "@/lib/dismiss-keyboard";
 import { applyAppearance } from "@/lib/use-appearance";
 
 type DisplayMode = "real" | "anon";
@@ -45,6 +46,7 @@ export function OnboardingForm({ initialHandle }: OnboardingFormProps) {
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    dismissKeyboard();
     setError(null);
 
     const name = realName.trim();
