@@ -16,6 +16,27 @@ describe("MarketStats", () => {
     );
     expect(screen.getByLabelText("550 HC")).toBeInTheDocument();
     expect(screen.getByText("3")).toBeInTheDocument();
-    expect(screen.getByText("Yes 450 / No 300")).toBeInTheDocument();
+    // Pools render as one row per outcome.
+    const pools = screen.getByRole("list");
+    expect(pools).toHaveTextContent("Yes");
+    expect(pools).toHaveTextContent("450");
+    expect(pools).toHaveTextContent("No");
+    expect(pools).toHaveTextContent("300");
+  });
+
+  it("renders a lock icon for the predictor count when it is locked for guests", () => {
+    render(
+      <MarketStats
+        outcomes={[
+          { id: "o-yes", label: "Yes", sortOrder: 0, pool: 450, implied: 60 },
+        ]}
+        volume={550}
+        bettorCount={null}
+      />,
+    );
+
+    const predictors = screen.getByText("Predictors").parentElement!;
+    expect(predictors.querySelector('svg[aria-label="Locked"]')).toBeInTheDocument();
+    expect(predictors.textContent).not.toContain("0");
   });
 });

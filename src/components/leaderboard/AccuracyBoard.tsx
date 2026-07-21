@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import {
   InfiniteScrollSentinel,
   useLoadMore,
 } from "@/components/ui/LoadMore";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { HcAmount } from "@/components/ui/HcAmount";
 import { LEADERBOARD_PAGE_SIZE } from "@/lib/constants";
 import type { AccuracyEntry } from "@/lib/queries/leaderboard";
@@ -19,9 +21,18 @@ export function AccuracyBoard({ entries, currentUserId }: AccuracyBoardProps) {
 
   if (entries.length === 0) {
     return (
-      <p className="rounded-md bg-muted px-4 py-8 text-center text-sm text-text-muted">
-        Need at least 10 resolved bets to appear on the accuracy board.
-      </p>
+      <EmptyState
+        title="Accuracy board is empty"
+        description="Need at least 10 resolved bets to appear here."
+        action={
+          <Link
+            href="/"
+            className="text-sm font-semibold text-red hover:text-red-hover focus-visible:outline-red"
+          >
+            Browse markets
+          </Link>
+        }
+      />
     );
   }
 

@@ -1,24 +1,34 @@
 import Link from "next/link";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { HcAmount } from "@/components/ui/HcAmount";
 import { timeAgo } from "@/lib/format";
 import type { LedgerEntry } from "@/lib/queries/portfolio";
 
 const TYPE_LABELS: Record<string, string> = {
-  signup_grant: "Signup grant",
+  signup_grant: "Welcome bonus",
   daily_bonus: "Daily bonus",
   bailout: "Bailout",
   bet_place: "Bet",
   bet_payout: "Payout",
   market_refund: "Refund",
-  vig_burn: "Vig burn",
+  vig_burn: "House fee",
 };
 
 export function LedgerTable({ entries }: { entries: LedgerEntry[] }) {
   if (entries.length === 0) {
     return (
-      <p className="rounded-md bg-muted px-4 py-8 text-center text-sm text-text-muted">
-        Ledger empty.
-      </p>
+      <EmptyState
+        title="Ledger is quiet"
+        description="Stakes, bonuses, and payouts land here once you play."
+        action={
+          <Link
+            href="/"
+            className="text-sm font-semibold text-red hover:text-red-hover focus-visible:outline-red"
+          >
+            Browse markets
+          </Link>
+        }
+      />
     );
   }
 
@@ -30,7 +40,7 @@ export function LedgerTable({ entries }: { entries: LedgerEntry[] }) {
           className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 px-4 py-3 sm:px-5"
         >
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-text">
+            <p className="truncate text-sm font-semibold text-text">
               {TYPE_LABELS[e.type] ?? e.type}
             </p>
             {e.marketId && e.marketTitle ? (
@@ -42,7 +52,7 @@ export function LedgerTable({ entries }: { entries: LedgerEntry[] }) {
               </Link>
             ) : null}
           </div>
-          <div className="text-right">
+          <div className="shrink-0 text-right">
             <p
               className={`flex items-center justify-end gap-0.5 text-sm font-semibold ${
                 e.amount > 0 ? "text-market-yes" : "text-text"

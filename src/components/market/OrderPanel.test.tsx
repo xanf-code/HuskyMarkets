@@ -5,9 +5,15 @@ import { ToastProvider } from "@/components/ui/Toast";
 import type { OutcomeState } from "@/lib/outcomes";
 import { OrderPanel } from "./OrderPanel";
 
-const { placeBet } = vi.hoisted(() => ({ placeBet: vi.fn() }));
+const { placeBet, promptSignIn } = vi.hoisted(() => ({
+  placeBet: vi.fn(),
+  promptSignIn: vi.fn(),
+}));
 
 vi.mock("@/actions/bets", () => ({ placeBet }));
+vi.mock("@/components/auth/SignInPromptProvider", () => ({
+  useSignInPrompt: () => ({ promptSignIn }),
+}));
 
 const YES: OutcomeState = { id: "o-yes", label: "Yes", sortOrder: 0, pool: 200, implied: 67 };
 const NO: OutcomeState = { id: "o-no", label: "No", sortOrder: 1, pool: 100, implied: 33 };
@@ -57,6 +63,29 @@ describe("OrderPanel", () => {
     const no = screen.getByRole("button", { name: /No 33%/ });
     expect(yes).toHaveAttribute("aria-pressed", "true");
     expect(no).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("preselects the deep-linked outcome when initialOutcomeId is valid", () => {
+    renderPanel({ initialOutcomeId: "o-no" });
+    expect(screen.getByRole("button", { name: /No 33%/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: /Yes 67%/ })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+    expect(
+      screen.getByRole("button", { name: /Buy No · 33%/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("falls back to the first outcome when initialOutcomeId is unknown", () => {
+    renderPanel({ initialOutcomeId: "missing" });
+    expect(screen.getByRole("button", { name: /Yes 67%/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
   });
 
   it("labels the submit with the selected outcome and price", () => {
@@ -238,5 +267,69 @@ describe("OrderPanel", () => {
     await user.click(screen.getByRole("button", { name: /Buy Yes · 67%/i }));
 
     expect(await screen.findByText(/est\. 126 HC/i, { exact: false })).toBeInTheDocument();
+  });
+
+  describe("guest mode", () => {
+    it("prompts sign-in instead of selecting an outcome", async () => {
+      const user = userEvent.setup();
+      renderPanel({ guest: true, balance: 0, position: [] });
+
+      await user.click(screen.getByRole("button", { name: /No 33%/ }));
+
+      expect(promptSignIn).toHaveBeenCalledTimes(1);
+      // Selection unchanged: Yes stays the pressed outcome.
+      expect(screen.getByRole("button", { name: /Yes 67%/ })).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      );
+    });
+
+    it("keeps the amount input read-only and prompts on focus", async () => {
+      const user = userEvent.setup();
+      renderPanel({ guest: true, balance: 0, position: [] });
+
+      const input = screen.getByLabelText(/amount/i);
+      expect(input).toHaveAttribute("readonly");
+
+      await user.click(input);
+
+      expect(promptSignIn).toHaveBeenCalled();
+      expect(input).not.toHaveFocus();
+    });
+
+    it("prompts sign-in from quick amounts and Max without filling the input", async () => {
+      const user = userEvent.setup();
+      renderPanel({ guest: true, balance: 0, position: [] });
+
+      await user.click(screen.getByRole("button", { name: "50" }));
+      await user.click(screen.getByRole("button", { name: "Max" }));
+
+      expect(promptSignIn).toHaveBeenCalledTimes(2);
+      expect(screen.getByLabelText(/amount/i)).toHaveValue(null);
+    });
+
+    it("keeps the Buy button enabled but prompts instead of placing a bet", async () => {
+      const user = userEvent.setup();
+      renderPanel({ guest: true, balance: 0, position: [] });
+
+      const buy = screen.getByRole("button", { name: /Buy Yes · 67%/i });
+      expect(buy).toBeEnabled();
+
+      await user.click(buy);
+
+      expect(promptSignIn).toHaveBeenCalledTimes(1);
+      expect(placeBet).not.toHaveBeenCalled();
+    });
+
+    it("hides balance and cap rows behind a dash rather than a fake zero", () => {
+      renderPanel({ guest: true, balance: 0, position: [] });
+
+      const balanceRow = screen.getByText("Balance").parentElement!;
+      expect(balanceRow.textContent).toContain("—");
+      expect(balanceRow.textContent).not.toContain("0 HC");
+
+      const capRow = screen.getByText("Stake cap left").parentElement!;
+      expect(capRow.textContent).toContain("—");
+    });
   });
 });

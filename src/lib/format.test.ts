@@ -14,6 +14,11 @@ describe("formatHCNumber", () => {
     expect(formatHCNumber(50)).toBe("50");
     expect(formatHCNumber(0)).toBe("0");
   });
+
+  it("coerces non-finite amounts to 0", () => {
+    expect(formatHCNumber(Number.NaN)).toBe("0");
+    expect(formatHCNumber(Number.POSITIVE_INFINITY)).toBe("0");
+  });
 });
 
 describe("formatHC", () => {
@@ -22,12 +27,20 @@ describe("formatHC", () => {
     expect(formatHC(50)).toBe("50 HC");
     expect(formatHC(0)).toBe("0 HC");
   });
+
+  it("coerces non-finite amounts to 0 HC", () => {
+    expect(formatHC(Number.NaN)).toBe("0 HC");
+  });
 });
 
 describe("formatPercent", () => {
   it("renders an implied probability as a percentage", () => {
     expect(formatPercent(62)).toBe("62%");
     expect(formatPercent(1)).toBe("1%");
+  });
+
+  it("renders an em dash for non-finite values", () => {
+    expect(formatPercent(Number.NaN)).toBe("—");
   });
 });
 

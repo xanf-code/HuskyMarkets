@@ -22,12 +22,11 @@ export default async function OnboardingPage() {
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-6 py-8 sm:py-16">
       <div>
-        <h1 className="text-3xl font-semibold text-text sm:text-4xl">
-          Choose your identity
+        <h1 className="text-balance text-3xl font-semibold text-text sm:text-4xl">
+          Set your board name
         </h1>
-        <p className="mt-2 text-sm text-text-muted">
-          You start with 1,000 HuskyCoin. Decide how your trades are
-          attributed — you can change this any time.
+        <p className="mt-2 text-pretty text-sm text-text-muted">
+          1,000 HuskyCoin to start. You can change this later.
         </p>
       </div>
       <OnboardingForm initialHandle={profile?.anon_handle ?? "Husky"} />

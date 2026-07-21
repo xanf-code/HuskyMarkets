@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { claimBailout } from "@/actions/bonus";
 import { Button } from "@/components/ui/Button";
+import { InlineError } from "@/components/ui/InlineError";
 import { useToast } from "@/components/ui/Toast";
 import { BAILOUT } from "@/lib/constants";
 
@@ -14,20 +15,24 @@ export function BailoutButton() {
   async function onClaim() {
     setMessage(null);
     setClaiming(true);
-    const result = await claimBailout();
-    setClaiming(false);
-
-    if (!result.ok) {
-      setMessage(result.error);
-      return;
+    try {
+      const result = await claimBailout();
+      if (!result.ok) {
+        setMessage(result.error);
+        return;
+      }
+      if (!result.claimed) {
+        setMessage(
+          "You already took a bailout this week — the next one unlocks Monday (ET).",
+        );
+        return;
+      }
+      push(`+${BAILOUT} HC — back in the game`);
+    } catch {
+      setMessage("Couldn't claim the bailout. Check your connection and try again.");
+    } finally {
+      setClaiming(false);
     }
-    if (!result.claimed) {
-      setMessage(
-        "You already took a bailout this week — the next one unlocks Monday (ET).",
-      );
-      return;
-    }
-    push(`+${BAILOUT} HC — bailout claimed`);
   }
 
   return (
@@ -35,17 +40,13 @@ export function BailoutButton() {
       <Button
         type="button"
         variant="secondary"
-        disabled={claiming}
+        loading={claiming}
         onClick={onClaim}
         className="w-full sm:w-auto"
       >
         {claiming ? "Claiming…" : `Claim ${BAILOUT} HC bailout`}
       </Button>
-      {message ? (
-        <p role="alert" className="text-sm text-red-bright">
-          {message}
-        </p>
-      ) : null}
+      {message ? <InlineError>{message}</InlineError> : null}
     </div>
   );
 }

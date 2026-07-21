@@ -1,4 +1,6 @@
 import { Suspense } from "react";
+import { GuestScrollPrompt } from "@/components/auth/GuestScrollPrompt";
+import { GuestWelcome } from "@/components/auth/GuestWelcome";
 import { HomeShowcase } from "@/components/market/HomeShowcase";
 import { getTopMovers, HomeSidebar } from "@/components/market/HomeSidebar";
 import { MarketFilters } from "@/components/market/MarketFilters";
@@ -9,6 +11,7 @@ import {
   type Category,
   type MarketSort,
 } from "@/lib/constants";
+import { getSession, verifySession } from "@/lib/dal";
 import { getMarketList } from "@/lib/queries/markets";
 
 interface HomeProps {
@@ -34,7 +37,10 @@ export default async function Home({ searchParams }: HomeProps) {
       : undefined,
     q,
   };
+  if (filters.category) await verifySession();
   const markets = await getMarketList(filters);
+  // React-cached in the layout too, so this session read is free.
+  const session = await getSession();
   // Sidebar always reflects the *unfiltered* pool so the rail stays useful
   // while browsing a category. Cheap: campus-scale list already in memory.
   const allMarkets =
@@ -44,20 +50,31 @@ export default async function Home({ searchParams }: HomeProps) {
   const hasMovers = getTopMovers(allMarkets).length > 0;
 
   return (
-    <div className="flex flex-col gap-5 sm:gap-6">
+    <div className="flex flex-col gap-8 sm:gap-10">
+      <h1 className="sr-only">HuskyMarkets — Campus Prediction Markets</h1>
+      {!session ? <GuestWelcome /> : null}
       {!showGroups && (
         <Suspense>
           <MarketFilters />
         </Suspense>
       )}
-      {hasMovers && <HomeSidebar markets={allMarkets} />}
-      <div className="min-w-0">
-        {showGroups ? (
-          <HomeShowcase markets={markets} />
-        ) : (
+      {/* Full-width board — movers as a strip, never a side rail that
+          squeezes the 3-col card grid. On showcase, demote movers below
+          the first category so the feed leads. */}
+      {showGroups ? (
+        <HomeShowcase
+          markets={markets}
+          afterFirstSection={
+            hasMovers ? <HomeSidebar markets={allMarkets} /> : null
+          }
+        />
+      ) : (
+        <>
+          {hasMovers ? <HomeSidebar markets={allMarkets} /> : null}
           <MarketGridLive initial={markets} />
-        )}
-      </div>
+        </>
+      )}
+      {!session && <GuestScrollPrompt />}
     </div>
   );
 }

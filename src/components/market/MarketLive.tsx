@@ -83,13 +83,13 @@ export function LiveStatusBanner() {
   }
   if (!banner) return null;
   return (
-    <p className="rounded-md border border-hairline border-l-4 border-l-red bg-card px-4 py-3 text-sm text-text">
+    <p className="rounded-md border border-hairline bg-red/5 px-4 py-3 text-sm text-text">
       {banner}
     </p>
   );
 }
 
-export function LiveStats({ bettorCount }: { bettorCount: number }) {
+export function LiveStats({ bettorCount }: { bettorCount: number | null }) {
   const { market } = useMarketLive();
   return (
     <MarketStats
@@ -111,6 +111,10 @@ interface LiveOrderPanelProps {
   position: PositionEntry[];
   balance: number;
   question?: string;
+  /** Guest browsing: the panel renders but every interaction prompts sign-in. */
+  guest?: boolean;
+  /** Deep-link outcome id from `?outcome=`. */
+  initialOutcomeId?: string;
 }
 
 export function LiveOrderPanel(props: LiveOrderPanelProps) {
@@ -124,6 +128,8 @@ export function LiveOrderPanel(props: LiveOrderPanelProps) {
       position={props.position}
       balance={props.balance}
       question={props.question}
+      guest={props.guest}
+      initialOutcomeId={props.initialOutcomeId}
       onFill={applyFill}
     />
   );

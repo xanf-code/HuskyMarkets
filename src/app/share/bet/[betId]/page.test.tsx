@@ -53,7 +53,7 @@ describe("ShareBetPage", () => {
     expect(screen.getByLabelText("396 HC")).toBeInTheDocument();
     expect(screen.getByText(/QuietHusky42/)).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: /view the market/i }),
+      screen.getByRole("link", { name: /see the market/i }),
     ).toHaveAttribute("href", "/market/m1");
   });
 

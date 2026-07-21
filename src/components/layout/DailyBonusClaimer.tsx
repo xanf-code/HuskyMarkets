@@ -29,7 +29,7 @@ export function DailyBonusClaimer() {
       if (!result.ok) return;
       window.localStorage.setItem(DAILY_BONUS_STORAGE_KEY, today);
       if (result.claimed) {
-        push(`+${DAILY_BONUS} HC — daily bonus claimed`);
+        push(`+${DAILY_BONUS} HC daily bonus`);
       }
     });
   }, [push]);

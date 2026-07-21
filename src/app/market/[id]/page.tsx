@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { LockedPanel } from "@/components/auth/LockedPanel";
 import { Countdown } from "@/components/market/Countdown";
 import {
   LiveActivity,
@@ -29,6 +30,11 @@ const ET_DATETIME = new Intl.DateTimeFormat("en-US", {
 
 interface MarketPageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+function first(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
 }
 
 interface MarketMetadataProps {
@@ -52,10 +58,13 @@ export async function generateMetadata({
 
 export default async function MarketPage({
   params,
+  searchParams,
 }: MarketPageProps) {
   const { id } = await params;
-  // Legacy `?side=yes|no` deep links degrade gracefully: the parameter is
-  // ignored, no outcome is preselected (A-4).
+  const query = await searchParams;
+  // `?outcome=<id>` preselects that side on the bet ticket. Legacy
+  // `?side=yes|no` deep links degrade gracefully (ignored, A-4).
+  const requestedOutcome = first(query.outcome);
   const detail = await getMarketDetail(id);
   if (!detail) notFound();
 
@@ -64,6 +73,11 @@ export default async function MarketPage({
     CATEGORIES.find((c) => c.value === market.category)?.label ??
     market.category;
   const totalStaked = detail.position.reduce((sum, p) => sum + p.stake, 0);
+  const initialOutcomeId =
+    requestedOutcome &&
+    detail.outcomes.some((outcome) => outcome.id === requestedOutcome)
+      ? requestedOutcome
+      : undefined;
 
   return (
     <MarketLiveProvider
@@ -76,42 +90,37 @@ export default async function MarketPage({
         activity: detail.activity,
       }}
     >
-      {/* Mobile: hero → order panel → supporting detail. Desktop: panel docks
-          into a sticky right rail beside both content blocks. */}
-      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:grid-rows-[auto_1fr] lg:items-start lg:gap-x-8 lg:gap-y-6">
-        <div className="flex flex-col gap-6 lg:col-start-1 lg:row-start-1">
+      {/* Mobile: title → bet ticket → chart → supporting (thumb-first bet).
+          Desktop: panel docks into a sticky right rail beside both content blocks. */}
+      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:grid-rows-[auto_auto_1fr] lg:items-start lg:gap-x-8 lg:gap-y-6">
+        <div className="order-1 flex flex-col gap-4 lg:col-start-1 lg:row-start-1 lg:gap-6">
           <div>
             <div className="flex flex-wrap items-center gap-3">
               <Chip>{categoryLabel}</Chip>
               <Countdown closeAt={market.close_at} />
             </div>
-            <h1 className="mt-3 text-2xl font-semibold leading-snug text-text sm:text-4xl">
+            <h1 className="mt-3 break-words text-balance text-2xl font-semibold leading-snug text-text sm:text-4xl">
               {market.title}
             </h1>
             {market.description ? (
-              <p className="mt-2 max-w-2xl text-sm text-text-muted sm:text-base">
+              <p className="mt-2 max-w-2xl text-pretty break-words text-sm text-text-muted sm:text-base">
                 {market.description}
               </p>
             ) : null}
           </div>
 
           <LiveStatusBanner />
-
-          <div>
-            <LivePrice />
-            <div className="mt-4">
-              <LiveChart />
-            </div>
-          </div>
         </div>
 
-        <div className="lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-6">
+        <div className="order-3 lg:col-start-2 lg:row-start-1 lg:row-span-3 lg:sticky lg:top-24">
           <LiveOrderPanel
             marketId={market.id}
             closeAt={market.close_at}
             position={detail.position}
             balance={detail.balance}
             question={market.title}
+            guest={detail.isGuest}
+            initialOutcomeId={initialOutcomeId}
           />
           {totalStaked > 0 ? (
             <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-text-muted">
@@ -120,14 +129,21 @@ export default async function MarketPage({
                 <span key={p.outcomeId} className="inline-flex items-center gap-1">
                   {i > 0 ? <span aria-hidden="true">·</span> : null}
                   <HcAmount amount={p.stake} size={12} />
-                  <span>{p.label}</span>
+                  <span className="truncate">{p.label}</span>
                 </span>
               ))}
             </p>
           ) : null}
         </div>
 
-        <div className="flex flex-col gap-6 lg:col-start-1 lg:row-start-2">
+        <div className="order-2 lg:col-start-1 lg:row-start-2">
+          <LivePrice />
+          <div className="mt-4">
+            <LiveChart />
+          </div>
+        </div>
+
+        <div className="order-4 flex flex-col gap-6 lg:col-start-1 lg:row-start-3">
           <LiveStats bettorCount={detail.bettorCount} />
 
           <section aria-label="Rules" className="card-surface overflow-hidden">
@@ -135,7 +151,7 @@ export default async function MarketPage({
               Rules
             </h2>
             <div className="flex flex-col gap-3 px-4 py-4 text-sm">
-              <p className="text-text">{market.resolution_criteria}</p>
+              <p className="break-words text-text">{market.resolution_criteria}</p>
               <dl className="grid grid-cols-1 gap-2 text-text-muted sm:grid-cols-2">
                 <div>
                   <dt className="text-xs font-medium">Closes</dt>
@@ -151,7 +167,7 @@ export default async function MarketPage({
                 </div>
                 <div>
                   <dt className="text-xs font-medium">Created by</dt>
-                  <dd className="mt-1 text-text">{detail.creatorName}</dd>
+                  <dd className="mt-1 truncate text-text">{detail.creatorName}</dd>
                 </div>
                 <div>
                   <dt className="text-xs font-medium">Category</dt>
@@ -166,7 +182,11 @@ export default async function MarketPage({
             <h2 className="mb-3 text-sm font-semibold text-text">
               Recent activity
             </h2>
-            <LiveActivity />
+            {detail.isGuest ? (
+              <LockedPanel variant="activity" />
+            ) : (
+              <LiveActivity />
+            )}
           </section>
         </div>
       </div>

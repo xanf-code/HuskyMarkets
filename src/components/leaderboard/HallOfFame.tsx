@@ -1,12 +1,23 @@
+import Link from "next/link";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { HcAmount } from "@/components/ui/HcAmount";
 import type { HallOfFameEntry } from "@/lib/queries/leaderboard";
 
 export function HallOfFame({ entries }: { entries: HallOfFameEntry[] }) {
   if (entries.length === 0) {
     return (
-      <p className="rounded-md bg-muted px-4 py-8 text-center text-sm text-text-muted">
-        No frozen semesters yet.
-      </p>
+      <EmptyState
+        title="No past semester winners yet"
+        description="Rankings lock in when a semester ends."
+        action={
+          <Link
+            href="/"
+            className="text-sm font-semibold text-red hover:text-red-hover focus-visible:outline-red"
+          >
+            Browse markets
+          </Link>
+        }
+      />
     );
   }
 

@@ -3,13 +3,19 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { buttonStyles } from "@/components/ui/Button";
+import { UserMenu } from "./UserMenu";
 
 const NAV_ITEMS = [
   { href: "/", label: "Markets" },
   { href: "/portfolio", label: "Portfolio" },
   { href: "/leaderboard", label: "Leaderboard" },
   { href: "/create", label: "Create" },
-  { href: "/profile", label: "Profile" },
+];
+
+const GUEST_NAV_ITEMS = [
+  { href: "/", label: "Markets" },
+  { href: "/leaderboard", label: "Leaderboard" },
 ];
 
 interface HeaderProps {
@@ -20,41 +26,19 @@ interface HeaderProps {
 
 export function Header({ authenticated, balance }: HeaderProps) {
   const pathname = usePathname();
-
-  // Unauthenticated visitors see a minimal header with a Log in link so they can
-  // always find their way to the login page.
-  if (!authenticated) {
-    return (
-      <header className="sticky top-0 z-40 border-b border-hairline bg-card/95 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-          <Link
-            href="/"
-            className="flex shrink-0 items-baseline gap-1.5 whitespace-nowrap focus-visible:outline-red"
-          >
-            <span className="brand-serif text-xl text-text sm:text-2xl">
-              Husky
-            </span>
-            <span className="text-xl font-bold text-red sm:text-2xl">
-              Markets
-            </span>
-          </Link>
-          <Link
-            href="/login"
-            className="rounded-md border border-border-strong bg-card px-4 py-2 text-sm font-semibold text-text transition-colors duration-200 ease-standard hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
-          >
-            Log in
-          </Link>
-        </div>
-      </header>
-    );
-  }
+  // Authenticated phones use BottomNav; keep pills in the header from md up.
+  // Guests only have two links, so they stay in the header at all sizes.
+  const items = authenticated ? NAV_ITEMS : GUEST_NAV_ITEMS;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-hairline bg-card/95 backdrop-blur-sm">
-      <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:gap-6 sm:px-6">
+    <header
+      className="sticky top-0 z-40 border-b border-hairline bg-card/95 backdrop-blur-sm"
+      style={{ paddingTop: "env(safe-area-inset-top)" }}
+    >
+      <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-2.5 sm:gap-6 sm:px-6 sm:py-3">
         <Link
           href="/"
-          className="flex shrink-0 items-baseline gap-1.5 whitespace-nowrap focus-visible:outline-red"
+          className="flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap focus-visible:outline-red"
         >
           <span className="brand-serif text-xl text-text sm:text-2xl">
             Husky
@@ -66,10 +50,12 @@ export function Header({ authenticated, balance }: HeaderProps) {
 
         <nav
           aria-label="Primary"
-          className="min-w-0 flex-1 overflow-x-auto"
+          className={`min-w-0 flex-1 overflow-x-auto ${
+            authenticated ? "hidden md:block" : ""
+          }`}
         >
           <div className="flex items-center gap-1 sm:gap-2">
-            {NAV_ITEMS.map((item) => {
+            {items.map((item) => {
               const active =
                 item.href === "/"
                   ? pathname === "/"
@@ -79,10 +65,10 @@ export function Header({ authenticated, balance }: HeaderProps) {
                   key={item.href}
                   href={item.href}
                   aria-current={active ? "page" : undefined}
-                  className={`rounded-pill px-3 py-1.5 text-sm font-semibold whitespace-nowrap transition-colors duration-200 ease-standard focus-visible:outline-red ${
+                  className={`inline-flex min-h-11 items-center rounded-pill px-3 text-sm font-semibold whitespace-nowrap transition-colors duration-200 ease-standard focus-visible:outline-red ${
                     active
                       ? "bg-red/10 text-red"
-                      : "text-text-muted hover:bg-muted hover:text-text"
+                      : "text-text-muted hover:bg-muted hover:text-text active:bg-muted"
                   }`}
                 >
                   {item.label}
@@ -92,7 +78,15 @@ export function Header({ authenticated, balance }: HeaderProps) {
           </div>
         </nav>
 
-        {balance}
+        {authenticated && (
+          <>
+            <div className="min-w-0 flex-1 md:hidden" aria-hidden="true" />
+            <span className="flex shrink-0 items-center gap-2 sm:gap-3">
+              {balance}
+              <UserMenu />
+            </span>
+          </>
+        )}
       </div>
     </header>
   );

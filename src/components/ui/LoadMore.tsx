@@ -24,9 +24,13 @@ export function useLoadMore<T>(
   const resetKey = options.resetKey;
   const [visible, setVisible] = useState(pageSize);
 
-  useEffect(() => {
+  // Reset on filter navigation via guarded setState during render — React's
+  // sanctioned "adjust state when props change" pattern (same as OrderPanel).
+  const [prevReset, setPrevReset] = useState({ resetKey, pageSize });
+  if (prevReset.resetKey !== resetKey || prevReset.pageSize !== pageSize) {
+    setPrevReset({ resetKey, pageSize });
     setVisible(pageSize);
-  }, [resetKey, pageSize]);
+  }
 
   const capped = Math.min(visible, items.length);
   const visibleItems = items.slice(0, capped);

@@ -39,8 +39,8 @@ export interface MarketListItem {
   /** Every outcome, in canonical sort_order. Binary markets are N = 2. */
   outcomes: OutcomeState[];
   volume: number;
-  /** Distinct users who have placed at least one bet on this market. */
-  bettorCount: number;
+  /** Distinct users who have placed at least one bet on this market. Null for guests. */
+  bettorCount: number | null;
   /**
    * Recent implied-price points of the leading outcome (A-2), oldest →
    * newest, for the trending sparkline. Multi-outcome series land with the
@@ -144,19 +144,26 @@ export async function getMarketList(
   if (error || !markets || markets.length === 0) return [];
 
   const ids = markets.map((m) => m.id);
-  const [{ data: points }, { data: bets }] = await Promise.all([
+  // Guests get markets and price history but not bet counts — keeps locked
+  // data out of the RSC payload and avoids permission-denied noise on bets.
+  const session = await getSession();
+  const isGuest = !session;
+
+  const [{ data: points }, betsResponse] = await Promise.all([
     supabase
       .from("price_history")
       .select("market_id, outcome_id, implied")
       .in("market_id", ids)
       .order("recorded_at", { ascending: false })
       .limit(ids.length * SPARK_POINTS * 6),
-    supabase.from("bets").select("market_id, user_id").in("market_id", ids),
+    isGuest
+      ? Promise.resolve(null)
+      : supabase.from("bets").select("market_id, user_id").in("market_id", ids),
   ]);
 
   const sparks = groupSparklines(points ?? []);
   const bettorsByMarket = new Map<string, Set<string>>();
-  for (const bet of bets ?? []) {
+  for (const bet of betsResponse?.data ?? []) {
     const set = bettorsByMarket.get(bet.market_id) ?? new Set<string>();
     set.add(bet.user_id);
     bettorsByMarket.set(bet.market_id, set);
@@ -174,7 +181,7 @@ export async function getMarketList(
       createdAt: m.created_at,
       outcomes,
       volume: marketVolume(total, outcomes.length),
-      bettorCount: bettorsByMarket.get(m.id)?.size ?? 0,
+      bettorCount: isGuest ? null : (bettorsByMarket.get(m.id)?.size ?? 0),
       spark: leader
         ? (sparks.get(`${m.id}:${leader.id}`) ?? [leader.implied])
         : [],
@@ -208,12 +215,15 @@ export interface MarketDetail {
   creatorName: string;
   /** Full per-outcome price history, oldest → newest. */
   history: HistoryPoint[];
-  /** Latest bets, newest first — anonymous (no trader identity). */
+  /** Latest bets, newest first — anonymous (no trader identity). Empty for guests. */
   activity: ActivityItem[];
-  bettorCount: number;
+  /** Null for guests: the count is locked with the rest of the activity data. */
+  bettorCount: number | null;
   /** Signed-in user's stake on this market, per outcome (hedging allowed). */
   position: PositionEntry[];
   balance: number;
+  /** True when the viewer has no session — activity/position/balance are locked. */
+  isGuest: boolean;
 }
 
 const ACTIVITY_LIMIT = ACTIVITY_FEED_LIMIT;
@@ -234,23 +244,32 @@ export async function getMarketDetail(
   const outcomes = toOutcomeStates(market_outcomes ?? []);
   const labelById = new Map(outcomes.map((o) => [o.id, o.label]));
 
-  const [{ data: history }, { data: bets }, session, { data: balance }] =
+  // Guests get the market, outcomes and price history — but never bets,
+  // positions or balances. Skipping the queries server-side (not just hiding
+  // the UI) keeps locked data out of the RSC payload entirely.
+  const session = await getSession();
+  const isGuest = !session;
+
+  const [{ data: history }, betsResponse, balanceResponse] =
     await Promise.all([
       supabase
         .from("price_history")
         .select("implied, recorded_at, outcome_id")
         .eq("market_id", id)
         .order("recorded_at", { ascending: true }),
-      supabase
-        .from("bets")
-        .select("id, user_id, outcome_id, amount, price_at_bet, created_at")
-        .eq("market_id", id)
-        .order("created_at", { ascending: false }),
-      getSession(),
-      supabase.rpc("get_my_balance"),
+      isGuest
+        ? Promise.resolve(null)
+        : supabase
+            .from("bets")
+            .select("id, user_id, outcome_id, amount, price_at_bet, created_at")
+            .eq("market_id", id)
+            .order("created_at", { ascending: false }),
+      isGuest
+        ? Promise.resolve(null)
+        : supabase.rpc("get_my_balance"),
     ]);
 
-  const allBets = bets ?? [];
+  const allBets = betsResponse?.data ?? [];
   const { data: creatorProfile } = await supabase
     .from("public_profiles")
     .select("display_name")
@@ -286,7 +305,7 @@ export async function getMarketDetail(
       price: b.price_at_bet,
       createdAt: b.created_at,
     })),
-    bettorCount: new Set(allBets.map((b) => b.user_id)).size,
+    bettorCount: isGuest ? null : new Set(allBets.map((b) => b.user_id)).size,
     position: outcomes
       .filter((o) => stakeByOutcome.has(o.id))
       .map((o) => ({
@@ -294,6 +313,7 @@ export async function getMarketDetail(
         label: o.label,
         stake: stakeByOutcome.get(o.id)!,
       })),
-    balance: balance ?? 0,
+    balance: balanceResponse?.data ?? 0,
+    isGuest,
   };
 }

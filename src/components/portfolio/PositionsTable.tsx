@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Countdown } from "@/components/market/Countdown";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { HcAmount } from "@/components/ui/HcAmount";
 import { formatPercent } from "@/lib/format";
 import type { OpenPosition } from "@/lib/queries/portfolio";
@@ -7,9 +8,18 @@ import type { OpenPosition } from "@/lib/queries/portfolio";
 export function PositionsTable({ positions }: { positions: OpenPosition[] }) {
   if (positions.length === 0) {
     return (
-      <p className="rounded-md bg-muted px-4 py-8 text-center text-sm text-text-muted">
-        No open positions.
-      </p>
+      <EmptyState
+        title="No open positions yet"
+        description="Browse markets to place a bet and build your board."
+        action={
+          <Link
+            href="/"
+            className="text-sm font-semibold text-red hover:text-red-hover focus-visible:outline-red"
+          >
+            Browse markets
+          </Link>
+        }
+      />
     );
   }
 
@@ -24,32 +34,32 @@ export function PositionsTable({ positions }: { positions: OpenPosition[] }) {
             <div className="min-w-0 flex-1">
               <Link
                 href={`/market/${p.marketId}`}
-                className="text-base font-semibold text-text hover:text-red focus-visible:outline-red"
+                className="line-clamp-2 text-base font-semibold text-text hover:text-red focus-visible:outline-red"
               >
                 {p.marketTitle}
               </Link>
-              <p className="mt-1 text-sm font-semibold text-text">
+              <p className="mt-1 truncate text-sm font-semibold text-text">
                 {p.outcomeLabel}
               </p>
             </div>
             <Countdown closeAt={p.closeAt} />
           </div>
           <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
-            <div>
+            <div className="min-w-0">
               <dt className="text-xs font-medium text-text-muted">Stake</dt>
-              <dd className="mt-1">
+              <dd className="mt-1 truncate">
                 <HcAmount amount={p.stake} size={14} />
               </dd>
             </div>
-            <div>
+            <div className="min-w-0">
               <dt className="text-xs font-medium text-text-muted">Avg price</dt>
               <dd className="num mt-1">{formatPercent(p.avgPrice)}</dd>
             </div>
-            <div>
+            <div className="min-w-0">
               <dt className="text-xs font-medium text-text-muted">
-                Implied value
+                Est. value
               </dt>
-              <dd className="mt-1 font-semibold text-text">
+              <dd className="mt-1 truncate font-semibold text-text">
                 <HcAmount amount={p.impliedValue} size={14} />
               </dd>
             </div>

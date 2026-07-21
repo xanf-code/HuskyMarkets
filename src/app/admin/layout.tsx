@@ -1,17 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
+import { AdminNav } from "@/components/admin/AdminNav";
 import { createClient } from "@/lib/supabase/server";
-
-const NAV = [
-  { href: "/admin", label: "Overview" },
-  { href: "/admin/resolve", label: "Resolve" },
-  { href: "/admin/reports", label: "Reports" },
-  { href: "/admin/markets", label: "Markets" },
-  { href: "/admin/semesters", label: "Semesters" },
-  { href: "/admin/mods", label: "Mods" },
-  { href: "/admin/log", label: "Log" },
-];
 
 export default async function AdminLayout({
   children,
@@ -29,22 +20,7 @@ export default async function AdminLayout({
           Admin console
         </h1>
       </div>
-      <nav
-        aria-label="Admin"
-        className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0"
-      >
-        <div className="flex gap-4 border-b border-hairline">
-          {NAV.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="shrink-0 border-b-2 border-transparent py-3 text-sm font-semibold text-text-muted transition-colors hover:text-text focus-visible:outline-red"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </div>
-      </nav>
+      <AdminNav />
       {children}
     </div>
   );

@@ -6,6 +6,7 @@ import { createMarket } from "@/actions/markets";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { InlineError } from "@/components/ui/InlineError";
 import {
   CATCH_ALL_LABEL,
   CATEGORIES,
@@ -29,9 +30,63 @@ function localInputToIso(value: string): string {
 // message below mirrors the server action's refinement verbatim.
 const CATCH_ALL_COLLISION = `"${CATCH_ALL_LABEL}" is added by the catch-all toggle — remove the duplicate label.`;
 
+interface FieldErrors {
+  title?: string;
+  closeAt?: string;
+  resolveAt?: string;
+  resolutionCriteria?: string;
+  outcomes?: string;
+}
+
+function validateFields(
+  title: string,
+  closeAt: string,
+  resolveAt: string,
+  resolutionCriteria: string,
+  labels: string[],
+): FieldErrors {
+  const errors: FieldErrors = {};
+
+  if (title.trim().length < 10) {
+    errors.title = "Titles need at least 10 characters.";
+  } else if (title.trim().length > 120) {
+    errors.title = "Titles are capped at 120 characters.";
+  }
+
+  if (!closeAt) {
+    errors.closeAt = "Close date is required.";
+  } else if (new Date(closeAt).getTime() <= Date.now()) {
+    errors.closeAt = "Close time must be in the future.";
+  }
+
+  if (!resolveAt) {
+    errors.resolveAt = "Resolve date is required.";
+  } else if (closeAt && new Date(resolveAt) < new Date(closeAt)) {
+    errors.resolveAt = "Resolve time must be at or after the close time.";
+  }
+
+  if (resolutionCriteria.trim().length < 20) {
+    errors.resolutionCriteria =
+      "Spell out the resolution criteria (at least 20 characters).";
+  }
+
+  const hasBlank = labels.some((l) => l.trim().length === 0);
+  if (hasBlank) {
+    errors.outcomes = "Outcome labels can't be blank.";
+  } else {
+    const lower = labels.map((l) => l.trim().toLowerCase());
+    if (new Set(lower).size !== lower.length) {
+      errors.outcomes = "Outcome labels must be unique.";
+    }
+  }
+
+  return errors;
+}
+
 export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
   const [labels, setLabels] = useState<string[]>(["Yes", "No"]);
   const [catchAll, setCatchAll] = useState(false);
@@ -63,6 +118,18 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
     setError(null);
     const form = new FormData(event.currentTarget);
 
+    const title = String(form.get("title") ?? "");
+    const closeAt = String(form.get("closeAt") ?? "");
+    const resolveAt = String(form.get("resolveAt") ?? "");
+    const resolutionCriteria = String(form.get("resolutionCriteria") ?? "");
+
+    const errs = validateFields(title, closeAt, resolveAt, resolutionCriteria, labels);
+    if (Object.keys(errs).length > 0) {
+      setFieldErrors(errs);
+      return;
+    }
+    setFieldErrors({});
+
     const agree = form.get("agreeRules") === "on";
     if (!agree) {
       setError("You must agree to the market rules.");
@@ -83,12 +150,12 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
 
     setLoading(true);
     const result = await createMarket({
-      title: String(form.get("title") ?? ""),
+      title,
       description: String(form.get("description") ?? "") || undefined,
       category: String(form.get("category") ?? ""),
-      closeAt: localInputToIso(String(form.get("closeAt") ?? "")),
-      resolveAt: localInputToIso(String(form.get("resolveAt") ?? "")),
-      resolutionCriteria: String(form.get("resolutionCriteria") ?? ""),
+      closeAt: localInputToIso(closeAt),
+      resolveAt: localInputToIso(resolveAt),
+      resolutionCriteria,
       outcomes: labels,
       catchAll,
       agreeRules: true as const,
@@ -104,7 +171,7 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6" noValidate>
-      <aside className="card-surface border-l-4 border-l-red px-4 py-4 text-sm text-text">
+      <aside className="card-surface bg-red/5 px-4 py-4 text-sm text-text">
         <p className="text-sm font-semibold text-text">Content rule</p>
         <p className="mt-2 leading-relaxed">{CONTENT_RULE}</p>
       </aside>
@@ -117,6 +184,7 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
         minLength={10}
         maxLength={120}
         placeholder="Will the Green Line run on time Friday?"
+        error={fieldErrors.title}
       />
 
       <label htmlFor="description" className="block">
@@ -128,7 +196,7 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
           name="description"
           rows={3}
           maxLength={2000}
-          className="w-full rounded-md border border-hairline bg-card px-4 py-3 text-base text-text focus:border-red focus:outline-none sm:px-5 sm:py-4"
+          className="w-full min-w-0 rounded-md border border-hairline bg-card px-4 py-3 text-base text-text focus:border-red focus:outline-none sm:px-5 sm:py-4"
         />
       </label>
 
@@ -141,8 +209,11 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
           the outcome they believe wins.
         </p>
         {labels.map((label, index) => (
-          <div key={index} className="flex items-end gap-2">
-            <div className="flex-1">
+          <div
+            key={index}
+            className="flex flex-col gap-2 sm:flex-row sm:items-end"
+          >
+            <div className="min-w-0 flex-1">
               <Input
                 id={`outcome-${index}`}
                 name={`outcome-${index}`}
@@ -155,6 +226,7 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
                 placeholder={
                   index < 2 ? (index === 0 ? "Yes" : "No") : "Another outcome"
                 }
+                error={index === 0 ? fieldErrors.outcomes : undefined}
               />
             </div>
             <button
@@ -162,7 +234,7 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
               aria-label={`Remove outcome ${index + 1}`}
               disabled={!canRemove}
               onClick={() => removeLabel(index)}
-              className="mb-1 cursor-pointer rounded-md border border-hairline bg-muted px-3 py-2.5 text-sm text-text-muted transition-colors duration-200 ease-standard hover:border-border-strong hover:text-text focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex min-h-11 w-full cursor-pointer items-center justify-center rounded-md border border-hairline bg-muted px-3 text-sm text-text-muted transition-colors duration-200 ease-standard hover:border-border-strong hover:text-text focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
             >
               Remove
             </button>
@@ -183,7 +255,7 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
             type="button"
             onClick={addLabel}
             disabled={!canAdd}
-            className="cursor-pointer rounded-md border border-hairline bg-muted px-3 py-2 text-sm font-semibold text-text transition-colors duration-200 ease-standard hover:border-border-strong focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex min-h-11 cursor-pointer items-center rounded-md border border-hairline bg-muted px-3 py-2 text-sm font-semibold text-text transition-colors duration-200 ease-standard hover:border-border-strong focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-40"
           >
             + Add outcome
           </button>
@@ -216,6 +288,7 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
           label="Closes (local time)"
           type="datetime-local"
           required
+          error={fieldErrors.closeAt}
         />
         <Input
           id="resolveAt"
@@ -223,6 +296,7 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
           label="Resolves by (local time)"
           type="datetime-local"
           required
+          error={fieldErrors.resolveAt}
         />
       </div>
 
@@ -235,10 +309,18 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
           name="resolutionCriteria"
           required
           minLength={20}
+          maxLength={2000}
           rows={4}
-          className="w-full rounded-md border border-hairline bg-card px-4 py-3 text-base text-text focus:border-red focus:outline-none sm:px-5 sm:py-4"
+          aria-describedby={fieldErrors.resolutionCriteria ? "resolutionCriteria-error" : undefined}
+          aria-invalid={fieldErrors.resolutionCriteria ? true : undefined}
+          className={`w-full min-w-0 rounded-md border ${fieldErrors.resolutionCriteria ? "border-red" : "border-hairline"} bg-card px-4 py-3 text-base text-text focus:border-red focus:outline-none sm:px-5 sm:py-4`}
           placeholder="Resolves to the outcome matching the official MBTA Tracker on-time report for Friday service."
         />
+        {fieldErrors.resolutionCriteria ? (
+          <InlineError id="resolutionCriteria-error" className="mt-1 text-xs">
+            {fieldErrors.resolutionCriteria}
+          </InlineError>
+        ) : null}
       </label>
 
       <label className="flex cursor-pointer items-start gap-3 text-sm text-text">
@@ -254,13 +336,9 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
         </span>
       </label>
 
-      {error ? (
-        <p role="alert" className="text-sm text-market-no">
-          {error}
-        </p>
-      ) : null}
+      {error ? <InlineError>{error}</InlineError> : null}
 
-      <Button type="submit" disabled={loading} className="w-full sm:w-auto">
+      <Button type="submit" loading={loading} className="w-full sm:w-auto">
         {loading ? "Creating…" : "Create market"}
       </Button>
     </form>

@@ -3,12 +3,40 @@ import { getAuthRedirect } from "./auth";
 
 describe("getAuthRedirect", () => {
   describe("unauthenticated", () => {
-    it("redirects the home page to /login", () => {
-      expect(getAuthRedirect("/", false, false)).toBe("/login");
+    it("allows the home page for guest browsing", () => {
+      expect(getAuthRedirect("/", false, false)).toBeNull();
+    });
+
+    it("allows the leaderboard for guest browsing", () => {
+      expect(getAuthRedirect("/leaderboard", false, false)).toBeNull();
+    });
+
+    it("allows market pages for guest browsing", () => {
+      expect(getAuthRedirect("/market/abc-123", false, false)).toBeNull();
+    });
+
+    it("does not treat a bare /market as guest-accessible", () => {
+      expect(getAuthRedirect("/market", false, false)).toBe("/login");
+    });
+
+    it("does not treat /marketplace as guest-accessible", () => {
+      expect(getAuthRedirect("/marketplace", false, false)).toBe("/login");
     });
 
     it("redirects an app page to /login", () => {
       expect(getAuthRedirect("/portfolio", false, false)).toBe("/login");
+    });
+
+    it("redirects /create to /login", () => {
+      expect(getAuthRedirect("/create", false, false)).toBe("/login");
+    });
+
+    it("redirects /profile to /login", () => {
+      expect(getAuthRedirect("/profile", false, false)).toBe("/login");
+    });
+
+    it("redirects /mod to /login", () => {
+      expect(getAuthRedirect("/mod", false, false)).toBe("/login");
     });
 
     it("redirects /onboarding to /login", () => {
@@ -57,8 +85,18 @@ describe("getAuthRedirect", () => {
   });
 
   describe("authenticated but not onboarded", () => {
-    it("redirects the home page to /onboarding", () => {
+    it("redirects the home page to /onboarding even though guests may browse it", () => {
       expect(getAuthRedirect("/", true, false)).toBe("/onboarding");
+    });
+
+    it("redirects guest-browsable market pages to /onboarding", () => {
+      expect(getAuthRedirect("/market/abc-123", true, false)).toBe(
+        "/onboarding",
+      );
+    });
+
+    it("redirects the guest-browsable leaderboard to /onboarding", () => {
+      expect(getAuthRedirect("/leaderboard", true, false)).toBe("/onboarding");
     });
 
     it("redirects an app page to /onboarding", () => {

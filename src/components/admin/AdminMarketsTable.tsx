@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { setMarketHidden } from "@/actions/admin";
 import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { InlineError } from "@/components/ui/InlineError";
 import type { AdminMarketRow } from "@/lib/queries/admin";
 
 export function AdminMarketsTable({ markets }: { markets: AdminMarketRow[] }) {
@@ -22,20 +24,12 @@ export function AdminMarketsTable({ markets }: { markets: AdminMarketRow[] }) {
   }
 
   if (markets.length === 0) {
-    return (
-      <p className="rounded-md bg-muted px-4 py-8 text-center text-sm text-text-muted">
-        No markets to manage.
-      </p>
-    );
+    return <EmptyState title="No markets to manage" />;
   }
 
   return (
     <div className="flex flex-col gap-4">
-      {error ? (
-        <p role="alert" className="text-sm text-market-no">
-          {error}
-        </p>
-      ) : null}
+      {error ? <InlineError>{error}</InlineError> : null}
       <ul className="card-surface divide-y divide-hairline overflow-hidden">
         {markets.map((m) => (
           <li
@@ -45,7 +39,7 @@ export function AdminMarketsTable({ markets }: { markets: AdminMarketRow[] }) {
             <div className="min-w-0 flex-1">
               <Link
                 href={`/market/${m.id}`}
-                className="font-semibold text-text hover:text-red focus-visible:outline-red"
+                className="line-clamp-2 font-semibold text-text hover:text-red focus-visible:outline-red"
               >
                 {m.title}
               </Link>

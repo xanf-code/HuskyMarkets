@@ -98,7 +98,7 @@ export function LiveBalance({ initialBalance, userId }: LiveBalanceProps) {
   }, [userId]);
 
   return (
-    <div className="rounded-pill bg-muted px-3 py-1.5 text-sm font-medium text-text">
+    <div className="rounded-pill bg-muted px-3 py-2 text-sm font-medium text-text">
       <HcAmount amount={balance} size={14} />
     </div>
   );

@@ -99,9 +99,70 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /* Unbreakable strings (long titles, handles) wrap instead of blowing layout. */
+  overflow-wrap: anywhere;
 }
 
 :focus-visible {
   outline: 2px solid var(--color-red);
   outline-offset: 2px;
+}
+
+/* Dialog open = state feedback (not page choreography). Instant under reduced motion. */
+@keyframes dialog-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dialog-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@utility dialog-backdrop-enter {
+  animation: dialog-backdrop-in var(--duration-normal) var(--ease-standard) both;
+}
+
+@utility dialog-panel-enter {
+  animation: dialog-panel-in var(--duration-normal) var(--ease-standard) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog-backdrop-enter,
+  .dialog-panel-enter,
+  .toast-enter {
+    animation: none;
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility toast-enter {
+  animation: toast-in var(--duration-normal) var(--ease-standard) both;
+}
+
+/* Lift toasts above the mobile bottom nav when it's mounted. */
+@media (max-width: 767px) {
+  body:has([data-bottom-nav]) .toast-stack {
+    bottom: max(1rem, calc(env(safe-area-inset-bottom) + 3.5rem)) !important;
+  }
 }

@@ -4,6 +4,7 @@ import {
   InfiniteScrollSentinel,
   useLoadMore,
 } from "@/components/ui/LoadMore";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { HcAmount } from "@/components/ui/HcAmount";
 import { ACTIVITY_PAGE_SIZE } from "@/lib/constants";
 import { formatPercent, timeAgo } from "@/lib/format";
@@ -15,9 +16,11 @@ export function ActivityFeed({ activity }: { activity: ActivityItem[] }) {
 
   if (activity.length === 0) {
     return (
-      <p className="rounded-md bg-muted px-4 py-6 text-center text-sm text-text-muted">
-        No bets yet — be the first.
-      </p>
+      <EmptyState
+        title="No bets yet"
+        description="Be the first — pick an outcome on the ticket above."
+        className="py-8"
+      />
     );
   }
 
@@ -29,11 +32,11 @@ export function ActivityFeed({ activity }: { activity: ActivityItem[] }) {
             key={bet.id}
             className="flex items-start justify-between gap-3 px-3 py-3 sm:px-4"
           >
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold">
                 <span className="text-market-yes">Bought</span>
                 <span className="text-text-muted"> · </span>
-                <span className="text-text">{bet.outcomeLabel}</span>
+                <span className="break-words text-text">{bet.outcomeLabel}</span>
               </p>
               <p className="mt-0.5 flex flex-wrap items-center gap-1 text-xs text-text-muted">
                 <HcAmount amount={bet.amount} size={12} />

@@ -38,7 +38,7 @@ describe("ActivityFeed", () => {
     expect(line).not.toHaveTextContent(/Husky/i);
   });
 
-  it("shows a plain empty state when there are no bets", () => {
+  it("shows an empty state when there are no bets", () => {
     render(<ActivityFeed activity={[]} />);
     expect(screen.getByText(/no bets yet/i)).toBeInTheDocument();
   });

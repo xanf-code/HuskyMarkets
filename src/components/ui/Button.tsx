@@ -6,6 +6,8 @@ type Size = "sm" | "md" | "lg";
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
   size?: Size;
+  /** Disables the button and sets aria-busy while an async action runs. */
+  loading?: boolean;
 }
 
 export interface ButtonStyleOptions {
@@ -22,7 +24,7 @@ export function buttonStyles({
 }
 
 const base =
-  "inline-flex items-center justify-center gap-2 font-semibold leading-none rounded-md border transition-colors duration-200 ease-standard disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer";
+  "inline-flex items-center justify-center gap-2 font-semibold leading-none rounded-md border transition-[colors,transform] duration-200 ease-standard active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 cursor-pointer";
 
 const variants: Record<Variant, string> = {
   primary:
@@ -34,9 +36,10 @@ const variants: Record<Variant, string> = {
 };
 
 const sizes: Record<Size, string> = {
-  sm: "px-3 py-2 text-sm",
-  md: "px-4 py-2.5 text-sm",
-  lg: "px-5 py-3 text-base",
+  // min-h keeps ≥44px touch targets even when padding looks denser.
+  sm: "min-h-11 px-3 py-2 text-sm",
+  md: "min-h-11 px-4 py-2.5 text-sm",
+  lg: "min-h-12 px-5 py-3 text-base",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -47,6 +50,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       className = "",
       children,
       type = "button",
+      loading = false,
+      disabled,
       ...rest
     },
     ref,
@@ -56,9 +61,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         type={type}
         className={`${buttonStyles({ variant, size })} ${className}`}
+        disabled={disabled || loading}
+        aria-busy={loading || undefined}
         {...rest}
       >
-        <span>{children}</span>
+        <span className="min-w-0 truncate">{children}</span>
       </button>
     );
   },

@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { placeBet } from "@/actions/bets";
+import { useSignInPrompt } from "@/components/auth/SignInPromptProvider";
 import { Button } from "@/components/ui/Button";
 import { HcAmount } from "@/components/ui/HcAmount";
 import { HuskyCoinIcon } from "@/components/icons/HuskyCoinIcon";
+import { InlineError } from "@/components/ui/InlineError";
 import { useToast } from "@/components/ui/Toast";
 import { CAP_PER_MARKET } from "@/lib/constants";
 import type { Database } from "@/lib/database.types";
@@ -34,19 +36,38 @@ interface OrderPanelProps {
   balance: number;
   /** Optional market question, rendered as a small context line above the outcome. */
   question?: string;
+  /** Guest browsing: controls stay enabled but every interaction prompts sign-in. */
+  guest?: boolean;
   /** Reports a successful fill so live consumers (hero price, chart, stats) update optimistically. */
   onFill?: (fill: { outcomes: OutcomeState[] }) => void;
+  /** Deep-link from market cards (`?outcome=`). Must match an outcome id. */
+  initialOutcomeId?: string;
+}
+
+function resolveInitialOutcome(
+  outcomes: OutcomeState[],
+  initialOutcomeId?: string,
+): string | undefined {
+  if (
+    initialOutcomeId &&
+    outcomes.some((outcome) => outcome.id === initialOutcomeId)
+  ) {
+    return initialOutcomeId;
+  }
+  return outcomes[0]?.id;
 }
 
 export function OrderPanel(props: OrderPanelProps) {
   const toast = useToast();
+  const { promptSignIn } = useSignInPrompt();
+  const guest = props.guest ?? false;
   const [outcomes, setOutcomes] = useState(props.outcomes);
   const [staked, setStaked] = useState(
     props.position.reduce((sum, p) => sum + p.stake, 0),
   );
   const [balance, setBalance] = useState(props.balance);
-  const [outcomeId, setOutcomeId] = useState<string | undefined>(
-    props.outcomes[0]?.id,
+  const [outcomeId, setOutcomeId] = useState<string | undefined>(() =>
+    resolveInitialOutcome(props.outcomes, props.initialOutcomeId),
   );
   const [amountInput, setAmountInput] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -93,6 +114,10 @@ export function OrderPanel(props: OrderPanelProps) {
     valid && selected ? estimatePayout(amount, selected.pool, total) : 0;
 
   async function submit() {
+    if (guest) {
+      promptSignIn();
+      return;
+    }
     if (!valid || pending || !selected) return;
     setPending(true);
     setError(null);
@@ -117,7 +142,7 @@ export function OrderPanel(props: OrderPanelProps) {
     // Est. payout repeats at the moment of purchase, not just on the panel —
     // this is where the parimutuel expectation is actually set (FR-24).
     toast.push(
-      `Predicted ${formatHC(amount)} on ${selected.label} · chance ${formatPercent(priceNow)} · est. ${formatHC(estimate)}`,
+      `Locked in · ${formatHC(amount)} on ${selected.label} · ${formatPercent(priceNow)} · est. ${formatHC(estimate)}`,
     );
   }
 
@@ -137,11 +162,11 @@ export function OrderPanel(props: OrderPanelProps) {
         <HuskyCoinIcon size={18} className="mb-2" />
       </div>
 
-      <div className="flex flex-col gap-1">
+      <div className="flex min-w-0 flex-col gap-1">
         {props.question ? (
-          <p className="text-xs text-text-muted">{props.question}</p>
+          <p className="line-clamp-2 text-xs text-text-muted">{props.question}</p>
         ) : null}
-        <p className="text-2xl leading-tight font-bold text-text">
+        <p className="truncate text-2xl leading-tight font-bold text-text">
           {selected?.label ?? "—"}
         </p>
       </div>
@@ -154,21 +179,28 @@ export function OrderPanel(props: OrderPanelProps) {
               key={outcome.id}
               type="button"
               aria-pressed={selectedOutcome}
-              onClick={() => setOutcomeId(outcome.id)}
+              aria-label={`${outcome.label} ${formatPercent(outcome.implied)}`}
+              onClick={() =>
+                guest ? promptSignIn() : setOutcomeId(outcome.id)
+              }
               disabled={!open}
-              className={`num flex w-full items-center justify-between gap-3 cursor-pointer rounded border px-3 py-2 text-sm font-medium transition-all duration-150 ease-standard focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-40 ${
+              className={`num flex min-h-11 w-full items-center justify-between gap-3 cursor-pointer rounded-md border px-3 py-2.5 text-sm font-medium transition-all duration-150 ease-standard focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-40 ${
                 selectedOutcome
                   ? "border-red bg-red/10 text-text"
-                  : "border-hairline bg-muted text-text hover:border-border-strong hover:bg-card"
+                  : "border-hairline bg-muted text-text hover:border-border-strong hover:bg-card active:bg-card"
               }`}
             >
-              <span className={`flex items-center gap-2 ${selectedOutcome ? "font-semibold" : ""}`}>
+              <span
+                className={`flex min-w-0 items-center gap-2 ${selectedOutcome ? "font-semibold" : ""}`}
+              >
                 {selectedOutcome && (
-                  <span className="h-1.5 w-1.5 rounded-full bg-red shrink-0" />
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-red" />
                 )}
-                {outcome.label}
+                <span className="truncate" aria-hidden="true">
+                  {outcome.label}
+                </span>
               </span>
-              <span className="num shrink-0 text-text-muted">
+              <span className="num shrink-0 text-text-muted" aria-hidden="true">
                 {formatPercent(outcome.implied)}
               </span>
             </button>
@@ -188,6 +220,13 @@ export function OrderPanel(props: OrderPanelProps) {
           max={maxStake}
           value={amountInput}
           onChange={(event) => setAmountInput(event.target.value)}
+          readOnly={guest}
+          onFocus={(event) => {
+            if (guest) {
+              event.currentTarget.blur();
+              promptSignIn();
+            }
+          }}
           disabled={!open}
           aria-label="Amount (HuskyCoin)"
           placeholder="0"
@@ -200,18 +239,24 @@ export function OrderPanel(props: OrderPanelProps) {
           <button
             key={quick}
             type="button"
-            onClick={() => setAmountInput(String(Math.min(quick, maxStake)))}
-            disabled={!open || maxStake === 0}
-            className="num cursor-pointer rounded-pill border border-hairline bg-muted px-3 py-1.5 text-sm text-text-muted transition-colors duration-200 ease-standard hover:border-border-strong hover:text-text focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={() =>
+              guest
+                ? promptSignIn()
+                : setAmountInput(String(Math.min(quick, maxStake)))
+            }
+            disabled={!open || (!guest && maxStake === 0)}
+            className="num inline-flex min-h-11 cursor-pointer items-center rounded-pill border border-hairline bg-muted px-4 text-sm text-text-muted transition-colors duration-200 ease-standard hover:border-border-strong hover:text-text active:border-border-strong active:text-text focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-50"
           >
             {quick}
           </button>
         ))}
         <button
           type="button"
-          onClick={() => setAmountInput(String(maxStake))}
-          disabled={!open || maxStake === 0}
-          className="num cursor-pointer rounded-pill border border-hairline bg-muted px-3 py-1.5 text-sm text-text-muted transition-colors duration-200 ease-standard hover:border-border-strong hover:text-text focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-50"
+          onClick={() =>
+            guest ? promptSignIn() : setAmountInput(String(maxStake))
+          }
+          disabled={!open || (!guest && maxStake === 0)}
+          className="num inline-flex min-h-11 cursor-pointer items-center rounded-pill border border-hairline bg-muted px-4 text-sm text-text-muted transition-colors duration-200 ease-standard hover:border-border-strong hover:text-text active:border-border-strong active:text-text focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-50"
         >
           Max
         </button>
@@ -227,13 +272,13 @@ export function OrderPanel(props: OrderPanelProps) {
         <div className="flex items-baseline justify-between gap-3">
           <dt className="shrink-0 text-text-muted">Balance</dt>
           <dd className="whitespace-nowrap text-text">
-            <HcAmount amount={balance} size={14} />
+            {guest ? "—" : <HcAmount amount={balance} size={14} />}
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
-          <dt className="shrink-0 text-text-muted">Cap remaining</dt>
+          <dt className="shrink-0 text-text-muted">Stake cap left</dt>
           <dd className="whitespace-nowrap text-text">
-            <HcAmount amount={capRemaining} size={14} />
+            {guest ? "—" : <HcAmount amount={capRemaining} size={14} />}
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3 border-t border-hairline pt-3">
@@ -249,16 +294,13 @@ export function OrderPanel(props: OrderPanelProps) {
         {CLOSE_DATE.format(new Date(props.closeAt))}
       </p>
 
-      {error ? (
-        <p role="alert" className="text-sm text-market-no">
-          {error}
-        </p>
-      ) : null}
+      {error ? <InlineError>{error}</InlineError> : null}
 
       <Button
         onClick={submit}
-        disabled={!open || !valid || pending}
-        className="w-full"
+        disabled={!open || (!guest && !valid)}
+        loading={pending}
+        className="w-full max-w-full"
       >
         {submitLabel}
       </Button>

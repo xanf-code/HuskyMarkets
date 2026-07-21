@@ -126,9 +126,11 @@ export function ProbabilityChart({
     fontSize: 11,
   };
 
-  // Drag-to-zoom: mousedown starts a selection, mousemove extends it, and
-  // mouseup commits it as the new X-axis domain. Dragging back to the start
-  // (or off the chart) cancels instead of zooming to a zero-width range.
+  // Drag-to-zoom is pointer/mouse only — on phones it fights vertical scroll,
+  // so the mobile chart variant keeps tooltip taps and skips the zoom gesture.
+  const chartVariant = variant ?? detected;
+  const zoomEnabled = chartVariant === "desktop";
+
   const [zoomDomain, setZoomDomain] = useState<[number, number] | null>(null);
   const [dragStart, setDragStart] = useState<number | null>(null);
   const [dragEnd, setDragEnd] = useState<number | null>(null);
@@ -139,6 +141,7 @@ export function ProbabilityChart({
   };
 
   const handleMouseDown = (state: MouseHandlerDataParam) => {
+    if (!zoomEnabled) return;
     const value = labelToNumber(state);
     if (value === null) return;
     setDragStart(value);
@@ -146,13 +149,14 @@ export function ProbabilityChart({
   };
 
   const handleMouseMove = (state: MouseHandlerDataParam) => {
-    if (dragStart === null) return;
+    if (!zoomEnabled || dragStart === null) return;
     const value = labelToNumber(state);
     if (value === null) return;
     setDragEnd(value);
   };
 
   const commitZoom = () => {
+    if (!zoomEnabled) return;
     if (dragStart !== null && dragEnd !== null && dragStart !== dragEnd) {
       setZoomDomain([
         Math.min(dragStart, dragEnd),
@@ -204,7 +208,7 @@ export function ProbabilityChart({
           <button
             type="button"
             onClick={resetZoom}
-            className="absolute right-3 top-1 z-10 rounded-full border border-hairline bg-card px-2 py-0.5 text-xs text-text-muted hover:text-text"
+            className="absolute right-2 top-2 z-10 inline-flex min-h-11 items-center rounded-full border border-hairline bg-card px-3 text-sm text-text-muted transition-colors duration-200 ease-standard hover:text-text focus-visible:outline-red"
           >
             Reset zoom
           </button>

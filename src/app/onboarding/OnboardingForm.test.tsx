@@ -47,7 +47,7 @@ describe("OnboardingForm", () => {
     const user = userEvent.setup();
     render(<OnboardingForm initialHandle="FrostyHusky07" />);
 
-    await user.click(screen.getByRole("button", { name: /start trading/i }));
+    await user.click(screen.getByRole("button", { name: /continue/i }));
 
     expect(completeOnboarding).toHaveBeenCalledWith({
       displayMode: "anon",
@@ -68,7 +68,7 @@ describe("OnboardingForm", () => {
 
     expect(document.documentElement.classList.contains("dark")).toBe(true);
 
-    await user.click(screen.getByRole("button", { name: /start trading/i }));
+    await user.click(screen.getByRole("button", { name: /continue/i }));
 
     expect(completeOnboarding).toHaveBeenCalledWith({
       displayMode: "anon",
@@ -81,7 +81,7 @@ describe("OnboardingForm", () => {
     render(<OnboardingForm initialHandle="FrostyHusky07" />);
 
     await user.click(screen.getByRole("radio", { name: /real name/i }));
-    await user.click(screen.getByRole("button", { name: /start trading/i }));
+    await user.click(screen.getByRole("button", { name: /continue/i }));
 
     expect(await screen.findByRole("alert")).toBeInTheDocument();
     expect(completeOnboarding).not.toHaveBeenCalled();
@@ -93,7 +93,7 @@ describe("OnboardingForm", () => {
 
     await user.click(screen.getByRole("radio", { name: /real name/i }));
     await user.type(screen.getByLabelText(/your name/i), "Dana Husky");
-    await user.click(screen.getByRole("button", { name: /start trading/i }));
+    await user.click(screen.getByRole("button", { name: /continue/i }));
 
     expect(completeOnboarding).toHaveBeenCalledWith({
       displayMode: "real",
@@ -108,7 +108,7 @@ describe("OnboardingForm", () => {
     const user = userEvent.setup();
     render(<OnboardingForm initialHandle="FrostyHusky07" />);
 
-    await user.click(screen.getByRole("button", { name: /start trading/i }));
+    await user.click(screen.getByRole("button", { name: /continue/i }));
 
     expect(await screen.findByText("boom")).toBeInTheDocument();
     expect(push).not.toHaveBeenCalled();

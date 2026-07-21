@@ -1,14 +1,24 @@
 import Link from "next/link";
 import { buttonStyles } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { HcAmount } from "@/components/ui/HcAmount";
 import type { ResolvedPosition } from "@/lib/queries/portfolio";
 
 export function ResolvedHistory({ rows }: { rows: ResolvedPosition[] }) {
   if (rows.length === 0) {
     return (
-      <p className="rounded-md bg-muted px-4 py-8 text-center text-sm text-text-muted">
-        No resolved bets yet.
-      </p>
+      <EmptyState
+        title="No settled bets yet"
+        description="Wins and losses show up here when markets resolve."
+        action={
+          <Link
+            href="/"
+            className="text-sm font-semibold text-red hover:text-red-hover focus-visible:outline-red"
+          >
+            Browse markets
+          </Link>
+        }
+      />
     );
   }
 
@@ -20,12 +30,13 @@ export function ResolvedHistory({ rows }: { rows: ResolvedPosition[] }) {
             <div className="min-w-0 flex-1">
               <Link
                 href={`/market/${r.marketId}`}
-                className="text-base font-semibold text-text hover:text-red focus-visible:outline-red"
+                className="line-clamp-2 text-base font-semibold text-text hover:text-red focus-visible:outline-red"
               >
                 {r.marketTitle}
               </Link>
               <p className="mt-1 text-sm text-text-muted">
-                Outcome {r.outcomeLabel} ·{" "}
+                <span className="break-words">Outcome {r.outcomeLabel}</span>
+                {" · "}
                 {r.outcomeLabel === "Void"
                   ? "refunded"
                   : r.won
@@ -34,7 +45,7 @@ export function ResolvedHistory({ rows }: { rows: ResolvedPosition[] }) {
               </p>
             </div>
             <p
-              className={`flex items-center gap-0.5 text-lg font-semibold ${
+              className={`flex shrink-0 items-center gap-0.5 text-lg font-semibold ${
                 r.won ? "text-market-yes" : "text-text-muted"
               }`}
             >

@@ -1,14 +1,23 @@
+import Link from "next/link";
 import type { MarketListItem } from "@/lib/queries/markets";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { MarketCard } from "./MarketCard";
 
 export function MarketGrid({ markets }: { markets: MarketListItem[] }) {
   if (markets.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-2 rounded-lg bg-muted px-4 py-12 text-center sm:px-6">
-        <p className="text-sm text-text-muted">
-          No markets match these filters.
-        </p>
-      </div>
+      <EmptyState
+        title="No markets match"
+        description="Clear filters or try a different search."
+        action={
+          <Link
+            href="/"
+            className="text-sm font-semibold text-red hover:text-red-hover focus-visible:outline-red"
+          >
+            Browse all markets
+          </Link>
+        }
+      />
     );
   }
 

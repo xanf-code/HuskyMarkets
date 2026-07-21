@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import {
   InfiniteScrollSentinel,
   useLoadMore,
 } from "@/components/ui/LoadMore";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { HcAmount } from "@/components/ui/HcAmount";
 import { LEADERBOARD_PAGE_SIZE } from "@/lib/constants";
 import type { SemesterEntry } from "@/lib/queries/leaderboard";
@@ -19,17 +21,26 @@ export function SemesterBoard({ entries, currentUserId }: SemesterBoardProps) {
 
   if (entries.length === 0) {
     return (
-      <p className="rounded-md bg-muted px-4 py-8 text-center text-sm text-text-muted">
-        No eligible traders this semester yet.
-      </p>
+      <EmptyState
+        title="Nobody on the board yet"
+        description="Place a bet this semester to climb the rankings."
+        action={
+          <Link
+            href="/"
+            className="text-sm font-semibold text-red hover:text-red-hover focus-visible:outline-red"
+          >
+            Browse markets
+          </Link>
+        }
+      />
     );
   }
 
   return (
     <div>
       <p className="mb-4 text-sm text-text-muted">
-        Bailout claimers are hidden for the current ET week and reappear next
-        Monday.
+        If you claimed a bailout this week, you&apos;re hidden until next Monday
+        (ET).
       </p>
       <ol className="card-surface divide-y divide-hairline overflow-hidden">
         {visibleItems.map((e) => {
