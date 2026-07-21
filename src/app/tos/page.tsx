@@ -34,13 +34,13 @@ export default function TosPage() {
           The short version: it&apos;s all for fun, and none of it is money.
         </p>
       </div>
-      <ol className="space-y-6">
+      <ol className="flex flex-col gap-6">
         {TERMS.map((term, index) => (
-          <li key={term.heading} className="border-l-4 border-red pl-4 sm:pl-6">
-            <h2 className="text-xl font-semibold text-text">
+          <li key={term.heading} className="card-surface p-4 sm:p-5">
+            <h2 className="text-xl font-semibold text-balance text-text">
               {index + 1}. {term.heading}
             </h2>
-            <p className="mt-2 text-sm leading-relaxed text-text-muted">
+            <p className="mt-2 max-w-prose text-sm leading-relaxed text-pretty text-text-muted">
               {term.body}
             </p>
           </li>

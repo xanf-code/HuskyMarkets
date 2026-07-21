@@ -167,10 +167,10 @@ export function OrderPanel(props: OrderPanelProps) {
                 guest ? promptSignIn() : setOutcomeId(outcome.id)
               }
               disabled={!open}
-              className={`num flex w-full items-center justify-between gap-3 cursor-pointer rounded border px-3 py-2 text-sm font-medium transition-all duration-150 ease-standard focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-40 ${
+              className={`num flex min-h-11 w-full items-center justify-between gap-3 cursor-pointer rounded border px-3 py-2.5 text-sm font-medium transition-all duration-150 ease-standard focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-40 ${
                 selectedOutcome
                   ? "border-red bg-red/10 text-text"
-                  : "border-hairline bg-muted text-text hover:border-border-strong hover:bg-card"
+                  : "border-hairline bg-muted text-text hover:border-border-strong hover:bg-card active:bg-card"
               }`}
             >
               <span className={`flex items-center gap-2 ${selectedOutcome ? "font-semibold" : ""}`}>
@@ -225,7 +225,7 @@ export function OrderPanel(props: OrderPanelProps) {
                 : setAmountInput(String(Math.min(quick, maxStake)))
             }
             disabled={!open || (!guest && maxStake === 0)}
-            className="num cursor-pointer rounded-pill border border-hairline bg-muted px-3 py-1.5 text-sm text-text-muted transition-colors duration-200 ease-standard hover:border-border-strong hover:text-text focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-50"
+            className="num inline-flex min-h-11 cursor-pointer items-center rounded-pill border border-hairline bg-muted px-4 text-sm text-text-muted transition-colors duration-200 ease-standard hover:border-border-strong hover:text-text active:border-border-strong active:text-text focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-50"
           >
             {quick}
           </button>
@@ -236,7 +236,7 @@ export function OrderPanel(props: OrderPanelProps) {
             guest ? promptSignIn() : setAmountInput(String(maxStake))
           }
           disabled={!open || (!guest && maxStake === 0)}
-          className="num cursor-pointer rounded-pill border border-hairline bg-muted px-3 py-1.5 text-sm text-text-muted transition-colors duration-200 ease-standard hover:border-border-strong hover:text-text focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-50"
+          className="num inline-flex min-h-11 cursor-pointer items-center rounded-pill border border-hairline bg-muted px-4 text-sm text-text-muted transition-colors duration-200 ease-standard hover:border-border-strong hover:text-text active:border-border-strong active:text-text focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-50"
         >
           Max
         </button>

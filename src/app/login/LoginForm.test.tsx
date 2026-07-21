@@ -50,7 +50,7 @@ describe("LoginForm", () => {
       email: "husky@northeastern.edu",
       options: { emailRedirectTo: "http://localhost:3000/auth/callback" },
     });
-    expect(await screen.findByText(/link's on its way/i)).toBeInTheDocument();
+    expect(await screen.findByText(/check your email/i)).toBeInTheDocument();
   });
 
   it("shows the Supabase error when the link fails to send", async () => {

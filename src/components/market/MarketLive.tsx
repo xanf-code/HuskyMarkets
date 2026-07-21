@@ -83,7 +83,7 @@ export function LiveStatusBanner() {
   }
   if (!banner) return null;
   return (
-    <p className="rounded-md border border-hairline border-l-4 border-l-red bg-card px-4 py-3 text-sm text-text">
+    <p className="rounded-md border border-hairline bg-red/5 px-4 py-3 text-sm text-text">
       {banner}
     </p>
   );

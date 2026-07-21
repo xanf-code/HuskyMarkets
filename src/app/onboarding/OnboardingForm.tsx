@@ -75,7 +75,7 @@ export function OnboardingForm({ initialHandle }: OnboardingFormProps) {
     <form onSubmit={onSubmit} noValidate className="space-y-6">
       <fieldset className="space-y-3">
         <legend className="mb-3 text-sm font-semibold text-text">
-          How should others see you?
+          Display name
         </legend>
 
         <div
@@ -95,7 +95,7 @@ export function OnboardingForm({ initialHandle }: OnboardingFormProps) {
             <span className="font-semibold text-text">Anonymous</span>
           </label>
           <p className="text-sm text-text-muted">
-            Bet under a generated handle. You can switch later.
+            Generated handle — you can switch later.
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-3 pl-7">
             <span className="num rounded-md bg-muted px-3 py-1.5 text-sm font-semibold text-red">
@@ -130,7 +130,7 @@ export function OnboardingForm({ initialHandle }: OnboardingFormProps) {
             <span className="font-semibold text-text">Real name</span>
           </label>
           <p className="text-sm text-text-muted">
-            Show your actual name on markets and the leaderboard.
+            Your real name on markets and the leaderboard.
           </p>
           {mode === "real" ? (
             <div className="mt-2 pl-7">
@@ -149,7 +149,7 @@ export function OnboardingForm({ initialHandle }: OnboardingFormProps) {
 
       <fieldset className="space-y-3">
         <legend className="mb-3 text-sm font-semibold text-text">
-          Pick your theme
+          Theme
         </legend>
         <div className="grid grid-cols-2 gap-3">
           {(
@@ -191,7 +191,7 @@ export function OnboardingForm({ initialHandle }: OnboardingFormProps) {
         disabled={submitting}
         className="w-full sm:w-auto"
       >
-        {submitting ? "Saving…" : "Join the board"}
+        {submitting ? "Saving…" : "Continue"}
       </Button>
     </form>
   );

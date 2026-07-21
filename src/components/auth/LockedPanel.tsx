@@ -80,34 +80,12 @@ function FakeLeaderboardRows() {
   );
 }
 
-function LockGlyph() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 20 20"
-      fill="currentColor"
-      aria-hidden="true"
-      className="size-5 text-text-muted"
-    >
-      <path
-        fillRule="evenodd"
-        d="M10 1a3.5 3.5 0 0 0-3.5 3.5V6H5.5A1.5 1.5 0 0 0 4 7.5v8A1.5 1.5 0 0 0 5.5 17h9a1.5 1.5 0 0 0 1.5-1.5v-8A1.5 1.5 0 0 0 14.5 6H13.5V4.5A3.5 3.5 0 0 0 10 1Zm-1.5 5V4.5a1.5 1.5 0 0 1 3 0V6h-3Zm1.5 5a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"
-        clipRule="evenodd"
-      />
-    </svg>
-  );
-}
-
 export function LockedPanel({ variant }: LockedPanelProps) {
   const { promptSignIn } = useSignInPrompt();
-  const headline =
+  const label =
     variant === "activity"
-      ? "See who's betting on this"
-      : "See who's climbing the board";
-  const subcopy =
-    variant === "activity"
-      ? "Sign in to unlock recent activity."
-      : "Sign in to view rankings — and your spot.";
+      ? "Sign in to view activity"
+      : "Sign in to view rankings";
 
   return (
     <div className="relative overflow-hidden rounded-lg">
@@ -118,19 +96,13 @@ export function LockedPanel({ variant }: LockedPanelProps) {
         {variant === "activity" ? <FakeActivityRows /> : <FakeLeaderboardRows />}
       </div>
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-b from-page/10 via-page/60 to-page/90 px-4 text-center">
-        <LockGlyph />
-        <div className="flex max-w-sm flex-col gap-1">
-          <p className="text-balance text-sm font-semibold text-text">
-            {headline}
-          </p>
-          <p className="text-pretty text-xs text-text-muted">{subcopy}</p>
-        </div>
+        <p className="text-balance text-sm font-semibold text-text">{label}</p>
         <button
           type="button"
           onClick={promptSignIn}
           className="rounded-md border border-border-strong bg-card px-4 py-2 text-sm font-semibold text-text transition-[colors,transform] duration-200 ease-standard hover:bg-muted active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
         >
-          Sign in to view
+          Sign in
         </button>
       </div>
     </div>

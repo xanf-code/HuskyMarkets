@@ -110,7 +110,7 @@ export function MarketCard({
               key={outcome.id}
               href={`/market/${market.id}?outcome=${outcome.id}`}
               aria-label={`Bet ${outcome.label} — ${formatPercent(outcome.implied)} — ${market.title}`}
-              className="flex items-center justify-between rounded-md border border-hairline bg-muted px-3 py-2 text-sm font-semibold text-text transition-transform duration-200 ease-standard hover:scale-[0.98] hover:border-border-strong focus-visible:outline-red"
+              className="flex min-h-11 items-center justify-between rounded-md border border-hairline bg-muted px-3 text-sm font-semibold text-text transition-transform duration-200 ease-standard hover:scale-[0.98] hover:border-border-strong active:scale-[0.98] active:border-border-strong focus-visible:outline-red"
             >
               <span className="truncate">{outcome.label}</span>
               <span className="num text-text-muted">
@@ -132,10 +132,10 @@ export function MarketCard({
             key={stat.label}
             className="min-w-0 text-center first:text-left last:text-right"
           >
-            <dt className="text-[10px] font-medium tracking-wide text-text-muted uppercase">
+            <dt className="text-xs font-medium tracking-wide text-text-muted uppercase">
               {stat.label}
             </dt>
-            <dd className="mt-1 truncate text-xs font-semibold text-text">
+            <dd className="mt-1 truncate text-xs font-semibold text-text sm:text-sm">
               {stat.value}
             </dd>
           </div>

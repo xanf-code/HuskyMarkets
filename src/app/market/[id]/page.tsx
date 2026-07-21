@@ -77,16 +77,16 @@ export default async function MarketPage({
         activity: detail.activity,
       }}
     >
-      {/* Mobile: hero → order panel → supporting detail. Desktop: panel docks
-          into a sticky right rail beside both content blocks. */}
-      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:grid-rows-[auto_1fr] lg:items-start lg:gap-x-8 lg:gap-y-6">
-        <div className="flex flex-col gap-6 lg:col-start-1 lg:row-start-1">
+      {/* Mobile: title → bet ticket → chart → supporting (thumb-first bet).
+          Desktop: panel docks into a sticky right rail beside both content blocks. */}
+      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:grid-rows-[auto_auto_1fr] lg:items-start lg:gap-x-8 lg:gap-y-6">
+        <div className="order-1 flex flex-col gap-4 lg:col-start-1 lg:row-start-1 lg:gap-6">
           <div>
             <div className="flex flex-wrap items-center gap-3">
               <Chip>{categoryLabel}</Chip>
               <Countdown closeAt={market.close_at} />
             </div>
-            <h1 className="mt-3 text-2xl font-semibold leading-snug text-text sm:text-4xl">
+            <h1 className="mt-3 text-balance text-2xl font-semibold leading-snug text-text sm:text-4xl">
               {market.title}
             </h1>
             {market.description ? (
@@ -97,16 +97,9 @@ export default async function MarketPage({
           </div>
 
           <LiveStatusBanner />
-
-          <div>
-            <LivePrice />
-            <div className="mt-4">
-              <LiveChart />
-            </div>
-          </div>
         </div>
 
-        <div className="lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-6">
+        <div className="order-2 lg:col-start-2 lg:row-start-1 lg:row-span-3 lg:sticky lg:top-24">
           <LiveOrderPanel
             marketId={market.id}
             closeAt={market.close_at}
@@ -129,7 +122,14 @@ export default async function MarketPage({
           ) : null}
         </div>
 
-        <div className="flex flex-col gap-6 lg:col-start-1 lg:row-start-2">
+        <div className="order-3 lg:col-start-1 lg:row-start-2">
+          <LivePrice />
+          <div className="mt-4">
+            <LiveChart />
+          </div>
+        </div>
+
+        <div className="order-4 flex flex-col gap-6 lg:col-start-1 lg:row-start-3">
           <LiveStats bettorCount={detail.bettorCount} />
 
           <section aria-label="Rules" className="card-surface overflow-hidden">

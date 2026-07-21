@@ -157,3 +157,10 @@ body {
 @utility toast-enter {
   animation: toast-in var(--duration-normal) var(--ease-standard) both;
 }
+
+/* Lift toasts above the mobile bottom nav when it's mounted. */
+@media (max-width: 767px) {
+  body:has([data-bottom-nav]) .toast-stack {
+    bottom: max(1rem, calc(env(safe-area-inset-bottom) + 3.5rem)) !important;
+  }
+}

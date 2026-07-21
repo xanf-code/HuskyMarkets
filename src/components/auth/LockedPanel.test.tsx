@@ -1,3 +1,5 @@
+"use client";
+
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
@@ -22,7 +24,7 @@ describe("LockedPanel", () => {
     const user = userEvent.setup();
     render(<LockedPanel variant="activity" />);
 
-    await user.click(screen.getByRole("button", { name: /sign in to view/i }));
+    await user.click(screen.getByRole("button", { name: /^sign in$/i }));
 
     expect(promptSignIn).toHaveBeenCalledTimes(1);
   });
@@ -30,8 +32,6 @@ describe("LockedPanel", () => {
   it("uses leaderboard copy for the leaderboard variant", () => {
     render(<LockedPanel variant="leaderboard" />);
 
-    expect(
-      screen.getByText(/see who's climbing the board/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/sign in to view rankings/i)).toBeInTheDocument();
   });
 });

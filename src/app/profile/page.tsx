@@ -133,11 +133,10 @@ export default async function ProfilePage() {
 
       {balance < BAILOUT_THRESHOLD ? (
         <section className="card-surface p-4 sm:p-6">
-          <h2 className="text-xl font-semibold text-text">Broke?</h2>
+          <h2 className="text-xl font-semibold text-text">Bailout</h2>
           <p className="mt-2 mb-4 text-sm text-text-muted">
-            Your balance is below {BAILOUT_THRESHOLD} HuskyCoin, so you can claim
-            one bailout per week. It tops you back up, but hides you from the
-            leaderboard until next Monday.
+            Balance under {BAILOUT_THRESHOLD} HC — claim once per week. Tops you
+            up; hides you from the leaderboard until Monday.
           </p>
           <BailoutButton />
         </section>
@@ -145,10 +144,9 @@ export default async function ProfilePage() {
 
       {profile?.role === "user" ? (
         <section className="card-surface p-4 sm:p-6">
-          <h2 className="text-xl font-semibold text-text">Moderation</h2>
+          <h2 className="text-xl font-semibold text-text">Become a mod</h2>
           <p className="mt-2 mb-4 text-sm text-text-muted">
-            Help resolve markets and triage reports. Admins review every
-            application.
+            Resolve markets and triage reports. Admins review every application.
           </p>
           {pendingApp ? (
             <p className="text-sm text-text-muted">

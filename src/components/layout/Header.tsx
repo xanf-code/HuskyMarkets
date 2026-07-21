@@ -25,14 +25,19 @@ interface HeaderProps {
 
 export function Header({ authenticated, balance }: HeaderProps) {
   const pathname = usePathname();
+  // Authenticated phones use BottomNav; keep pills in the header from md up.
+  // Guests only have two links, so they stay in the header at all sizes.
   const items = authenticated ? NAV_ITEMS : GUEST_NAV_ITEMS;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-hairline bg-card/95 backdrop-blur-sm">
-      <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:gap-6 sm:px-6">
+    <header
+      className="sticky top-0 z-40 border-b border-hairline bg-card/95 backdrop-blur-sm"
+      style={{ paddingTop: "env(safe-area-inset-top)" }}
+    >
+      <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-2.5 sm:gap-6 sm:px-6 sm:py-3">
         <Link
           href="/"
-          className="flex shrink-0 items-baseline gap-1.5 whitespace-nowrap focus-visible:outline-red"
+          className="flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap focus-visible:outline-red"
         >
           <span className="brand-serif text-xl text-text sm:text-2xl">
             Husky
@@ -44,7 +49,9 @@ export function Header({ authenticated, balance }: HeaderProps) {
 
         <nav
           aria-label="Primary"
-          className="min-w-0 flex-1 overflow-x-auto"
+          className={`min-w-0 flex-1 overflow-x-auto ${
+            authenticated ? "hidden md:block" : ""
+          }`}
         >
           <div className="flex items-center gap-1 sm:gap-2">
             {items.map((item) => {
@@ -57,10 +64,10 @@ export function Header({ authenticated, balance }: HeaderProps) {
                   key={item.href}
                   href={item.href}
                   aria-current={active ? "page" : undefined}
-                  className={`rounded-pill px-3 py-1.5 text-sm font-semibold whitespace-nowrap transition-colors duration-200 ease-standard focus-visible:outline-red ${
+                  className={`inline-flex min-h-11 items-center rounded-pill px-3 text-sm font-semibold whitespace-nowrap transition-colors duration-200 ease-standard focus-visible:outline-red ${
                     active
                       ? "bg-red/10 text-red"
-                      : "text-text-muted hover:bg-muted hover:text-text"
+                      : "text-text-muted hover:bg-muted hover:text-text active:bg-muted"
                   }`}
                 >
                   {item.label}
@@ -71,14 +78,17 @@ export function Header({ authenticated, balance }: HeaderProps) {
         </nav>
 
         {authenticated ? (
-          <span className="flex shrink-0 items-center gap-2 sm:gap-3">
-            {balance}
-            <UserMenu />
-          </span>
+          <>
+            <div className="min-w-0 flex-1 md:hidden" aria-hidden="true" />
+            <span className="flex shrink-0 items-center gap-2 sm:gap-3">
+              {balance}
+              <UserMenu />
+            </span>
+          </>
         ) : (
           <Link
             href="/login"
-            className="shrink-0 rounded-md bg-red px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 ease-standard hover:bg-red/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+            className="inline-flex min-h-11 shrink-0 items-center rounded-md bg-red px-4 text-sm font-semibold text-white transition-colors duration-200 ease-standard hover:bg-red-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
           >
             Sign in
           </Link>

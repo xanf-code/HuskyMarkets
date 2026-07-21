@@ -22,7 +22,15 @@ export function Dialog({ open, onClose, title, children }: DialogProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{
+        paddingTop: "max(1rem, env(safe-area-inset-top))",
+        paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
+        paddingLeft: "max(1rem, env(safe-area-inset-left))",
+        paddingRight: "max(1rem, env(safe-area-inset-right))",
+      }}
+    >
       <div
         aria-hidden="true"
         onClick={onClose}
@@ -32,15 +40,17 @@ export function Dialog({ open, onClose, title, children }: DialogProps) {
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="dialog-panel-enter relative w-full max-w-md rounded-lg border border-hairline bg-card p-6 shadow-card"
+        className="dialog-panel-enter relative max-h-[min(90dvh,40rem)] w-full max-w-md overflow-y-auto rounded-lg border border-hairline bg-card p-6 shadow-card"
       >
         <div className="mb-4 flex items-start justify-between gap-4">
-          <h2 className="text-xl font-semibold text-text">{title}</h2>
+          <h2 className="text-xl font-semibold text-balance text-text">
+            {title}
+          </h2>
           <button
             type="button"
             aria-label="Close"
             onClick={onClose}
-            className="cursor-pointer text-text-muted transition-colors duration-200 ease-standard hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+            className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-muted transition-colors duration-200 ease-standard hover:bg-muted hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
           >
             <svg
               width="20"

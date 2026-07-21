@@ -1,22 +1,21 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useSignInPrompt } from "./SignInPromptProvider";
 
 const SESSION_KEY = "hm-guest-prompted";
 
 /**
- * Elevated conversion CTA after browsing — card-surface + dismiss, distinct
- * from the quiet GuestHeroBanner orientation strip at the top.
+ * Once-per-session sign-in prompt when the guest reaches the bottom of the
+ * board. Sentinel only — header Sign in + gated actions cover the rest.
  */
 export function GuestScrollPrompt() {
   const { promptSignIn } = useSignInPrompt();
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [dismissed, setDismissed] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const card = cardRef.current;
-    if (!card) return;
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
 
     let alreadyPrompted = false;
     try {
@@ -41,7 +40,7 @@ export function GuestScrollPrompt() {
     );
 
     function onScroll() {
-      observer.observe(card!);
+      observer.observe(sentinel!);
     }
     window.addEventListener("scroll", onScroll, { once: true, passive: true });
 
@@ -51,40 +50,5 @@ export function GuestScrollPrompt() {
     };
   }, [promptSignIn]);
 
-  if (dismissed) return null;
-
-  return (
-    <div
-      ref={cardRef}
-      role="region"
-      aria-label="Sign in prompt"
-      className="card-surface flex flex-col items-start gap-3 rounded-lg p-4 sm:flex-row sm:items-center sm:gap-4"
-    >
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-text">
-          Ready to put a take on the board?
-        </p>
-        <p className="mt-1 text-sm text-pretty text-text-muted">
-          Sign in to stake HuskyCoin and climb the leaderboard.
-        </p>
-      </div>
-      <div className="flex shrink-0 items-center gap-2">
-        <button
-          type="button"
-          onClick={promptSignIn}
-          className="rounded-md bg-red px-4 py-2 text-sm font-semibold text-white transition-[colors,transform] duration-200 ease-standard hover:bg-red-hover active:scale-[0.98] focus-visible:outline-red"
-        >
-          Sign in
-        </button>
-        <button
-          type="button"
-          onClick={() => setDismissed(true)}
-          aria-label="Dismiss sign-in prompt"
-          className="rounded-md px-2 py-2 text-sm text-text-muted transition-colors duration-200 ease-standard hover:text-text focus-visible:outline-red"
-        >
-          ×
-        </button>
-      </div>
-    </div>
-  );
+  return <div ref={sentinelRef} aria-hidden="true" className="h-px w-full" />;
 }

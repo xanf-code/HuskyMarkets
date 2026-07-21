@@ -47,8 +47,8 @@ export default async function ShareBetPage({ params }: ShareBetPageProps) {
       </p>
       <p className="mt-4 text-pretty text-sm text-text-muted">
         {card.displayName} backed{" "}
-        <span className="font-semibold text-market-yes">{card.outcomeLabel}</span>{" "}
-        — and the board paid out.
+        <span className="font-semibold text-market-yes">{card.outcomeLabel}</span>
+        .
       </p>
       <div className="mt-10 border-t border-hairline pt-6">
         <Link href={`/market/${card.marketId}`} className={buttonStyles()}>

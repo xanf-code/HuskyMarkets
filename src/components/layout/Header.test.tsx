@@ -12,12 +12,14 @@ vi.mock("@/lib/supabase/client", () => ({
 }));
 
 describe("Header", () => {
-  it("shows nav and the provided balance slot for an authenticated user", () => {
+  it("keeps full primary nav in the DOM for authenticated users (visible from md up; phones use BottomNav)", () => {
     render(<Header authenticated balance={<div>1,050 HC</div>} />);
 
     const nav = screen.getByRole("navigation", { name: /primary/i });
     expect(within(nav).getByRole("link", { name: /markets/i })).toBeInTheDocument();
     expect(within(nav).getByRole("link", { name: /portfolio/i })).toBeInTheDocument();
+    expect(within(nav).getByRole("link", { name: /leaderboard/i })).toBeInTheDocument();
+    expect(within(nav).getByRole("link", { name: /create/i })).toBeInTheDocument();
     expect(within(nav).queryByRole("link", { name: /profile/i })).not.toBeInTheDocument();
     expect(screen.getByText(/1,050 HC/)).toBeInTheDocument();
   });

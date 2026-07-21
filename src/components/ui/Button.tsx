@@ -34,9 +34,10 @@ const variants: Record<Variant, string> = {
 };
 
 const sizes: Record<Size, string> = {
-  sm: "px-3 py-2 text-sm",
-  md: "px-4 py-2.5 text-sm",
-  lg: "px-5 py-3 text-base",
+  // min-h keeps ≥44px touch targets even when padding looks denser.
+  sm: "min-h-11 px-3 py-2 text-sm",
+  md: "min-h-11 px-4 py-2.5 text-sm",
+  lg: "min-h-12 px-5 py-3 text-base",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(

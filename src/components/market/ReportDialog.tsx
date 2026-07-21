@@ -38,7 +38,7 @@ export function ReportDialog({ marketId }: ReportDialogProps) {
           setDone(false);
           setError(null);
         }}
-        className="self-start rounded-md border border-hairline px-3 py-2 text-sm font-semibold text-text-muted transition-colors hover:border-border-strong hover:text-text focus-visible:outline-red"
+        className="inline-flex min-h-11 self-start items-center rounded-md border border-hairline px-3 text-sm font-semibold text-text-muted transition-colors hover:border-border-strong hover:text-text focus-visible:outline-red"
       >
         Report market
       </button>

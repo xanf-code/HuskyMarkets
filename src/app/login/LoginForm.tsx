@@ -48,11 +48,11 @@ export function LoginForm() {
   if (sentTo) {
     return (
       <div className="card-surface p-6">
-        <p className="text-2xl font-semibold text-text">Link&apos;s on its way</p>
+        <p className="text-xl font-semibold text-text">Check your email</p>
         <p className="mt-2 text-pretty text-sm text-text-muted">
-          Sent a sign-in link to{" "}
+          Sign-in link sent to{" "}
           <span className="font-semibold text-text">{sentTo}</span>. Open it on
-          this device — then you&apos;re on the board.
+          this device.
         </p>
       </div>
     );

@@ -19,7 +19,8 @@ describe("LockedLeaderboard", () => {
     render(<LockedLeaderboard />);
 
     expect(
-      screen.getByRole("button", { name: /sign in to view/i }),
+      screen.getByRole("button", { name: /^sign in$/i }),
     ).toBeInTheDocument();
+    expect(screen.getByText(/sign in to view rankings/i)).toBeInTheDocument();
   });
 });

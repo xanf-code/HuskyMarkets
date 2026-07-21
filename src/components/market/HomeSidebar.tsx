@@ -23,9 +23,8 @@ export function getTopMovers(markets: readonly MarketListItem[]): MoverRow[] {
 }
 
 /**
- * Top-movers banner strip: sits below search/filters (and guest intro),
- * above the main feed. Derived from the already-fetched market list —
- * no extra queries.
+ * Top-movers strip: sits below search/filters, above the main feed.
+ * Derived from the already-fetched market list — no extra queries.
  */
 export function HomeSidebar({ markets }: { markets: MarketListItem[] }) {
   const moverRows = getTopMovers(markets);
@@ -34,7 +33,7 @@ export function HomeSidebar({ markets }: { markets: MarketListItem[] }) {
 
   return (
     <section aria-label="Top movers" className="flex flex-col gap-2 sm:gap-3">
-      <h2 className="eyebrow text-text-muted">Top movers</h2>
+      <h2 className="text-sm font-semibold text-text">Top movers</h2>
       {/* Mobile: horizontal snap-scroll carousel so the feed below stays
           within reach — a stacked grid here pushed users too far down.
           sm+: reverts to a static grid, plenty of width to spare. */}
