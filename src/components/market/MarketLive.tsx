@@ -113,6 +113,8 @@ interface LiveOrderPanelProps {
   question?: string;
   /** Guest browsing: the panel renders but every interaction prompts sign-in. */
   guest?: boolean;
+  /** Deep-link outcome id from `?outcome=`. */
+  initialOutcomeId?: string;
 }
 
 export function LiveOrderPanel(props: LiveOrderPanelProps) {
@@ -127,6 +129,7 @@ export function LiveOrderPanel(props: LiveOrderPanelProps) {
       balance={props.balance}
       question={props.question}
       guest={props.guest}
+      initialOutcomeId={props.initialOutcomeId}
       onFill={applyFill}
     />
   );

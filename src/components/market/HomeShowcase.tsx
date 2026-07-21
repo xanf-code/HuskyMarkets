@@ -1,3 +1,4 @@
+import { Fragment, type ReactNode } from "react";
 import Link from "next/link";
 import { CATEGORIES } from "@/lib/constants";
 import type { MarketListItem } from "@/lib/queries/markets";
@@ -11,23 +12,34 @@ const CARDS_PER_CATEGORY = 6;
  * 6 markets; the header link opens the filtered full list.
  * Filtering/searching swaps this for the live grid.
  */
-export function HomeShowcase({ markets }: { markets: MarketListItem[] }) {
+export function HomeShowcase({
+  markets,
+  afterFirstSection,
+}: {
+  markets: MarketListItem[];
+  /** Injected after the first category (e.g. mobile Top movers). */
+  afterFirstSection?: ReactNode;
+}) {
   if (markets.length === 0) {
     return (
       <EmptyState
-        title="No markets in this category yet"
-        description="Check back soon, or browse the full board."
+        title="No open markets right now"
+        description="Check back soon, or create one for campus."
         action={
-          <Link
-            href="/"
-            className="text-sm font-semibold text-red hover:text-red-hover focus-visible:outline-red"
-          >
-            Browse all markets
-          </Link>
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+            <Link
+              href="/create"
+              className="text-sm font-semibold text-red hover:text-red-hover focus-visible:outline-red"
+            >
+              Create a market
+            </Link>
+          </div>
         }
       />
     );
   }
+
+  let firstSection = true;
 
   return (
     <div className="flex flex-col gap-8 sm:gap-10">
@@ -36,9 +48,9 @@ export function HomeShowcase({ markets }: { markets: MarketListItem[] }) {
           .filter((m) => m.category === category.value)
           .slice(0, CARDS_PER_CATEGORY);
         if (list.length === 0) return null;
-        return (
+
+        const section = (
           <section
-            key={category.value}
             aria-label={`${category.label} markets`}
             className="flex flex-col gap-3"
           >
@@ -64,6 +76,18 @@ export function HomeShowcase({ markets }: { markets: MarketListItem[] }) {
             </div>
           </section>
         );
+
+        if (firstSection && afterFirstSection) {
+          firstSection = false;
+          return (
+            <Fragment key={category.value}>
+              {section}
+              {afterFirstSection}
+            </Fragment>
+          );
+        }
+        firstSection = false;
+        return <Fragment key={category.value}>{section}</Fragment>;
       })}
     </div>
   );

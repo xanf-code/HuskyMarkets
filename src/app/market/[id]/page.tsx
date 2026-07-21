@@ -30,6 +30,11 @@ const ET_DATETIME = new Intl.DateTimeFormat("en-US", {
 
 interface MarketPageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+function first(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
 }
 
 interface MarketMetadataProps {
@@ -53,10 +58,13 @@ export async function generateMetadata({
 
 export default async function MarketPage({
   params,
+  searchParams,
 }: MarketPageProps) {
   const { id } = await params;
-  // Legacy `?side=yes|no` deep links degrade gracefully: the parameter is
-  // ignored, no outcome is preselected (A-4).
+  const query = await searchParams;
+  // `?outcome=<id>` preselects that side on the bet ticket. Legacy
+  // `?side=yes|no` deep links degrade gracefully (ignored, A-4).
+  const requestedOutcome = first(query.outcome);
   const detail = await getMarketDetail(id);
   if (!detail) notFound();
 
@@ -65,6 +73,11 @@ export default async function MarketPage({
     CATEGORIES.find((c) => c.value === market.category)?.label ??
     market.category;
   const totalStaked = detail.position.reduce((sum, p) => sum + p.stake, 0);
+  const initialOutcomeId =
+    requestedOutcome &&
+    detail.outcomes.some((outcome) => outcome.id === requestedOutcome)
+      ? requestedOutcome
+      : undefined;
 
   return (
     <MarketLiveProvider
@@ -107,6 +120,7 @@ export default async function MarketPage({
             balance={detail.balance}
             question={market.title}
             guest={detail.isGuest}
+            initialOutcomeId={initialOutcomeId}
           />
           {totalStaked > 0 ? (
             <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-text-muted">

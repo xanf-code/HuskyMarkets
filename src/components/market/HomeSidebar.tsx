@@ -23,37 +23,55 @@ export function getTopMovers(markets: readonly MarketListItem[]): MoverRow[] {
 }
 
 /**
- * Top-movers strip: sits below search/filters, above the main feed.
+ * Top movers — strip (carousel/grid) or rail (vertical stack for lg sidebar).
  * Derived from the already-fetched market list — no extra queries.
  */
-export function HomeSidebar({ markets }: { markets: MarketListItem[] }) {
+export function HomeSidebar({
+  markets,
+  layout = "strip",
+}: {
+  markets: MarketListItem[];
+  layout?: "strip" | "rail";
+}) {
   const moverRows = getTopMovers(markets);
 
   if (moverRows.length === 0) return null;
 
+  const listClass =
+    layout === "rail"
+      ? "flex flex-col gap-2"
+      : "no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto sm:grid sm:snap-none sm:grid-cols-2 sm:overflow-visible lg:grid-cols-4";
+
   return (
     <section aria-label="Top movers" className="flex flex-col gap-2 sm:gap-3">
       <h2 className="text-sm font-semibold text-text">Top movers</h2>
-      {/* Mobile: horizontal snap-scroll carousel so the feed below stays
-          within reach — a stacked grid here pushed users too far down.
-          sm+: reverts to a static grid, plenty of width to spare. */}
-      <div className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto sm:grid sm:snap-none sm:grid-cols-2 sm:overflow-visible lg:grid-cols-4">
+      <div className={listClass}>
         {moverRows.map((row) => (
-          <MoverCard key={row.market.id} row={row} />
+          <MoverCard key={row.market.id} row={row} layout={layout} />
         ))}
       </div>
     </section>
   );
 }
 
-function MoverCard({ row }: { row: MoverRow }) {
+function MoverCard({
+  row,
+  layout,
+}: {
+  row: MoverRow;
+  layout: "strip" | "rail";
+}) {
   const { market, delta } = row;
   const leader = leadingOutcome(market.outcomes);
   const up = delta > 0;
   return (
     <Link
       href={`/market/${market.id}`}
-      className="card-surface flex w-[78%] shrink-0 snap-start items-center gap-3 px-4 py-3 transition-[box-shadow,border-color,background-color] duration-200 ease-standard hover:border-border-strong hover:bg-muted hover:shadow-card-hover focus-visible:outline-red sm:w-auto sm:shrink"
+      className={`card-surface flex items-center gap-3 px-4 py-3 transition-[box-shadow,border-color,background-color] duration-200 ease-standard hover:border-border-strong hover:bg-muted hover:shadow-card-hover focus-visible:outline-red ${
+        layout === "rail"
+          ? "w-full"
+          : "w-[78%] shrink-0 snap-start sm:w-auto sm:shrink"
+      }`}
     >
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="line-clamp-2 text-sm font-medium text-text">

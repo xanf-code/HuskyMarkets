@@ -18,7 +18,15 @@ export default function LoginPage() {
         </p>
       </div>
       {/* useSearchParams (the ?next= return path) requires a Suspense boundary. */}
-      <Suspense>
+      <Suspense
+        fallback={
+          <div className="flex flex-col gap-4" aria-hidden="true">
+            <div className="h-4 w-36 rounded bg-muted" />
+            <div className="h-12 w-full rounded-md bg-muted" />
+            <div className="h-11 w-48 rounded-md bg-muted" />
+          </div>
+        }
+      >
         <LoginForm />
       </Suspense>
     </div>

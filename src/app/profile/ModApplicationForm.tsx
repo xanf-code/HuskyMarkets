@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { applyForModerator } from "@/actions/mod";
 import { Button } from "@/components/ui/Button";
+import { InlineError } from "@/components/ui/InlineError";
 
 export function ModApplicationForm() {
   const [statement, setStatement] = useState("");
@@ -43,16 +44,12 @@ export function ModApplicationForm() {
           rows={4}
           value={statement}
           onChange={(e) => setStatement(e.target.value)}
-          className="w-full rounded-md border border-hairline bg-card px-4 py-3 text-base text-text placeholder:text-text-tertiary focus:border-red focus:outline-none sm:px-5 sm:py-4"
+          className="w-full rounded-md border border-hairline bg-card px-4 py-3 text-base text-text placeholder:text-text-tertiary transition-colors duration-200 ease-standard focus:border-red focus:outline-none sm:px-5 sm:py-4"
           placeholder="Campus knowledge, fairness instincts, spare evenings…"
         />
       </label>
-      {error ? (
-        <p role="alert" className="text-sm text-market-no">
-          {error}
-        </p>
-      ) : null}
-      <Button type="submit" disabled={loading} className="w-full sm:w-auto">
+      {error ? <InlineError>{error}</InlineError> : null}
+      <Button type="submit" loading={loading} className="w-full sm:w-auto">
         {loading ? "Submitting…" : "Apply to be a moderator"}
       </Button>
     </form>

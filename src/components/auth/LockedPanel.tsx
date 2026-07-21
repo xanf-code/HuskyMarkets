@@ -6,6 +6,7 @@
 // LockedLeaderboard, the leaderboard.
 
 import { useSignInPrompt } from "./SignInPromptProvider";
+import { Button } from "@/components/ui/Button";
 
 export type LockedPanelVariant = "activity" | "leaderboard";
 
@@ -97,13 +98,9 @@ export function LockedPanel({ variant }: LockedPanelProps) {
       </div>
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-b from-page/10 via-page/60 to-page/90 px-4 text-center">
         <p className="text-balance text-sm font-semibold text-text">{label}</p>
-        <button
-          type="button"
-          onClick={promptSignIn}
-          className="rounded-md border border-border-strong bg-card px-4 py-2 text-sm font-semibold text-text transition-[colors,transform] duration-200 ease-standard hover:bg-muted active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
-        >
+        <Button type="button" variant="secondary" onClick={promptSignIn}>
           Sign in
-        </button>
+        </Button>
       </div>
     </div>
   );

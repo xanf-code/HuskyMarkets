@@ -255,7 +255,7 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
             type="button"
             onClick={addLabel}
             disabled={!canAdd}
-            className="cursor-pointer rounded-md border border-hairline bg-muted px-3 py-2 text-sm font-semibold text-text transition-colors duration-200 ease-standard hover:border-border-strong focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex min-h-11 cursor-pointer items-center rounded-md border border-hairline bg-muted px-3 py-2 text-sm font-semibold text-text transition-colors duration-200 ease-standard hover:border-border-strong focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-40"
           >
             + Add outcome
           </button>
@@ -317,9 +317,9 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
           placeholder="Resolves to the outcome matching the official MBTA Tracker on-time report for Friday service."
         />
         {fieldErrors.resolutionCriteria ? (
-          <p id="resolutionCriteria-error" role="alert" className="mt-1 text-xs text-market-no break-words">
+          <InlineError id="resolutionCriteria-error" className="mt-1 text-xs">
             {fieldErrors.resolutionCriteria}
-          </p>
+          </InlineError>
         ) : null}
       </label>
 

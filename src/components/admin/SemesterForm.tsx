@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { closeSemester, upsertSemester } from "@/actions/admin";
 import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { InlineError } from "@/components/ui/InlineError";
 import { Input } from "@/components/ui/Input";
 import type { SemesterRow } from "@/lib/queries/admin";
 
@@ -51,11 +53,7 @@ export function SemesterForm({ semesters }: { semesters: SemesterRow[] }) {
 
   return (
     <div className="flex flex-col gap-8">
-      {error ? (
-        <p role="alert" className="text-sm text-market-no">
-          {error}
-        </p>
-      ) : null}
+      {error ? <InlineError>{error}</InlineError> : null}
       {message ? <p className="text-sm text-text-muted">{message}</p> : null}
 
       <form
@@ -74,9 +72,7 @@ export function SemesterForm({ semesters }: { semesters: SemesterRow[] }) {
       </form>
 
       {semesters.length === 0 ? (
-        <p className="rounded-md bg-muted px-4 py-8 text-center text-sm text-text-muted">
-          No semesters configured yet.
-        </p>
+        <EmptyState title="No semesters configured yet" />
       ) : (
         <ul className="card-surface divide-y divide-hairline overflow-hidden">
           {semesters.map((s) => (

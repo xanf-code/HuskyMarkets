@@ -65,6 +65,29 @@ describe("OrderPanel", () => {
     expect(no).toHaveAttribute("aria-pressed", "false");
   });
 
+  it("preselects the deep-linked outcome when initialOutcomeId is valid", () => {
+    renderPanel({ initialOutcomeId: "o-no" });
+    expect(screen.getByRole("button", { name: /No 33%/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: /Yes 67%/ })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+    expect(
+      screen.getByRole("button", { name: /Buy No · 33%/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("falls back to the first outcome when initialOutcomeId is unknown", () => {
+    renderPanel({ initialOutcomeId: "missing" });
+    expect(screen.getByRole("button", { name: /Yes 67%/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  });
+
   it("labels the submit with the selected outcome and price", () => {
     renderPanel();
     expect(

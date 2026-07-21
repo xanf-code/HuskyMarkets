@@ -1,4 +1,5 @@
 import { forwardRef, type InputHTMLAttributes } from "react";
+import { InlineError } from "@/components/ui/InlineError";
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -24,9 +25,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         <>
           {field}
           {error ? (
-            <p id={errorId} role="alert" className="mt-1 text-xs text-market-no break-words">
+            <InlineError id={errorId} className="mt-1 text-xs">
               {error}
-            </p>
+            </InlineError>
           ) : null}
         </>
       );
@@ -38,9 +39,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         </span>
         {field}
         {error ? (
-          <p id={errorId} role="alert" className="mt-1 text-xs text-market-no break-words">
+          <InlineError id={errorId} className="mt-1 text-xs">
             {error}
-          </p>
+          </InlineError>
         ) : null}
       </label>
     );

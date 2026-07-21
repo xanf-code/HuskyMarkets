@@ -6,6 +6,7 @@ import { useSignInPrompt } from "@/components/auth/SignInPromptProvider";
 import { Button } from "@/components/ui/Button";
 import { HcAmount } from "@/components/ui/HcAmount";
 import { HuskyCoinIcon } from "@/components/icons/HuskyCoinIcon";
+import { InlineError } from "@/components/ui/InlineError";
 import { useToast } from "@/components/ui/Toast";
 import { CAP_PER_MARKET } from "@/lib/constants";
 import type { Database } from "@/lib/database.types";
@@ -39,6 +40,21 @@ interface OrderPanelProps {
   guest?: boolean;
   /** Reports a successful fill so live consumers (hero price, chart, stats) update optimistically. */
   onFill?: (fill: { outcomes: OutcomeState[] }) => void;
+  /** Deep-link from market cards (`?outcome=`). Must match an outcome id. */
+  initialOutcomeId?: string;
+}
+
+function resolveInitialOutcome(
+  outcomes: OutcomeState[],
+  initialOutcomeId?: string,
+): string | undefined {
+  if (
+    initialOutcomeId &&
+    outcomes.some((outcome) => outcome.id === initialOutcomeId)
+  ) {
+    return initialOutcomeId;
+  }
+  return outcomes[0]?.id;
 }
 
 export function OrderPanel(props: OrderPanelProps) {
@@ -50,8 +66,8 @@ export function OrderPanel(props: OrderPanelProps) {
     props.position.reduce((sum, p) => sum + p.stake, 0),
   );
   const [balance, setBalance] = useState(props.balance);
-  const [outcomeId, setOutcomeId] = useState<string | undefined>(
-    props.outcomes[0]?.id,
+  const [outcomeId, setOutcomeId] = useState<string | undefined>(() =>
+    resolveInitialOutcome(props.outcomes, props.initialOutcomeId),
   );
   const [amountInput, setAmountInput] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -168,7 +184,7 @@ export function OrderPanel(props: OrderPanelProps) {
                 guest ? promptSignIn() : setOutcomeId(outcome.id)
               }
               disabled={!open}
-              className={`num flex min-h-11 w-full items-center justify-between gap-3 cursor-pointer rounded border px-3 py-2.5 text-sm font-medium transition-all duration-150 ease-standard focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-40 ${
+              className={`num flex min-h-11 w-full items-center justify-between gap-3 cursor-pointer rounded-md border px-3 py-2.5 text-sm font-medium transition-all duration-150 ease-standard focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-40 ${
                 selectedOutcome
                   ? "border-red bg-red/10 text-text"
                   : "border-hairline bg-muted text-text hover:border-border-strong hover:bg-card active:bg-card"
@@ -278,11 +294,7 @@ export function OrderPanel(props: OrderPanelProps) {
         {CLOSE_DATE.format(new Date(props.closeAt))}
       </p>
 
-      {error ? (
-        <p role="alert" className="text-sm text-market-no break-words">
-          {error}
-        </p>
-      ) : null}
+      {error ? <InlineError>{error}</InlineError> : null}
 
       <Button
         onClick={submit}

@@ -73,7 +73,7 @@ export function MarketCard({
             href={`/market/${market.id}`}
             className="min-w-0 flex-1 focus-visible:outline-red"
           >
-            <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-text sm:text-base">
+            <h3 className="line-clamp-2 text-base font-semibold leading-snug text-text">
               {market.title}
             </h3>
           </Link>
@@ -110,10 +110,10 @@ export function MarketCard({
               key={outcome.id}
               href={`/market/${market.id}?outcome=${outcome.id}`}
               aria-label={`Bet ${outcome.label} — ${formatPercent(outcome.implied)} — ${market.title}`}
-              className="flex min-h-11 items-center justify-between rounded-md border border-hairline bg-muted px-3 text-sm font-semibold text-text transition-transform duration-200 ease-standard hover:scale-[0.98] hover:border-border-strong active:scale-[0.98] active:border-border-strong focus-visible:outline-red"
+              className="flex min-h-11 items-center justify-between gap-2 rounded-md border border-hairline bg-muted px-3 text-sm font-semibold text-text transition-transform duration-200 ease-standard hover:scale-[0.98] hover:border-border-strong active:scale-[0.98] active:border-border-strong focus-visible:outline-red"
             >
-              <span className="truncate">{outcome.label}</span>
-              <span className="num text-text-muted">
+              <span className="min-w-0 truncate">{outcome.label}</span>
+              <span className="num shrink-0 text-text-muted">
                 {formatPercent(outcome.implied)}
               </span>
             </Link>

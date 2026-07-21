@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { buttonStyles } from "@/components/ui/Button";
 import { UserMenu } from "./UserMenu";
 
 const NAV_ITEMS = [
@@ -77,7 +78,7 @@ export function Header({ authenticated, balance }: HeaderProps) {
           </div>
         </nav>
 
-        {authenticated ? (
+        {authenticated && (
           <>
             <div className="min-w-0 flex-1 md:hidden" aria-hidden="true" />
             <span className="flex shrink-0 items-center gap-2 sm:gap-3">
@@ -85,13 +86,6 @@ export function Header({ authenticated, balance }: HeaderProps) {
               <UserMenu />
             </span>
           </>
-        ) : (
-          <Link
-            href="/login"
-            className="inline-flex min-h-11 shrink-0 items-center rounded-md bg-red px-4 text-sm font-semibold text-white transition-colors duration-200 ease-standard hover:bg-red-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
-          >
-            Sign in
-          </Link>
         )}
       </div>
     </header>

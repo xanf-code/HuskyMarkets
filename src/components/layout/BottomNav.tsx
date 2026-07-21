@@ -38,7 +38,7 @@ export function BottomNav() {
               className={`flex min-h-12 min-w-0 flex-1 items-center justify-center px-1 text-xs font-semibold transition-colors duration-200 ease-standard focus-visible:outline-red ${
                 active
                   ? "text-red"
-                  : "text-text-muted active:bg-muted active:text-text"
+                  : "text-text-muted hover:bg-muted hover:text-text active:bg-muted active:text-text"
               }`}
             >
               <span

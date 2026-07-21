@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { HcAmount } from "@/components/ui/HcAmount";
 import type { HallOfFameEntry } from "@/lib/queries/leaderboard";
@@ -8,6 +9,14 @@ export function HallOfFame({ entries }: { entries: HallOfFameEntry[] }) {
       <EmptyState
         title="No past semester winners yet"
         description="Rankings lock in when a semester ends."
+        action={
+          <Link
+            href="/"
+            className="text-sm font-semibold text-red hover:text-red-hover focus-visible:outline-red"
+          >
+            Browse markets
+          </Link>
+        }
       />
     );
   }

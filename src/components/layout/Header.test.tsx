@@ -33,7 +33,7 @@ describe("Header", () => {
     expect(screen.queryByRole("link", { name: /sign in/i })).not.toBeInTheDocument();
   });
 
-  it("shows the trimmed guest nav and a Sign in link for an unauthenticated visitor", () => {
+  it("shows the trimmed guest nav with no sign-in button for an unauthenticated visitor", () => {
     render(<Header authenticated={false} />);
 
     const nav = screen.getByRole("navigation", { name: /primary/i });
@@ -43,12 +43,8 @@ describe("Header", () => {
     expect(within(nav).queryByRole("link", { name: /create/i })).not.toBeInTheDocument();
     expect(within(nav).queryByRole("link", { name: /profile/i })).not.toBeInTheDocument();
 
-    const loginLink = screen.getByRole("link", { name: /sign in/i });
-    expect(loginLink).toBeInTheDocument();
-    expect(loginLink).toHaveAttribute("href", "/login");
+    expect(screen.queryByRole("link", { name: /sign in/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/1,050 HC/)).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: /sign out/i }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /sign out/i })).not.toBeInTheDocument();
   });
 });
