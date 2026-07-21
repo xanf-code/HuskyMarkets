@@ -1,35 +1,55 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { Dialog } from "@/components/ui/Dialog";
 import { useSignInPrompt } from "./SignInPromptProvider";
 
 const SESSION_KEY = "hm-guest-prompted";
 
+function hasBeenPrompted(): boolean {
+  try {
+    return sessionStorage.getItem(SESSION_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function markPrompted() {
+  try {
+    sessionStorage.setItem(SESSION_KEY, "1");
+  } catch {
+    // Storage unavailable — modal will reappear on next mount, acceptable.
+  }
+}
+
 /**
- * Once-per-session guest invite at the bottom of the board.
- * Visible card with Sign in + Dismiss — no surprise modal on scroll.
+ * Invisible sentinel at the bottom of the guest board. When it scrolls into
+ * view (once per session), a CTA modal invites the guest to sign in.
  */
 export function GuestScrollPrompt() {
   const { promptSignIn } = useSignInPrompt();
-  const [visible, setVisible] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    try {
-      if (sessionStorage.getItem(SESSION_KEY) === "1") return;
-    } catch {
-      // Private mode — still show the invite.
-    }
-    setVisible(true);
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      if (!entries[0].isIntersecting) return;
+      if (hasBeenPrompted()) return;
+      observer.disconnect();
+      setOpen(true);
+    });
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
   }, []);
 
   function dismiss() {
-    try {
-      sessionStorage.setItem(SESSION_KEY, "1");
-    } catch {
-      // Storage unavailable — hide for this mount only.
-    }
-    setVisible(false);
+    markPrompted();
+    setOpen(false);
   }
 
   function onSignIn() {
@@ -37,30 +57,27 @@ export function GuestScrollPrompt() {
     promptSignIn();
   }
 
-  if (!visible) return null;
-
   return (
-    <aside
-      aria-label="Sign in to place bets"
-      className="card-surface flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-5"
-    >
-      <div className="min-w-0">
-        <p className="text-sm font-semibold text-balance text-text">
-          You&apos;re browsing as a guest
-        </p>
-        <p className="mt-1 text-pretty text-sm text-text-muted">
+    <>
+      <div ref={sentinelRef} data-guest-sentinel aria-hidden="true" />
+      <Dialog
+        open={open}
+        onClose={dismiss}
+        title="Join HuskyMarkets"
+      >
+        <p className="text-sm text-text-muted">
           Sign in with your Northeastern email to place your first bet — free
           HuskyCoin, no real money.
         </p>
-      </div>
-      <div className="flex shrink-0 flex-wrap items-center gap-2">
-        <Button type="button" onClick={onSignIn}>
-          Sign in
-        </Button>
-        <Button type="button" variant="ghost" onClick={dismiss}>
-          Not now
-        </Button>
-      </div>
-    </aside>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Button type="button" onClick={onSignIn}>
+            Sign in
+          </Button>
+          <Button type="button" variant="ghost" onClick={dismiss}>
+            Not now
+          </Button>
+        </div>
+      </Dialog>
+    </>
   );
 }
