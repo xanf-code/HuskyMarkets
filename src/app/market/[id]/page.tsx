@@ -112,7 +112,7 @@ export default async function MarketPage({
           <LiveStatusBanner />
         </div>
 
-        <div className="order-2 lg:col-start-2 lg:row-start-1 lg:row-span-3 lg:sticky lg:top-24">
+        <div className="order-3 lg:col-start-2 lg:row-start-1 lg:row-span-3 lg:sticky lg:top-24">
           <LiveOrderPanel
             marketId={market.id}
             closeAt={market.close_at}
@@ -136,7 +136,7 @@ export default async function MarketPage({
           ) : null}
         </div>
 
-        <div className="order-3 lg:col-start-1 lg:row-start-2">
+        <div className="order-2 lg:col-start-1 lg:row-start-2">
           <LivePrice />
           <div className="mt-4">
             <LiveChart />
