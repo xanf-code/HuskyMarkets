@@ -4,6 +4,11 @@ import { Header } from "./Header";
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/",
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+}));
+
+vi.mock("@/lib/supabase/client", () => ({
+  createClient: () => ({ auth: { signOut: vi.fn() } }),
 }));
 
 describe("Header", () => {
@@ -13,8 +18,17 @@ describe("Header", () => {
     const nav = screen.getByRole("navigation", { name: /primary/i });
     expect(within(nav).getByRole("link", { name: /markets/i })).toBeInTheDocument();
     expect(within(nav).getByRole("link", { name: /portfolio/i })).toBeInTheDocument();
-    expect(within(nav).getByRole("link", { name: /profile/i })).toBeInTheDocument();
+    expect(within(nav).queryByRole("link", { name: /profile/i })).not.toBeInTheDocument();
     expect(screen.getByText(/1,050 HC/)).toBeInTheDocument();
+  });
+
+  it("shows a user menu button for an authenticated user", () => {
+    render(<Header authenticated balance={<div>1,050 HC</div>} />);
+
+    expect(
+      screen.getByRole("button", { name: /user menu/i }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /log in/i })).not.toBeInTheDocument();
   });
 
   it("shows the trimmed guest nav and a Log in link for an unauthenticated visitor", () => {
@@ -31,5 +45,8 @@ describe("Header", () => {
     expect(loginLink).toBeInTheDocument();
     expect(loginLink).toHaveAttribute("href", "/login");
     expect(screen.queryByText(/1,050 HC/)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /sign out/i }),
+    ).not.toBeInTheDocument();
   });
 });

@@ -31,7 +31,7 @@ function item(overrides: Partial<MarketListItem>): MarketListItem {
     createdAt: "2026-07-10T00:00:00Z",
     outcomes: [YES, NO],
     volume: 100,
-    bettorCount: 0,
+    bettorCount: 2,
     spark: [50, 67],
     ...overrides,
   };
@@ -112,7 +112,38 @@ describe("getMarketList", () => {
     return builder;
   }
 
+  it("skips the bets query and returns bettorCount: null for guests", async () => {
+    getSession.mockResolvedValue(null);
+    const marketsBuilder = chainable({
+      data: [
+        {
+          id: "m1",
+          title: "Will it snow before finals?",
+          category: "weather",
+          close_at: "2026-07-20T00:00:00Z",
+          created_at: "2026-07-10T00:00:00Z",
+          market_outcomes: [
+            { id: "o-yes", label: "Yes", sort_order: 0, pool: 200 },
+            { id: "o-no", label: "No", sort_order: 1, pool: 100 },
+          ],
+        },
+      ],
+      error: null,
+    });
+    const historyBuilder = chainable({ data: [], error: null });
+    from.mockImplementation((table: string) => {
+      if (table === "markets") return marketsBuilder;
+      return historyBuilder;
+    });
+
+    const list = await getMarketList({});
+
+    expect(list[0].bettorCount).toBeNull();
+    expect(from).not.toHaveBeenCalledWith("bets");
+  });
+
   it("fetches markets with embedded outcomes in one query and shapes list items", async () => {
+    getSession.mockResolvedValue({ userId: "u1", email: null });
     const marketsBuilder = chainable({
       data: [
         {
@@ -177,6 +208,7 @@ describe("getMarketList", () => {
   });
 
   it("returns an empty list without fetching history when no markets are open", async () => {
+    getSession.mockResolvedValue({ userId: "u1", email: null });
     const marketsBuilder = chainable({ data: [], error: null });
     from.mockImplementation(() => marketsBuilder);
 

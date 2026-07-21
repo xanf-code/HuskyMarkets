@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { UserMenu } from "./UserMenu";
 
 const NAV_ITEMS = [
   { href: "/", label: "Markets" },
   { href: "/portfolio", label: "Portfolio" },
   { href: "/leaderboard", label: "Leaderboard" },
   { href: "/create", label: "Create" },
-  { href: "/profile", label: "Profile" },
 ];
 
 const GUEST_NAV_ITEMS = [
@@ -71,11 +71,14 @@ export function Header({ authenticated, balance }: HeaderProps) {
         </nav>
 
         {authenticated ? (
-          balance
+          <span className="flex shrink-0 items-center gap-2 sm:gap-3">
+            {balance}
+            <UserMenu />
+          </span>
         ) : (
           <Link
             href="/login"
-            className="shrink-0 rounded-md border border-border-strong bg-card px-4 py-2 text-sm font-semibold text-text transition-colors duration-200 ease-standard hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+            className="shrink-0 rounded-md bg-red px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 ease-standard hover:bg-red/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
           >
             Log in
           </Link>

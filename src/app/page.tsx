@@ -10,7 +10,7 @@ import {
   type Category,
   type MarketSort,
 } from "@/lib/constants";
-import { getSession } from "@/lib/dal";
+import { getSession, verifySession } from "@/lib/dal";
 import { getMarketList } from "@/lib/queries/markets";
 
 interface HomeProps {
@@ -36,6 +36,7 @@ export default async function Home({ searchParams }: HomeProps) {
       : undefined,
     q,
   };
+  if (filters.category) await verifySession();
   const markets = await getMarketList(filters);
   // React-cached in the layout too, so this session read is free.
   const session = await getSession();

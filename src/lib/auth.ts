@@ -13,7 +13,11 @@ export function isNeuEmail(email: string): boolean {
  * rejected to prevent open redirects.
  */
 export function safeReturnPath(next: string | null): string | null {
-  if (!next || !next.startsWith("/") || next.startsWith("//")) return null;
+  // Reject protocol-relative ("//evil"), backslash-relative ("/\evil"), and
+  // anything that doesn't start with "/" — all potential open-redirect vectors.
+  if (!next || !next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) {
+    return null;
+  }
   return next;
 }
 

@@ -60,4 +60,9 @@ describe("safeReturnPath", () => {
     expect(safeReturnPath(null)).toBeNull();
     expect(safeReturnPath("")).toBeNull();
   });
+
+  it("rejects backslash-prefixed paths (open redirect via /\\evil.com)", () => {
+    expect(safeReturnPath("/\\evil.com")).toBeNull();
+    expect(safeReturnPath("/\\\\evil.com")).toBeNull();
+  });
 });

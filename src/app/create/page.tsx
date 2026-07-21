@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { MAX_OUTCOMES } from "@/lib/constants";
+import { verifySession } from "@/lib/dal";
 import { createClient } from "@/lib/supabase/server";
 import { CreateMarketForm } from "./CreateMarketForm";
 
@@ -8,6 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default async function CreatePage() {
+  await verifySession();
   const supabase = await createClient();
   const { data: cfg } = await supabase
     .from("app_config")

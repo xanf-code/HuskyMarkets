@@ -52,6 +52,22 @@ describe("SignInPromptProvider", () => {
     ).toHaveAttribute("href", "/login?next=%2Fmarket%2Fabc-123");
   });
 
+  it("closes the dialog when the login link is clicked", async () => {
+    const user = userEvent.setup();
+    render(
+      <SignInPromptProvider>
+        <Trigger />
+      </SignInPromptProvider>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "gated action" }));
+    await user.click(
+      screen.getByRole("link", { name: /log in with northeastern email/i }),
+    );
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
   it("dismisses on close and can be prompted again", async () => {
     const user = userEvent.setup();
     render(

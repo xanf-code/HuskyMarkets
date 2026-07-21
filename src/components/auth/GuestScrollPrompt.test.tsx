@@ -9,12 +9,17 @@ vi.mock("@/components/auth/SignInPromptProvider", () => ({
 }));
 
 let intersectionCallback: IntersectionObserverCallback;
-const observe = vi.fn();
-const disconnect = vi.fn();
+let isObserving = false;
+const observe = vi.fn(() => { isObserving = true; });
+const disconnect = vi.fn(() => { isObserving = false; });
 
 class MockIntersectionObserver {
   constructor(cb: IntersectionObserverCallback) {
-    intersectionCallback = cb;
+    // Capture the callback but only invoke it when the sentinel is actually
+    // being observed — matching real IntersectionObserver behaviour.
+    intersectionCallback = (entries, obs) => {
+      if (isObserving) cb(entries, obs);
+    };
   }
   observe = observe;
   disconnect = disconnect;
@@ -32,15 +37,32 @@ function intersect() {
   });
 }
 
+function scroll() {
+  act(() => {
+    window.dispatchEvent(new Event("scroll"));
+  });
+}
+
 describe("GuestScrollPrompt", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     sessionStorage.clear();
+    isObserving = false;
   });
 
-  it("prompts sign-in when the bottom sentinel scrolls into view", () => {
+  it("does not prompt if the sentinel intersects at mount before any scroll", () => {
     render(<GuestScrollPrompt />);
 
+    // sentinel is already in the viewport at mount — no scroll yet
+    intersect();
+
+    expect(promptSignIn).not.toHaveBeenCalled();
+  });
+
+  it("prompts sign-in when the sentinel scrolls into view after a scroll event", () => {
+    render(<GuestScrollPrompt />);
+
+    scroll();
     intersect();
 
     expect(promptSignIn).toHaveBeenCalledTimes(1);
@@ -67,6 +89,7 @@ describe("GuestScrollPrompt", () => {
     });
     render(<GuestScrollPrompt />);
 
+    scroll();
     intersect();
 
     expect(promptSignIn).toHaveBeenCalledTimes(1);

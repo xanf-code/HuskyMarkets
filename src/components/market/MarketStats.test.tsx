@@ -24,7 +24,7 @@ describe("MarketStats", () => {
     expect(pools).toHaveTextContent("300");
   });
 
-  it("renders a dash for the predictor count when it is locked for guests", () => {
+  it("renders a lock icon for the predictor count when it is locked for guests", () => {
     render(
       <MarketStats
         outcomes={[
@@ -36,7 +36,7 @@ describe("MarketStats", () => {
     );
 
     const predictors = screen.getByText("Predictors").parentElement!;
-    expect(predictors.textContent).toContain("—");
+    expect(predictors.querySelector('svg[aria-label="Locked"]')).toBeInTheDocument();
     expect(predictors.textContent).not.toContain("0");
   });
 });

@@ -23,7 +23,11 @@ export function SignInDialog({ open, onClose }: SignInDialogProps) {
           email to place predictions, track your portfolio, and climb the
           leaderboard.
         </p>
-        <Link href={loginHref} className={`${buttonStyles({ size: "lg" })} w-full`}>
+        <Link
+          href={loginHref}
+          onClick={onClose}
+          className={`${buttonStyles({ size: "lg" })} w-full`}
+        >
           Log in with Northeastern email
         </Link>
       </div>
