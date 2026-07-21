@@ -17,15 +17,19 @@ describe("Header", () => {
     expect(screen.getByText(/1,050 HC/)).toBeInTheDocument();
   });
 
-  it("shows a Log in link for an unauthenticated visitor", () => {
+  it("shows the trimmed guest nav and a Log in link for an unauthenticated visitor", () => {
     render(<Header authenticated={false} />);
+
+    const nav = screen.getByRole("navigation", { name: /primary/i });
+    expect(within(nav).getByRole("link", { name: /markets/i })).toBeInTheDocument();
+    expect(within(nav).getByRole("link", { name: /leaderboard/i })).toBeInTheDocument();
+    expect(within(nav).queryByRole("link", { name: /portfolio/i })).not.toBeInTheDocument();
+    expect(within(nav).queryByRole("link", { name: /create/i })).not.toBeInTheDocument();
+    expect(within(nav).queryByRole("link", { name: /profile/i })).not.toBeInTheDocument();
 
     const loginLink = screen.getByRole("link", { name: /log in/i });
     expect(loginLink).toBeInTheDocument();
     expect(loginLink).toHaveAttribute("href", "/login");
     expect(screen.queryByText(/1,050 HC/)).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("navigation", { name: /primary/i }),
-    ).not.toBeInTheDocument();
   });
 });

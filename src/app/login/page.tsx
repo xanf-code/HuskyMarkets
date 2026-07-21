@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { LoginForm } from "./LoginForm";
 
 export const metadata: Metadata = {
@@ -16,7 +17,10 @@ export default function LoginPage() {
           Magic-link sign-in for Northeastern students. No password needed.
         </p>
       </div>
-      <LoginForm />
+      {/* useSearchParams (the ?next= return path) requires a Suspense boundary. */}
+      <Suspense>
+        <LoginForm />
+      </Suspense>
     </div>
   );
 }

@@ -5,7 +5,8 @@ import type { OutcomeState } from "@/lib/outcomes";
 interface MarketStatsProps {
   outcomes: OutcomeState[];
   volume: number;
-  bettorCount: number;
+  /** Null for guests: predictor counts are locked with the activity feed. */
+  bettorCount: number | null;
 }
 
 export function MarketStats({
@@ -15,7 +16,10 @@ export function MarketStats({
 }: MarketStatsProps) {
   const stats: { label: string; value: ReactNode }[] = [
     { label: "Volume", value: <HcAmount amount={volume} /> },
-    { label: "Predictors", value: String(bettorCount) },
+    {
+      label: "Predictors",
+      value: bettorCount === null ? "—" : String(bettorCount),
+    },
     {
       label: "Pools",
       value: (

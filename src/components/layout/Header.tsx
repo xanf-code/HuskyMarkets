@@ -12,6 +12,11 @@ const NAV_ITEMS = [
   { href: "/profile", label: "Profile" },
 ];
 
+const GUEST_NAV_ITEMS = [
+  { href: "/", label: "Markets" },
+  { href: "/leaderboard", label: "Leaderboard" },
+];
+
 interface HeaderProps {
   authenticated: boolean;
   /** Server-rendered balance chip, passed as a slot since Header is a client component. */
@@ -20,34 +25,7 @@ interface HeaderProps {
 
 export function Header({ authenticated, balance }: HeaderProps) {
   const pathname = usePathname();
-
-  // Unauthenticated visitors see a minimal header with a Log in link so they can
-  // always find their way to the login page.
-  if (!authenticated) {
-    return (
-      <header className="sticky top-0 z-40 border-b border-hairline bg-card/95 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-          <Link
-            href="/"
-            className="flex shrink-0 items-baseline gap-1.5 whitespace-nowrap focus-visible:outline-red"
-          >
-            <span className="brand-serif text-xl text-text sm:text-2xl">
-              Husky
-            </span>
-            <span className="text-xl font-bold text-red sm:text-2xl">
-              Markets
-            </span>
-          </Link>
-          <Link
-            href="/login"
-            className="rounded-md border border-border-strong bg-card px-4 py-2 text-sm font-semibold text-text transition-colors duration-200 ease-standard hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
-          >
-            Log in
-          </Link>
-        </div>
-      </header>
-    );
-  }
+  const items = authenticated ? NAV_ITEMS : GUEST_NAV_ITEMS;
 
   return (
     <header className="sticky top-0 z-40 border-b border-hairline bg-card/95 backdrop-blur-sm">
@@ -69,7 +47,7 @@ export function Header({ authenticated, balance }: HeaderProps) {
           className="min-w-0 flex-1 overflow-x-auto"
         >
           <div className="flex items-center gap-1 sm:gap-2">
-            {NAV_ITEMS.map((item) => {
+            {items.map((item) => {
               const active =
                 item.href === "/"
                   ? pathname === "/"
@@ -92,7 +70,16 @@ export function Header({ authenticated, balance }: HeaderProps) {
           </div>
         </nav>
 
-        {balance}
+        {authenticated ? (
+          balance
+        ) : (
+          <Link
+            href="/login"
+            className="shrink-0 rounded-md border border-border-strong bg-card px-4 py-2 text-sm font-semibold text-text transition-colors duration-200 ease-standard hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+          >
+            Log in
+          </Link>
+        )}
       </div>
     </header>
   );

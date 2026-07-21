@@ -17,6 +17,9 @@ const { useMarketChannel } = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/realtime/useMarketChannel", () => ({ useMarketChannel }));
+vi.mock("@/components/auth/SignInPromptProvider", () => ({
+  useSignInPrompt: () => ({ promptSignIn: vi.fn() }),
+}));
 
 class MockIntersectionObserver {
   observe = vi.fn();
@@ -97,7 +100,11 @@ describe("MarketLive", () => {
 
     // volume = 450 − 200 seed
     expect(screen.getByLabelText("250 HC")).toBeInTheDocument();
-    expect(screen.getByText("Yes 300 / No 150")).toBeInTheDocument();
+    const pools = screen.getByRole("list");
+    expect(pools).toHaveTextContent("Yes");
+    expect(pools).toHaveTextContent("300");
+    expect(pools).toHaveTextContent("No");
+    expect(pools).toHaveTextContent("150");
   });
 
   it("renders the live activity feed", () => {

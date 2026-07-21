@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { GuestScrollPrompt } from "@/components/auth/GuestScrollPrompt";
 import { HomeShowcase } from "@/components/market/HomeShowcase";
 import { getTopMovers, HomeSidebar } from "@/components/market/HomeSidebar";
 import { MarketFilters } from "@/components/market/MarketFilters";
@@ -9,6 +10,7 @@ import {
   type Category,
   type MarketSort,
 } from "@/lib/constants";
+import { getSession } from "@/lib/dal";
 import { getMarketList } from "@/lib/queries/markets";
 
 interface HomeProps {
@@ -35,6 +37,8 @@ export default async function Home({ searchParams }: HomeProps) {
     q,
   };
   const markets = await getMarketList(filters);
+  // React-cached in the layout too, so this session read is free.
+  const session = await getSession();
   // Sidebar always reflects the *unfiltered* pool so the rail stays useful
   // while browsing a category. Cheap: campus-scale list already in memory.
   const allMarkets =
@@ -58,6 +62,7 @@ export default async function Home({ searchParams }: HomeProps) {
           <MarketGridLive initial={markets} />
         )}
       </div>
+      {!session && <GuestScrollPrompt />}
     </div>
   );
 }

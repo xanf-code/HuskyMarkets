@@ -1,8 +1,9 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { isNeuEmail } from "@/lib/auth";
+import { isNeuEmail, safeReturnPath } from "@/lib/auth";
 import { Button } from "@/components/ui/Button";
 
 export function LoginForm() {
@@ -10,6 +11,7 @@ export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const searchParams = useSearchParams();
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -23,13 +25,16 @@ export function LoginForm() {
       return;
     }
 
+    const next = safeReturnPath(searchParams.get("next"));
+    const emailRedirectTo = next
+      ? `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=${encodeURIComponent(next)}`
+      : `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`;
+
     setLoading(true);
     const supabase = createClient();
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email: value,
-      options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
-      },
+      options: { emailRedirectTo },
     });
     setLoading(false);
 

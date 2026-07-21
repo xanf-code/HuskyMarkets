@@ -89,7 +89,7 @@ export function LiveStatusBanner() {
   );
 }
 
-export function LiveStats({ bettorCount }: { bettorCount: number }) {
+export function LiveStats({ bettorCount }: { bettorCount: number | null }) {
   const { market } = useMarketLive();
   return (
     <MarketStats
@@ -111,6 +111,8 @@ interface LiveOrderPanelProps {
   position: PositionEntry[];
   balance: number;
   question?: string;
+  /** Guest browsing: the panel renders but every interaction prompts sign-in. */
+  guest?: boolean;
 }
 
 export function LiveOrderPanel(props: LiveOrderPanelProps) {
@@ -124,6 +126,7 @@ export function LiveOrderPanel(props: LiveOrderPanelProps) {
       position={props.position}
       balance={props.balance}
       question={props.question}
+      guest={props.guest}
       onFill={applyFill}
     />
   );

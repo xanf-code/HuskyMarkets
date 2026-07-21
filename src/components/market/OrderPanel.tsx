@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { placeBet } from "@/actions/bets";
+import { useSignInPrompt } from "@/components/auth/SignInPromptProvider";
 import { Button } from "@/components/ui/Button";
 import { HcAmount } from "@/components/ui/HcAmount";
 import { HuskyCoinIcon } from "@/components/icons/HuskyCoinIcon";
@@ -34,12 +35,16 @@ interface OrderPanelProps {
   balance: number;
   /** Optional market question, rendered as a small context line above the outcome. */
   question?: string;
+  /** Guest browsing: controls stay enabled but every interaction prompts sign-in. */
+  guest?: boolean;
   /** Reports a successful fill so live consumers (hero price, chart, stats) update optimistically. */
   onFill?: (fill: { outcomes: OutcomeState[] }) => void;
 }
 
 export function OrderPanel(props: OrderPanelProps) {
   const toast = useToast();
+  const { promptSignIn } = useSignInPrompt();
+  const guest = props.guest ?? false;
   const [outcomes, setOutcomes] = useState(props.outcomes);
   const [staked, setStaked] = useState(
     props.position.reduce((sum, p) => sum + p.stake, 0),
@@ -93,6 +98,10 @@ export function OrderPanel(props: OrderPanelProps) {
     valid && selected ? estimatePayout(amount, selected.pool, total) : 0;
 
   async function submit() {
+    if (guest) {
+      promptSignIn();
+      return;
+    }
     if (!valid || pending || !selected) return;
     setPending(true);
     setError(null);
@@ -154,7 +163,9 @@ export function OrderPanel(props: OrderPanelProps) {
               key={outcome.id}
               type="button"
               aria-pressed={selectedOutcome}
-              onClick={() => setOutcomeId(outcome.id)}
+              onClick={() =>
+                guest ? promptSignIn() : setOutcomeId(outcome.id)
+              }
               disabled={!open}
               className={`num flex w-full items-center justify-between gap-3 cursor-pointer rounded border px-3 py-2 text-sm font-medium transition-all duration-150 ease-standard focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-40 ${
                 selectedOutcome
@@ -168,6 +179,7 @@ export function OrderPanel(props: OrderPanelProps) {
                 )}
                 {outcome.label}
               </span>
+              {" "}
               <span className="num shrink-0 text-text-muted">
                 {formatPercent(outcome.implied)}
               </span>
@@ -188,6 +200,13 @@ export function OrderPanel(props: OrderPanelProps) {
           max={maxStake}
           value={amountInput}
           onChange={(event) => setAmountInput(event.target.value)}
+          readOnly={guest}
+          onFocus={(event) => {
+            if (guest) {
+              event.currentTarget.blur();
+              promptSignIn();
+            }
+          }}
           disabled={!open}
           aria-label="Amount (HuskyCoin)"
           placeholder="0"
@@ -200,8 +219,12 @@ export function OrderPanel(props: OrderPanelProps) {
           <button
             key={quick}
             type="button"
-            onClick={() => setAmountInput(String(Math.min(quick, maxStake)))}
-            disabled={!open || maxStake === 0}
+            onClick={() =>
+              guest
+                ? promptSignIn()
+                : setAmountInput(String(Math.min(quick, maxStake)))
+            }
+            disabled={!open || (!guest && maxStake === 0)}
             className="num cursor-pointer rounded-pill border border-hairline bg-muted px-3 py-1.5 text-sm text-text-muted transition-colors duration-200 ease-standard hover:border-border-strong hover:text-text focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-50"
           >
             {quick}
@@ -209,8 +232,10 @@ export function OrderPanel(props: OrderPanelProps) {
         ))}
         <button
           type="button"
-          onClick={() => setAmountInput(String(maxStake))}
-          disabled={!open || maxStake === 0}
+          onClick={() =>
+            guest ? promptSignIn() : setAmountInput(String(maxStake))
+          }
+          disabled={!open || (!guest && maxStake === 0)}
           className="num cursor-pointer rounded-pill border border-hairline bg-muted px-3 py-1.5 text-sm text-text-muted transition-colors duration-200 ease-standard hover:border-border-strong hover:text-text focus-visible:outline-red disabled:cursor-not-allowed disabled:opacity-50"
         >
           Max
@@ -227,13 +252,13 @@ export function OrderPanel(props: OrderPanelProps) {
         <div className="flex items-baseline justify-between gap-3">
           <dt className="shrink-0 text-text-muted">Balance</dt>
           <dd className="whitespace-nowrap text-text">
-            <HcAmount amount={balance} size={14} />
+            {guest ? "—" : <HcAmount amount={balance} size={14} />}
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="shrink-0 text-text-muted">Cap remaining</dt>
           <dd className="whitespace-nowrap text-text">
-            <HcAmount amount={capRemaining} size={14} />
+            {guest ? "—" : <HcAmount amount={capRemaining} size={14} />}
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3 border-t border-hairline pt-3">
@@ -257,7 +282,7 @@ export function OrderPanel(props: OrderPanelProps) {
 
       <Button
         onClick={submit}
-        disabled={!open || !valid || pending}
+        disabled={!open || (!guest && (!valid || pending))}
         className="w-full"
       >
         {submitLabel}

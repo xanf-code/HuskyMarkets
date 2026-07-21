@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { LockedPanel } from "@/components/auth/LockedPanel";
 import { Countdown } from "@/components/market/Countdown";
 import {
   LiveActivity,
@@ -112,6 +113,7 @@ export default async function MarketPage({
             position={detail.position}
             balance={detail.balance}
             question={market.title}
+            guest={detail.isGuest}
           />
           {totalStaked > 0 ? (
             <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-text-muted">
@@ -166,7 +168,11 @@ export default async function MarketPage({
             <h2 className="mb-3 text-sm font-semibold text-text">
               Recent activity
             </h2>
-            <LiveActivity />
+            {detail.isGuest ? (
+              <LockedPanel variant="activity" />
+            ) : (
+              <LiveActivity />
+            )}
           </section>
         </div>
       </div>

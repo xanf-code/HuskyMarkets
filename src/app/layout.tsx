@@ -3,6 +3,7 @@ import { Hanken_Grotesk, IBM_Plex_Mono, Source_Serif_4 } from "next/font/google"
 import { cookies } from "next/headers";
 import { Suspense } from "react";
 import "./globals.css";
+import { SignInPromptProvider } from "@/components/auth/SignInPromptProvider";
 import { BalanceChip } from "@/components/layout/BalanceChip";
 import { DailyBonusClaimer } from "@/components/layout/DailyBonusClaimer";
 import { Header } from "@/components/layout/Header";
@@ -52,22 +53,24 @@ export default async function RootLayout({
     >
       <body className="min-h-full bg-page font-sans text-text">
         <ToastProvider>
-          <Header
-            authenticated={Boolean(user)}
-            balance={
-              user ? (
-                <Suspense
-                  fallback={<Skeleton className="h-8 w-24 rounded-pill" />}
-                >
-                  <BalanceChip />
-                </Suspense>
-              ) : null
-            }
-          />
-          {user ? <DailyBonusClaimer /> : null}
-          <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
-            {children}
-          </main>
+          <SignInPromptProvider>
+            <Header
+              authenticated={Boolean(user)}
+              balance={
+                user ? (
+                  <Suspense
+                    fallback={<Skeleton className="h-8 w-24 rounded-pill" />}
+                  >
+                    <BalanceChip />
+                  </Suspense>
+                ) : null
+              }
+            />
+            {user ? <DailyBonusClaimer /> : null}
+            <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
+              {children}
+            </main>
+          </SignInPromptProvider>
         </ToastProvider>
       </body>
     </html>

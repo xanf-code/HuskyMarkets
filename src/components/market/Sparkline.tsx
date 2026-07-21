@@ -13,15 +13,22 @@ interface SparklineProps {
   label: string;
   /** Outcome sort_order; picks the series color from the shared palette. */
   colorIndex: number;
+  /** Sizing override; defaults to the tiny card height. */
+  className?: string;
 }
 
 /** Tiny trend line for market cards: recent implied prices, no axes. */
-export function Sparkline({ points, label, colorIndex }: SparklineProps) {
+export function Sparkline({
+  points,
+  label,
+  colorIndex,
+  className = "h-10 w-full",
+}: SparklineProps) {
   const data = points.map((price, i) => ({ i, price }));
 
   return (
     <div
-      className="h-10 w-full"
+      className={className}
       role="img"
       aria-label={`${label} price trend`}
     >

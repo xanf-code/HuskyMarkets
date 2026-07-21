@@ -1,19 +1,43 @@
 import type { Metadata } from "next";
 import { LeaderboardTabs } from "@/components/leaderboard/LeaderboardTabs";
+import { LockedLeaderboard } from "@/components/leaderboard/LockedLeaderboard";
 import {
   getAccuracyBoard,
   getCurrentSemester,
   getHallOfFame,
   getSemesterBoard,
 } from "@/lib/queries/leaderboard";
-import { verifySession } from "@/lib/dal";
+import { getSession } from "@/lib/dal";
 
 export const metadata: Metadata = {
   title: "Leaderboard · HuskyMarkets",
 };
 
+function Hero() {
+  return (
+    <div className="rounded-lg bg-inverse px-6 py-8 text-white sm:px-8">
+      <h1 className="text-3xl font-semibold sm:text-4xl">By the numbers</h1>
+      <p className="mt-2 text-sm text-white/72">
+        Semester scores start everyone at 1,000 HuskyCoin. Accuracy needs ten
+        resolved bets.
+      </p>
+    </div>
+  );
+}
+
 export default async function LeaderboardPage() {
-  const { userId } = await verifySession();
+  const session = await getSession();
+
+  // Guests see the hero and a fade-locked placeholder — none of the board
+  // queries fire, so no standings data leaves the server.
+  if (!session) {
+    return (
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 py-8 sm:py-12">
+        <Hero />
+        <LockedLeaderboard />
+      </div>
+    );
+  }
 
   const semester = await getCurrentSemester();
   const [semesterEntries, accuracyEntries, hallOfFame] = await Promise.all([
@@ -24,18 +48,12 @@ export default async function LeaderboardPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 py-8 sm:py-12">
-      <div className="rounded-lg bg-inverse px-6 py-8 text-white sm:px-8">
-        <h1 className="text-3xl font-semibold sm:text-4xl">By the numbers</h1>
-        <p className="mt-2 text-sm text-white/72">
-          Semester scores start everyone at 1,000 HuskyCoin. Accuracy needs ten
-          resolved bets.
-        </p>
-      </div>
+      <Hero />
       <LeaderboardTabs
         semesterEntries={semesterEntries}
         accuracyEntries={accuracyEntries}
         hallOfFame={hallOfFame}
-        currentUserId={userId}
+        currentUserId={session.userId}
         semesterName={semester?.name}
       />
     </div>
