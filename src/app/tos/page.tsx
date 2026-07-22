@@ -10,8 +10,8 @@ const TERMS = [
     body: "HuskyCoin (HC) is a virtual play-money token. It is not money, not a security, and not redeemable for anything. It cannot be bought, sold, cashed out, or transferred outside the app.",
   },
   {
-    heading: "No purchases, no prizes",
-    body: "There is nothing to buy on HuskyMarkets and nothing of monetary value to win. Balances, bonuses, bailouts, and leaderboard placements exist for entertainment and bragging rights only.",
+    heading: "No purchases",
+    body: "There is nothing to buy on HuskyMarkets. Balances, bonuses, bailouts, and leaderboard placements exist for entertainment and bragging rights only.",
   },
   {
     heading: "Northeastern community only",

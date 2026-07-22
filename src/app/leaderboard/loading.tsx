@@ -8,6 +8,7 @@ export default function Loading() {
         <Skeleton className="h-9 w-56" />
         <Skeleton className="mt-2 h-4 w-80" />
       </div>
+      <Skeleton className="h-[4.5rem] w-full rounded-lg" />
       <div className="flex gap-4 border-b border-hairline">
         {["semester", "accuracy", "fame"].map((k) => (
           <Skeleton key={k} className="h-9 w-28" />

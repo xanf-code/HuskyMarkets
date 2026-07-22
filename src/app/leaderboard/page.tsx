@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { LeaderboardPrizeCard } from "@/components/leaderboard/LeaderboardPrizeCard";
 import { LeaderboardTabs } from "@/components/leaderboard/LeaderboardTabs";
 import { LockedLeaderboard } from "@/components/leaderboard/LockedLeaderboard";
 import {
@@ -36,6 +37,7 @@ export default async function LeaderboardPage() {
     return (
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 py-8 sm:py-12">
         <Hero />
+        <LeaderboardPrizeCard />
         <LockedLeaderboard />
       </div>
     );
@@ -51,6 +53,7 @@ export default async function LeaderboardPage() {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 py-8 sm:py-12">
       <Hero />
+      <LeaderboardPrizeCard />
       <LeaderboardTabs
         semesterEntries={semesterEntries}
         accuracyEntries={accuracyEntries}
