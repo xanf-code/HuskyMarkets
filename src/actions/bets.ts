@@ -11,8 +11,8 @@ import { createClient } from "@/lib/supabase/server";
 import type { ActionResult } from "./profile";
 
 const placeBetSchema = z.object({
-  marketId: z.uuid(),
-  outcomeId: z.uuid(),
+  marketId: z.string().min(1),
+  outcomeId: z.string().min(1),
   amount: z
     .number()
     .int("Whole HC only.")
