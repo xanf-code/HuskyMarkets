@@ -9,6 +9,8 @@
 //      snapshot per outcome after each bet (same formula as place_bet / cron).
 //   3. Append a final "now" snapshot from live pools so the right edge matches
 //      the Buy panel odds even when seed/bet math drifted.
+//   4. Densify long gaps (6h carry-forward) so charts span calendar days and
+//      the rolling 24h movers window has a real baseline after reseed.
 //
 // Idempotent: safe to re-run; always rebuilds from bets + live pools.
 //
@@ -21,9 +23,13 @@ if (process.env.SEED_ENV !== "dev") {
 }
 
 import {
+  densifyPriceHistory,
   impliedFromPools,
   replayPriceHistory,
 } from "../src/lib/seed-plan";
+
+/** 6h carry-forward so the rolling 24h movers window has a real baseline. */
+const DENSIFY_STEP_MS = 6 * 60 * 60 * 1000;
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -135,9 +141,10 @@ async function rebuildMarket(market: Market): Promise<number> {
   // 50/50 for weeks when the market was created long before any bets.
   const openAtMs = Math.max(createdMs, firstBetMs - DAY);
 
-  // Replay bets only — Recharts monotone curves connect the trade stamps.
-  // Skip carry-forward densify: long flat plateaus read as fake seed data.
-  const rows = replayPriceHistory(outcomes.length, replayBets, { openAtMs });
+  // Replay bets, append live pools, then densify gaps so charts span calendar
+  // time and the rolling 24h movers window has a pre-now baseline (not only a
+  // flat "now" pair that zeros out change24h after every reseed).
+  let rows = replayPriceHistory(outcomes.length, replayBets, { openAtMs });
 
   // Final live-pool snapshot so the chart right edge matches the Buy panel.
   const nowMs = Date.now();
@@ -154,6 +161,7 @@ async function rebuildMarket(market: Market): Promise<number> {
       });
     }
   }
+  rows = densifyPriceHistory(rows, DENSIFY_STEP_MS);
 
   await pgDelete("/price_history", { market_id: `eq.${market.id}` });
 

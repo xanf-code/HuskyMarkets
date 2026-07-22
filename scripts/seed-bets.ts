@@ -15,11 +15,14 @@
 //      pre-validated against the cap with the same helper the unit tests cover.
 //   4. Assert verify_ledger_invariant() is balanced at the end.
 //
-// Re-runnable / idempotent: seed users are only created when absent, and only
-// markets with < 10 bets are touched.
+// Re-runnable / idempotent: seed users are only created when absent.
+// Default mode only touches markets with 0 bets. Boost mode
+// (SEED_MODE=boost) randomly adds more predictors + bets to every open
+// market while respecting the FR-9 500 HC per-user aggregate cap.
 //
 // Usage from repo root:
 //   SEED_ENV=dev npx tsx --env-file=.env.local scripts/seed-bets.ts
+//   SEED_ENV=dev SEED_MODE=boost npx tsx --env-file=.env.local scripts/seed-bets.ts
 
 // Non-prod guard (S6-1): refuse to run unless explicitly marked as a dev seed.
 if (process.env.SEED_ENV !== "dev") {
@@ -27,10 +30,13 @@ if (process.env.SEED_ENV !== "dev") {
   process.exit(1);
 }
 
+import { CAP_PER_MARKET } from "../src/lib/constants";
 import { capViolations, staggerWave, type SeedBet } from "../src/lib/seed-plan";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+/** `boost` = add random predictors/bets to every open market; default = empty markets only. */
+const SEED_MODE = process.env.SEED_MODE === "boost" ? "boost" : "fresh";
 
 if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
   console.error("Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
@@ -183,7 +189,29 @@ const SEED_USERS = [
   { email: "bob.seed@northeastern.edu",   password: "HuskyM4rkets!Bob" },
   { email: "carol.seed@northeastern.edu", password: "HuskyM4rkets!Carol" },
   { email: "dan.seed@northeastern.edu",   password: "HuskyM4rkets!Dan" },
+  // Extra predictors for boost runs / denser bettor counts
+  { email: "eve.seed@northeastern.edu",   password: "HuskyM4rkets!Eve" },
+  { email: "frank.seed@northeastern.edu", password: "HuskyM4rkets!Frank" },
+  { email: "grace.seed@northeastern.edu", password: "HuskyM4rkets!Grace" },
+  { email: "hank.seed@northeastern.edu",  password: "HuskyM4rkets!Hank" },
+  { email: "ivy.seed@northeastern.edu",   password: "HuskyM4rkets!Ivy" },
+  { email: "jake.seed@northeastern.edu",  password: "HuskyM4rkets!Jake" },
+  { email: "kate.seed@northeastern.edu",  password: "HuskyM4rkets!Kate" },
+  { email: "leo.seed@northeastern.edu",   password: "HuskyM4rkets!Leo" },
 ];
+
+function shuffle<T>(items: T[]): T[] {
+  const out = [...items];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
+function randInt(min: number, max: number): number {
+  return min + Math.floor(Math.random() * (max - min + 1));
+}
 
 // ── Bet wave templates ────────────────────────────────────────────────────────
 // outcomeIdx is taken modulo the market's outcome count, so the same waves
@@ -467,7 +495,7 @@ async function main() {
     jwts.push(await signIn(u.email, u.password));
   }
 
-  // ── 2. Find open markets with fewer than 10 bets ──────────────────────────
+  // ── 2. Place bets ─────────────────────────────────────────────────────────
 
   const allMarkets = await pgGet<
     {
@@ -485,67 +513,153 @@ async function main() {
     limit: "70",
   });
 
-  console.log(`\nFound ${allMarkets.length} open markets total.`);
-
-  const withCounts = await Promise.all(
-    allMarkets.map(async (m) => {
-      const count = await countRows("/bets", { market_id: `eq.${m.id}`, select: "id" });
-      return { market: m, betCount: count };
-    }),
-  );
-
-  // Only untouched markets — partial waves (< 10) must not get a second wave
-  // or the FR-9 aggregate cap will fire on re-runs.
-  const eligible = withCounts.filter(
-    ({ betCount, market }) => betCount === 0 && market.market_outcomes.length >= 2,
-  );
-  const byCategory = new Map<string, number>();
-  const targets = eligible.map(({ market }) => {
-    byCategory.set(market.category, (byCategory.get(market.category) ?? 0) + 1);
-    return market;
-  });
-  console.log(
-    `Category coverage: ${[...byCategory.entries()]
-      .map(([c, n]) => `${c}=${n}`)
-      .join(", ")}`,
-  );
-
-  if (targets.length === 0) {
-    console.log("All markets already have 10+ bets — nothing to seed.");
-    process.exit(0);
-  }
-
-  console.log(`Seeding bets into ${targets.length} markets…\n`);
-
-  // ── 3. Place bets through the engine RPC ─────────────────────────────────
+  console.log(`\nFound ${allMarkets.length} open markets total. Mode=${SEED_MODE}`);
 
   let totalBetsInserted = 0;
 
-  for (let mi = 0; mi < targets.length; mi++) {
-    const market = targets[mi];
-    const waveIdx = mi % BET_WAVES.length;
-    const wave = staggerWave(BET_WAVES[waveIdx], WAVE_SPANS_SECS[waveIdx]);
-    const outcomes = [...market.market_outcomes].sort(
-      (a, b) => a.sort_order - b.sort_order,
-    );
+  if (SEED_MODE === "boost") {
+    // Random top-up: more predictors + bets on every open market, respecting
+    // the per-user 500 HC aggregate cap (FR-9).
+    const NEW_PREDICTORS_PER_MARKET = { min: 4, max: 8 };
+    const BETS_PER_NEW_PREDICTOR = { min: 1, max: 2 };
+    const AMOUNT = { min: 20, max: 80 };
+    const SPAN_SECS = 4 * DAY;
 
-    console.log(
-      `[${mi + 1}/${targets.length}] ${market.title.substring(0, 60)} (${outcomes.length} outcomes, span ${Math.round(WAVE_SPANS_SECS[waveIdx] / DAY)}d)`,
-    );
-
-    for (const tmpl of wave) {
-      const outcome = outcomes[tmpl.outcomeIdx % outcomes.length];
-      const placed = await placeBet(
-        jwts[tmpl.userIdx],
-        market.id,
-        outcome.id,
-        tmpl.amount,
+    for (let mi = 0; mi < allMarkets.length; mi++) {
+      const market = allMarkets[mi];
+      const outcomes = [...market.market_outcomes].sort(
+        (a, b) => a.sort_order - b.sort_order,
       );
-      await backdateBet(market.id, placed.bet_id, tmpl.secsAgo);
-      totalBetsInserted++;
+      if (outcomes.length < 2) continue;
+
+      const existing = await pgGet<{ user_id: string; amount: number }[]>(
+        "/bets",
+        {
+          select: "user_id,amount",
+          market_id: `eq.${market.id}`,
+        },
+      );
+      const spent = new Map<string, number>();
+      const alreadyOn = new Set<string>();
+      for (const b of existing) {
+        spent.set(b.user_id, (spent.get(b.user_id) ?? 0) + b.amount);
+        alreadyOn.add(b.user_id);
+      }
+
+      // Prefer users not yet on this market; fall back to anyone with headroom.
+      const freshIdx = resolvedUserIds
+        .map((id, idx) => ({ id, idx }))
+        .filter(
+          ({ id }) =>
+            !alreadyOn.has(id) &&
+            CAP_PER_MARKET - (spent.get(id) ?? 0) >= AMOUNT.min,
+        );
+      const roomyIdx = resolvedUserIds
+        .map((id, idx) => ({ id, idx }))
+        .filter(
+          ({ id }) => CAP_PER_MARKET - (spent.get(id) ?? 0) >= AMOUNT.min,
+        );
+      const pool = shuffle(freshIdx.length >= NEW_PREDICTORS_PER_MARKET.min ? freshIdx : roomyIdx);
+      const take = Math.min(
+        pool.length,
+        randInt(NEW_PREDICTORS_PER_MARKET.min, NEW_PREDICTORS_PER_MARKET.max),
+      );
+      const chosen = pool.slice(0, take);
+
+      let placedHere = 0;
+      const planned: { userIdx: number; outcomeIdx: number; amount: number; secsAgo: number }[] = [];
+      for (const { id, idx } of chosen) {
+        const betsForUser = randInt(BETS_PER_NEW_PREDICTOR.min, BETS_PER_NEW_PREDICTOR.max);
+        for (let b = 0; b < betsForUser; b++) {
+          const headroom = CAP_PER_MARKET - (spent.get(id) ?? 0);
+          if (headroom < AMOUNT.min) break;
+          const amount = Math.min(headroom, randInt(AMOUNT.min, AMOUNT.max));
+          planned.push({
+            userIdx: idx,
+            outcomeIdx: randInt(0, outcomes.length - 1),
+            amount,
+            secsAgo: 0,
+          });
+          spent.set(id, (spent.get(id) ?? 0) + amount);
+        }
+      }
+
+      const wave = staggerWave(planned, SPAN_SECS);
+      console.log(
+        `[${mi + 1}/${allMarkets.length}] ${market.title.substring(0, 55)} (+${chosen.length} predictors, ${wave.length} bets)`,
+      );
+
+      for (const tmpl of wave) {
+        const outcome = outcomes[tmpl.outcomeIdx % outcomes.length];
+        const placed = await placeBet(
+          jwts[tmpl.userIdx],
+          market.id,
+          outcome.id,
+          tmpl.amount,
+        );
+        await backdateBet(market.id, placed.bet_id, tmpl.secsAgo);
+        totalBetsInserted++;
+        placedHere++;
+      }
+      console.log(`  Placed ${placedHere} bets`);
+    }
+  } else {
+    const withCounts = await Promise.all(
+      allMarkets.map(async (m) => {
+        const count = await countRows("/bets", { market_id: `eq.${m.id}`, select: "id" });
+        return { market: m, betCount: count };
+      }),
+    );
+
+    // Only untouched markets — partial waves must not get a second wave
+    // or the FR-9 aggregate cap will fire on re-runs.
+    const eligible = withCounts.filter(
+      ({ betCount, market }) => betCount === 0 && market.market_outcomes.length >= 2,
+    );
+    const byCategory = new Map<string, number>();
+    const targets = eligible.map(({ market }) => {
+      byCategory.set(market.category, (byCategory.get(market.category) ?? 0) + 1);
+      return market;
+    });
+    console.log(
+      `Category coverage: ${[...byCategory.entries()]
+        .map(([c, n]) => `${c}=${n}`)
+        .join(", ")}`,
+    );
+
+    if (targets.length === 0) {
+      console.log("All markets already have bets — nothing to seed (use SEED_MODE=boost).");
+      process.exit(0);
     }
 
-    console.log(`  Bets placed: ${wave.length}`);
+    console.log(`Seeding bets into ${targets.length} markets…\n`);
+
+    for (let mi = 0; mi < targets.length; mi++) {
+      const market = targets[mi];
+      const waveIdx = mi % BET_WAVES.length;
+      const wave = staggerWave(BET_WAVES[waveIdx], WAVE_SPANS_SECS[waveIdx]);
+      const outcomes = [...market.market_outcomes].sort(
+        (a, b) => a.sort_order - b.sort_order,
+      );
+
+      console.log(
+        `[${mi + 1}/${targets.length}] ${market.title.substring(0, 60)} (${outcomes.length} outcomes, span ${Math.round(WAVE_SPANS_SECS[waveIdx] / DAY)}d)`,
+      );
+
+      for (const tmpl of wave) {
+        const outcome = outcomes[tmpl.outcomeIdx % outcomes.length];
+        const placed = await placeBet(
+          jwts[tmpl.userIdx],
+          market.id,
+          outcome.id,
+          tmpl.amount,
+        );
+        await backdateBet(market.id, placed.bet_id, tmpl.secsAgo);
+        totalBetsInserted++;
+      }
+
+      console.log(`  Bets placed: ${wave.length}`);
+    }
   }
 
   // ── 4. Verification ───────────────────────────────────────────────────────
