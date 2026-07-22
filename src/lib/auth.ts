@@ -25,6 +25,8 @@ export function safeReturnPath(next: string | null): string | null {
 const AUTH_EXEMPT_EXACT = new Set([
   "/login",
   "/tos",
+  // Signed unsubscribe links authenticate themselves with an HMAC token.
+  "/api/email/unsubscribe",
   // App Router metadata icons (served with or without an extension).
   "/icon",
   "/apple-icon",

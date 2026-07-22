@@ -65,6 +65,12 @@ describe("getAuthRedirect", () => {
       expect(getAuthRedirect("/api/og/market/abc-123", false, false)).toBeNull();
     });
 
+    it("allows signed email unsubscribe requests", () => {
+      expect(
+        getAuthRedirect("/api/email/unsubscribe", false, false),
+      ).toBeNull();
+    });
+
     it("allows the auth callback so the magic-link code can be exchanged", () => {
       expect(getAuthRedirect("/auth/callback", false, false)).toBeNull();
     });
@@ -124,6 +130,12 @@ describe("getAuthRedirect", () => {
 
     it("allows public prefixes such as shared bet pages", () => {
       expect(getAuthRedirect("/share/bet/abc-123", true, false)).toBeNull();
+    });
+
+    it("allows signed email unsubscribe requests mid-onboarding", () => {
+      expect(
+        getAuthRedirect("/api/email/unsubscribe", true, false),
+      ).toBeNull();
     });
   });
 
