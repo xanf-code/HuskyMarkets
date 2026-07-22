@@ -1,4 +1,3 @@
-import { Fragment, type ReactNode } from "react";
 import Link from "next/link";
 import { CATEGORIES } from "@/lib/constants";
 import type { MarketListItem } from "@/lib/queries/markets";
@@ -12,14 +11,7 @@ const CARDS_PER_CATEGORY = 6;
  * 6 markets; the header link opens the filtered full list.
  * Filtering/searching swaps this for the live grid.
  */
-export function HomeShowcase({
-  markets,
-  afterFirstSection,
-}: {
-  markets: MarketListItem[];
-  /** Injected after the first category (e.g. mobile Top movers). */
-  afterFirstSection?: ReactNode;
-}) {
+export function HomeShowcase({ markets }: { markets: MarketListItem[] }) {
   if (markets.length === 0) {
     return (
       <EmptyState
@@ -45,8 +37,6 @@ export function HomeShowcase({
     );
   }
 
-  let firstSection = true;
-
   return (
     <div className="flex flex-col gap-8 sm:gap-10">
       {CATEGORIES.map((category) => {
@@ -55,8 +45,9 @@ export function HomeShowcase({
           .slice(0, CARDS_PER_CATEGORY);
         if (list.length === 0) return null;
 
-        const section = (
+        return (
           <section
+            key={category.value}
             aria-label={`${category.label} markets`}
             className="flex flex-col gap-3"
           >
@@ -82,18 +73,6 @@ export function HomeShowcase({
             </div>
           </section>
         );
-
-        if (firstSection && afterFirstSection) {
-          firstSection = false;
-          return (
-            <Fragment key={category.value}>
-              {section}
-              {afterFirstSection}
-            </Fragment>
-          );
-        }
-        firstSection = false;
-        return <Fragment key={category.value}>{section}</Fragment>;
       })}
     </div>
   );

@@ -56,12 +56,6 @@ export default async function Home({ searchParams }: HomeProps) {
     </aside>
   ) : null;
 
-  const moversAfterFirst = hasMovers ? (
-    <div className="lg:hidden">
-      <HomeSidebar markets={allMarkets} />
-    </div>
-  ) : undefined;
-
   return (
     <div className="flex flex-col gap-8 sm:gap-10">
       <h1 className="sr-only">HuskyMarkets - Campus Prediction Markets</h1>
@@ -75,11 +69,16 @@ export default async function Home({ searchParams }: HomeProps) {
         <div
           className={
             hasMovers
-              ? "lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-8"
+              ? "flex flex-col gap-8 sm:gap-10 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-8"
               : undefined
           }
         >
-          <HomeShowcase markets={markets} afterFirstSection={moversAfterFirst} />
+          {hasMovers ? (
+            <div className="lg:hidden">
+              <HomeSidebar markets={allMarkets} />
+            </div>
+          ) : null}
+          <HomeShowcase markets={markets} />
           {moversRail}
         </div>
       ) : (
