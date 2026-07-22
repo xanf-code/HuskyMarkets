@@ -94,7 +94,7 @@ export default async function EditMarketPage({ params }: EditMarketPageProps) {
 
   function toDatetimeLocal(iso: string): string {
     // Slice the UTC ISO string directly so the prefilled value is always in
-    // UTC — matching how localInputToIso() re-parses it on submit (as UTC).
+    // UTC — edit mode explicitly re-parses the wall clock as UTC on submit.
     // Using local-time getters here would format in the server's timezone
     // (UTC on Vercel), while the browser re-parses in the user's TZ, silently
     // shifting close_at/resolve_at by the UTC offset on every save.

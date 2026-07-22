@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CreateMarketForm } from "./CreateMarketForm";
@@ -181,6 +181,30 @@ describe("CreateMarketForm outcomes", () => {
 describe("CreateMarketForm frontend validation", () => {
   afterEach(() => {
     vi.useRealTimers();
+    vi.unstubAllEnvs();
+  });
+
+  it("converts create dates from browser local time to UTC", async () => {
+    vi.stubEnv("TZ", "America/New_York");
+    render(<CreateMarketForm />);
+
+    fillRequiredFields();
+    fireEvent.change(screen.getByLabelText(/closes/i), {
+      target: { value: "2099-07-25T16:00" },
+    });
+    fireEvent.change(screen.getByLabelText(/resolves by/i), {
+      target: { value: "2099-07-26T16:00" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /create market/i }));
+
+    await waitFor(() => {
+      expect(createMarket).toHaveBeenCalledWith(
+        expect.objectContaining({
+          closeAt: "2099-07-25T20:00:00.000Z",
+          resolveAt: "2099-07-26T20:00:00.000Z",
+        }),
+      );
+    });
   });
 
   it("shows an error and blocks the server call when title is fewer than 10 characters", async () => {

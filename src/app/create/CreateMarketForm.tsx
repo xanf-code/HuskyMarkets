@@ -38,12 +38,15 @@ interface CreateMarketFormProps {
   initial?: InitialValues;
 }
 
-/** Convert a datetime-local value (UTC wall clock) to an ISO UTC string. */
-function localInputToIso(value: string): string {
-  // Append "Z" so the browser parses the string as UTC rather than local time.
-  // The edit page prefills inputs via toISOString().slice(0,16) (UTC), so this
-  // must match — otherwise the UTC offset is applied twice on every save.
-  return new Date(value + "Z").toISOString();
+type InputTimezone = "local" | "utc";
+
+/** Convert a datetime-local wall clock to the instant represented by the form. */
+function inputToIso(value: string, timezone: InputTimezone): string {
+  return new Date(`${value}${timezone === "utc" ? "Z" : ""}`).toISOString();
+}
+
+function inputTimestamp(value: string, timezone: InputTimezone): number {
+  return new Date(`${value}${timezone === "utc" ? "Z" : ""}`).getTime();
 }
 
 // One shared collision UX for form and RPC (Missing Consideration 10): the
@@ -64,6 +67,7 @@ function validateFields(
   resolveAt: string,
   resolutionCriteria: string,
   labels: string[],
+  inputTimezone: InputTimezone,
 ): FieldErrors {
   const errors: FieldErrors = {};
 
@@ -75,13 +79,17 @@ function validateFields(
 
   if (!closeAt) {
     errors.closeAt = "Close date is required.";
-  } else if (new Date(closeAt).getTime() <= Date.now()) {
+  } else if (inputTimestamp(closeAt, inputTimezone) <= Date.now()) {
     errors.closeAt = "Close time must be in the future.";
   }
 
   if (!resolveAt) {
     errors.resolveAt = "Resolve date is required.";
-  } else if (closeAt && new Date(resolveAt) < new Date(closeAt)) {
+  } else if (
+    closeAt &&
+    inputTimestamp(resolveAt, inputTimezone) <
+      inputTimestamp(closeAt, inputTimezone)
+  ) {
     errors.resolveAt = "Resolve time must be at or after the close time.";
   }
 
@@ -110,6 +118,10 @@ export function CreateMarketForm({
   initial,
 }: CreateMarketFormProps) {
   const isEdit = mode === "edit";
+  // New markets are entered in the browser's local time. Edit values are
+  // deliberately rendered as UTC by the server page so saves round-trip
+  // without depending on the server or browser timezone.
+  const inputTimezone: InputTimezone = isEdit ? "utc" : "local";
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -150,7 +162,14 @@ export function CreateMarketForm({
     const resolveAt = String(form.get("resolveAt") ?? "");
     const resolutionCriteria = String(form.get("resolutionCriteria") ?? "");
 
-    const errs = validateFields(title, closeAt, resolveAt, resolutionCriteria, labels);
+    const errs = validateFields(
+      title,
+      closeAt,
+      resolveAt,
+      resolutionCriteria,
+      labels,
+      inputTimezone,
+    );
     if (Object.keys(errs).length > 0) {
       setFieldErrors(errs);
       return;
@@ -179,8 +198,8 @@ export function CreateMarketForm({
       title,
       description: String(form.get("description") ?? "") || undefined,
       category: String(form.get("category") ?? ""),
-      closeAt: localInputToIso(closeAt),
-      resolveAt: localInputToIso(resolveAt),
+      closeAt: inputToIso(closeAt, inputTimezone),
+      resolveAt: inputToIso(resolveAt, inputTimezone),
       resolutionCriteria,
       outcomes: labels,
       catchAll,
@@ -318,7 +337,7 @@ export function CreateMarketForm({
         <Input
           id="closeAt"
           name="closeAt"
-          label="Closes (local time)"
+          label={`Closes (${isEdit ? "UTC" : "local time"})`}
           type="datetime-local"
           required
           defaultValue={initial?.closeAt}
@@ -327,7 +346,7 @@ export function CreateMarketForm({
         <Input
           id="resolveAt"
           name="resolveAt"
-          label="Resolves by (local time)"
+          label={`Resolves by (${isEdit ? "UTC" : "local time"})`}
           type="datetime-local"
           required
           defaultValue={initial?.resolveAt}
