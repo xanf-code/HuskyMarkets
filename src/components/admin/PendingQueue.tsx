@@ -10,6 +10,46 @@ import { InlineError } from "@/components/ui/InlineError";
 import { timeAgo } from "@/lib/format";
 import type { PendingMarketItem } from "@/lib/queries/admin";
 
+function AiProposalDetails({ item }: { item: PendingMarketItem }) {
+  const [open, setOpen] = useState(false);
+  if (!item.aiSources && !item.aiSummary) return null;
+  return (
+    <div className="mt-2">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="text-xs font-medium text-text-muted hover:text-text underline-offset-2 hover:underline"
+      >
+        {open ? "Hide AI research ↑" : "Show AI research ↓"}
+      </button>
+      {open ? (
+        <div className="mt-2 rounded border border-hairline bg-surface p-3 text-xs text-text-muted space-y-2">
+          {item.aiSummary ? <p>{item.aiSummary}</p> : null}
+          {item.aiSources && item.aiSources.length > 0 ? (
+            <ul className="space-y-1">
+              {item.aiSources.map((s, i) => {
+                const safeHref = /^https?:\/\//i.test(s.url) ? s.url : "#";
+                return (
+                  <li key={i}>
+                    <a
+                      href={safeHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-red hover:underline break-all"
+                    >
+                      {s.title || s.url}
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function PendingQueue({ items }: { items: PendingMarketItem[] }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -44,6 +84,11 @@ export function PendingQueue({ items }: { items: PendingMarketItem[] }) {
               >
                 {m.title}
               </Link>
+              {m.aiSources !== undefined || m.aiSummary !== undefined ? (
+                <span className="shrink-0 rounded-full bg-blue-500/10 px-2 py-0.5 text-xs font-semibold text-blue-400">
+                  AI proposal
+                </span>
+              ) : null}
               {m.autoFlagged ? (
                 <span className="shrink-0 rounded-full bg-red/10 px-2 py-0.5 text-xs font-semibold text-red">
                   auto-flagged
@@ -54,6 +99,7 @@ export function PendingQueue({ items }: { items: PendingMarketItem[] }) {
               {m.creatorName} · {m.category} · closes {timeAgo(m.closeAt)} ·
               submitted {timeAgo(m.createdAt)}
             </p>
+            <AiProposalDetails item={m} />
             <div className="mt-4 flex flex-wrap gap-2">
               <Button
                 size="sm"
