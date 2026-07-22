@@ -35,7 +35,7 @@ const AUTH_EXEMPT_EXACT = new Set([
 // `/auth/` covers the magic-link callback (`/auth/callback`): the code is
 // exchanged for a session there, so the request must reach the route handler
 // while the visitor is still unauthenticated instead of being bounced to /login.
-const AUTH_EXEMPT_PREFIXES = ["/auth/", "/share/", "/api/og/"];
+const AUTH_EXEMPT_PREFIXES = ["/auth/", "/share/", "/api/og/", "/api/cron/"];
 
 // Paths guests may browse signed-out. Authenticated-but-not-onboarded users
 // do NOT get these - they are still pushed to /onboarding, so onboarding

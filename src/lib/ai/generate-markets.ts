@@ -89,6 +89,7 @@ export async function generateMarketsForAllCategories(
       `• ${CONTENT_RULE}`,
       `• Resolution criteria must cite an objectively checkable public source (e.g. official NU website, MBTA alerts, verified news outlet).`,
       `• Outcomes must be mutually exclusive and collectively exhaustive (they cover all plausible results).`,
+      `• Outcome labels MUST be 40 characters or fewer — keep them short (e.g. "Yes", "No", "Before Dec 1", "After Dec 1").`,
       `• The market horizon must be 3–30 days from today.`,
       `• Only propose a market if it is genuinely newsworthy AND cleanly resolvable. If in doubt, skip.`,
       ``,
@@ -131,7 +132,7 @@ export async function generateMarketsForAllCategories(
           p_resolution_criteria: proposal.resolution_criteria,
           p_close_at: proposal.close_at,
           p_resolve_at: proposal.resolve_at,
-          p_outcomes: JSON.stringify(proposal.outcomes),
+          p_outcomes: proposal.outcomes as unknown as import("@/lib/database.types").Json,
           p_auto_flagged: flagResult.flagged,
         },
       );
@@ -198,7 +199,14 @@ async function runGenerationCall(
     for (const tu of toolUses) {
       if (tu.type !== "tool_use") continue;
       if (tu.name === "propose_market") {
-        const parsed = marketProposalSchema.safeParse(tu.input);
+        // Truncate outcome labels to 40 chars before Zod validation.
+        const rawInput = tu.input as Record<string, unknown>;
+        if (Array.isArray(rawInput.outcomes)) {
+          rawInput.outcomes = (rawInput.outcomes as string[]).map((l) =>
+            typeof l === "string" ? l.slice(0, 40) : l,
+          );
+        }
+        const parsed = marketProposalSchema.safeParse(rawInput);
         if (!parsed.success) {
           throw new Error(
             `Invalid proposal from model: ${parsed.error.message}`,
