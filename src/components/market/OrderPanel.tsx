@@ -332,7 +332,7 @@ export function OrderPanel(props: OrderPanelProps) {
       </dl>
 
       <p className="text-xs text-text-tertiary">
-        Final payout depends on the pools at close · Closes{" "}
+        Closes{" "}
         {CLOSE_DATE.format(new Date(props.closeAt))}
       </p>
 
