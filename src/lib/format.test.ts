@@ -4,8 +4,10 @@ import {
   formatHC,
   formatHCNumber,
   formatPercent,
+  interpolateVolume,
   marketVolume,
   timeAgo,
+  volumeSlotCh,
 } from "./format";
 
 describe("formatHCNumber", () => {
@@ -53,6 +55,36 @@ describe("marketVolume", () => {
 
   it("never goes negative", () => {
     expect(marketVolume(180, 2)).toBe(0);
+  });
+});
+
+describe("volumeSlotCh", () => {
+  it("reserves character width for the formatted amount so layout does not jump", () => {
+    expect(volumeSlotCh(0)).toBe(1);
+    expect(volumeSlotCh(999)).toBe(3);
+    expect(volumeSlotCh(1000)).toBe(5); // "1,000"
+    expect(volumeSlotCh(1_000_000)).toBe(9); // "1,000,000"
+  });
+
+  it("uses the widest of several amounts (e.g. current vs target while counting up)", () => {
+    expect(volumeSlotCh(999, 1000)).toBe(5);
+    expect(volumeSlotCh(50, 12)).toBe(2);
+  });
+});
+
+describe("interpolateVolume", () => {
+  it("returns the start at progress 0 and the end at progress 1", () => {
+    expect(interpolateVolume(100, 200, 0)).toBe(100);
+    expect(interpolateVolume(100, 200, 1)).toBe(200);
+  });
+
+  it("eases out so mid-progress is past the linear midpoint", () => {
+    expect(interpolateVolume(0, 1000, 0.5)).toBeGreaterThan(500);
+  });
+
+  it("clamps progress outside [0, 1]", () => {
+    expect(interpolateVolume(10, 20, -1)).toBe(10);
+    expect(interpolateVolume(10, 20, 2)).toBe(20);
   });
 });
 

@@ -34,6 +34,28 @@ export function marketVolume(totalPool: number, outcomeCount: number): number {
 }
 
 /**
+ * Character width of the widest formatted amount among `amounts`.
+ * Use as `ch` units so a live counter can grow without shifting neighbors.
+ */
+export function volumeSlotCh(...amounts: number[]): number {
+  return Math.max(1, ...amounts.map((a) => formatHCNumber(a).length));
+}
+
+/**
+ * Ease-out cubic interpolate between two integer HC amounts.
+ * `progress` is clamped to [0, 1].
+ */
+export function interpolateVolume(
+  from: number,
+  to: number,
+  progress: number,
+): number {
+  const t = Math.min(1, Math.max(0, progress));
+  const eased = 1 - (1 - t) ** 3;
+  return Math.round(from + (to - from) * eased);
+}
+
+/**
  * Compact countdown to a close time: "2d 3h", "3h 12m", "42m", "<1m",
  * or "closed" once past.
  */

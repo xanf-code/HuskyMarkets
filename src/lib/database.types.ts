@@ -795,6 +795,7 @@ export type Database = {
       }
       get_market_card: { Args: { p_market_id: string }; Returns: Json }
       get_my_balance: { Args: never; Returns: number }
+      get_platform_volume: { Args: never; Returns: number }
       get_profile_stats: {
         Args: { p_resolved_before?: string; p_user: string }
         Returns: Json
