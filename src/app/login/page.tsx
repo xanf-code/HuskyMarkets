@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { LoginForm } from "./LoginForm";
 
 export const metadata: Metadata = {
@@ -21,9 +22,9 @@ export default function LoginPage() {
       <Suspense
         fallback={
           <div className="flex flex-col gap-4" aria-hidden="true">
-            <div className="h-4 w-36 rounded bg-muted" />
-            <div className="h-12 w-full rounded-md bg-muted" />
-            <div className="h-11 w-48 rounded-md bg-muted" />
+            <Skeleton className="h-4 w-36" />
+            <Skeleton className="h-12 w-full rounded-md" />
+            <Skeleton className="h-11 w-48 rounded-md" />
           </div>
         }
       >
