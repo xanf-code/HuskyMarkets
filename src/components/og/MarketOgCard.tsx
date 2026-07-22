@@ -65,12 +65,12 @@ export function MarketOgCard({ card }: { card: MarketCard }) {
       >
         <div
           style={{
-            fontSize: 56,
+            fontSize: 44,
             fontWeight: 600,
-            lineHeight: 1.15,
+            lineHeight: 1.2,
             display: "-webkit-box",
             WebkitBoxOrient: "vertical",
-            WebkitLineClamp: 2,
+            WebkitLineClamp: 3,
             overflow: "hidden",
           }}
         >
@@ -80,7 +80,7 @@ export function MarketOgCard({ card }: { card: MarketCard }) {
         <div
           style={{
             marginTop: "auto",
-            fontSize: 112,
+            fontSize: 88,
             fontWeight: 600,
             color: OG_COLORS.marketYes,
             lineHeight: 1,
