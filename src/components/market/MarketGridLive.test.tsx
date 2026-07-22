@@ -50,6 +50,7 @@ const market = (id: string, title: string): MarketListItem => ({
   volume: 100,
   bettorCount: 2,
   spark: [50, 67],
+  change24h: null,
 });
 
 beforeEach(() => {

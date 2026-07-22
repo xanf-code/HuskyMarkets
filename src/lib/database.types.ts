@@ -639,6 +639,13 @@ export type Database = {
       }
     }
     Functions: {
+      assert_can_manage_market: {
+        Args: {
+          p_market: Database["public"]["Tables"]["markets"]["Row"]
+          p_uid: string
+        }
+        Returns: undefined
+      }
       assert_can_moderate_market: {
         Args: {
           p_market: Database["public"]["Tables"]["markets"]["Row"]
@@ -729,6 +736,21 @@ export type Database = {
       }
       reopen_semester: { Args: { p_semester_id: string }; Returns: number }
       snapshot_semester: { Args: { p_semester_id: string }; Returns: number }
+      update_market: {
+        Args: {
+          p_auto_flagged?: boolean
+          p_catch_all?: boolean
+          p_category: Database["public"]["Enums"]["market_category"]
+          p_close_at: string
+          p_description: string
+          p_market_id: string
+          p_outcomes: Json
+          p_resolution_criteria: string
+          p_resolve_at: string
+          p_title: string
+        }
+        Returns: Json
+      }
       verify_ledger_invariant: { Args: never; Returns: Json }
     }
     Enums: {

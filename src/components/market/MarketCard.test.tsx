@@ -16,6 +16,7 @@ const market: MarketListItem = {
   volume: 550,
   bettorCount: 3,
   spark: [50, 67, 60],
+  change24h: null,
 };
 
 describe("MarketCard", () => {

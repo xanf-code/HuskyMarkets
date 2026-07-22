@@ -17,6 +17,7 @@ function item(id: string, title: string): MarketListItem {
     volume: 0,
     bettorCount: 0,
     spark: [50],
+    change24h: null,
   };
 }
 
