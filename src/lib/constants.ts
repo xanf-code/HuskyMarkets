@@ -37,9 +37,8 @@ export const LIST_PAGE_SIZE = 12;
 /** ~2 screens of cards on a phone before the next page loads. */
 export const MARKET_PAGE_SIZE = 6;
 export const LEADERBOARD_PAGE_SIZE = 15;
-export const ACTIVITY_PAGE_SIZE = 10;
-/** How many recent bets to ship for the market activity feed. */
-export const ACTIVITY_FEED_LIMIT = 100;
+/** How many recent bets to show on the market activity feed. */
+export const ACTIVITY_FEED_LIMIT = 15;
 
 /** Hard content rule - rendered verbatim on /create above the form. */
 export const CONTENT_RULE =

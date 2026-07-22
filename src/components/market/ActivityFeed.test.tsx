@@ -1,16 +1,6 @@
 import { render, screen } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { ActivityFeed } from "./ActivityFeed";
-
-function stubIntersectionObserver() {
-  class MockIntersectionObserver {
-    observe = vi.fn();
-    disconnect = vi.fn();
-    unobserve = vi.fn();
-    takeRecords = vi.fn();
-  }
-  vi.stubGlobal("IntersectionObserver", MockIntersectionObserver);
-}
 
 function bet(id: string, outcomeLabel = "Yes") {
   return {
@@ -24,9 +14,6 @@ function bet(id: string, outcomeLabel = "Yes") {
 }
 
 describe("ActivityFeed", () => {
-  beforeEach(stubIntersectionObserver);
-  afterEach(() => vi.unstubAllGlobals());
-
   it("renders an anonymous Bought line per bet", () => {
     render(<ActivityFeed activity={[bet("b1", "Gavin Newsom")]} />);
     const line = screen.getByRole("listitem");
@@ -43,10 +30,9 @@ describe("ActivityFeed", () => {
     expect(screen.getByText(/no bets yet/i)).toBeInTheDocument();
   });
 
-  it("windows long feeds behind a scroll sentinel", () => {
-    const activity = Array.from({ length: 25 }, (_, i) => bet(`b${i}`));
+  it("renders every activity item it receives", () => {
+    const activity = Array.from({ length: 15 }, (_, i) => bet(`b${i}`));
     render(<ActivityFeed activity={activity} />);
-    expect(screen.getAllByRole("listitem")).toHaveLength(10);
-    expect(screen.getByRole("status")).toHaveTextContent("15 more");
+    expect(screen.getAllByRole("listitem")).toHaveLength(15);
   });
 });
