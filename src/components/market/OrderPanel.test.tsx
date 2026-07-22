@@ -383,11 +383,11 @@ describe("OrderPanel", () => {
       renderPanel({ guest: true, balance: 0, position: [] });
 
       const balanceRow = screen.getByText("Balance").parentElement!;
-      expect(balanceRow.textContent).toContain("—");
+      expect(balanceRow.textContent).toContain("-");
       expect(balanceRow.textContent).not.toContain("0 HC");
 
       const capRow = screen.getByText("Stake cap left").parentElement!;
-      expect(capRow.textContent).toContain("—");
+      expect(capRow.textContent).toContain("-");
     });
   });
 });

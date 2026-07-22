@@ -72,14 +72,14 @@ export function LiveStatusBanner() {
   const { market } = useMarketLive();
   let banner: string | null = null;
   if (market.status === "closed") {
-    banner = "Closed — awaiting resolution";
+    banner = "Closed - awaiting resolution";
   } else if (market.status === "resolved") {
     const label = market.outcomes.find(
       (o) => o.id === market.winningOutcomeId,
     )?.label;
-    banner = label ? `Resolved — ${label}` : "Resolved";
+    banner = label ? `Resolved - ${label}` : "Resolved";
   } else if (market.status === "voided") {
-    banner = "Voided — all stakes refunded";
+    banner = "Voided - all stakes refunded";
   }
   if (!banner) return null;
   return (

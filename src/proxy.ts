@@ -55,7 +55,7 @@ export async function proxy(request: NextRequest) {
 
   const isOnboarded = hasCookie || dbOnboarded === true;
 
-  // All cookie mutations happen AFTER the last supabase call — the setAll
+  // All cookie mutations happen AFTER the last supabase call - the setAll
   // adapter reassigns `response`, which would otherwise drop these writes.
   const decision = decideOnboardedCookie({
     isAuthenticated,

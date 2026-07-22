@@ -40,7 +40,7 @@ describe("formatPercent", () => {
   });
 
   it("renders an em dash for non-finite values", () => {
-    expect(formatPercent(Number.NaN)).toBe("—");
+    expect(formatPercent(Number.NaN)).toBe("-");
   });
 });
 

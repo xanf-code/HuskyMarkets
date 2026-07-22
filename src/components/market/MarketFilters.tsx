@@ -11,7 +11,7 @@ const SORT_LABELS: Record<MarketSort, string> = {
 };
 
 /**
- * Category chips, sort, and search — all state lives in the URL so the
+ * Category chips, sort, and search - all state lives in the URL so the
  * server component refetches on every change.
  */
 export function MarketFilters() {

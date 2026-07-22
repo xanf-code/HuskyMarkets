@@ -1,5 +1,5 @@
--- Phase 2 · 0002 — Ledger/auth functions and triggers
--- (Market-engine functions — place_bet, resolve_market, lock_market — land
+-- Phase 2 · 0002 - Ledger/auth functions and triggers
+-- (Market-engine functions - place_bet, resolve_market, lock_market - land
 -- in Phase 3.)
 
 -- ── Balance & role helpers ───────────────────────────────────────────────

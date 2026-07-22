@@ -14,7 +14,7 @@ export function isNeuEmail(email: string): boolean {
  */
 export function safeReturnPath(next: string | null): string | null {
   // Reject protocol-relative ("//evil"), backslash-relative ("/\evil"), and
-  // anything that doesn't start with "/" — all potential open-redirect vectors.
+  // anything that doesn't start with "/" - all potential open-redirect vectors.
   if (!next || !next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) {
     return null;
   }
@@ -29,7 +29,7 @@ const AUTH_EXEMPT_EXACT = new Set(["/login", "/tos"]);
 const AUTH_EXEMPT_PREFIXES = ["/auth/", "/share/", "/api/og/"];
 
 // Paths guests may browse signed-out. Authenticated-but-not-onboarded users
-// do NOT get these — they are still pushed to /onboarding, so onboarding
+// do NOT get these - they are still pushed to /onboarding, so onboarding
 // cannot be bypassed via the guest funnel.
 const GUEST_EXACT = new Set(["/", "/leaderboard"]);
 const GUEST_PREFIXES = ["/market/"];

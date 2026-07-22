@@ -40,7 +40,7 @@ async function main() {
       `(${snapshot.accuracy.length} accuracy rows, ${snapshot.semester.length} semester rows, ` +
       `${Object.keys(snapshot.profileStats).length} profile stats).`,
   );
-  console.log("Store this artifact in the ops location — it is the reconciliation baseline.");
+  console.log("Store this artifact in the ops location - it is the reconciliation baseline.");
 }
 
 main().catch((err) => {

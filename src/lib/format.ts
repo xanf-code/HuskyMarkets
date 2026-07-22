@@ -9,7 +9,7 @@ function safeAmount(amount: number): number {
   return Number.isFinite(amount) ? amount : 0;
 }
 
-/** Thousands-separated amount with no unit — pair with HuskyCoinIcon in UI. */
+/** Thousands-separated amount with no unit - pair with HuskyCoinIcon in UI. */
 export function formatHCNumber(amount: number): string {
   return HC.format(safeAmount(amount));
 }
@@ -24,7 +24,7 @@ export function formatHC(amount: number): string {
 
 /** Implied probability (1–99) as a percent: "62%". */
 export function formatPercent(price: number): string {
-  if (!Number.isFinite(price)) return "—";
+  if (!Number.isFinite(price)) return "-";
   return `${price}%`;
 }
 

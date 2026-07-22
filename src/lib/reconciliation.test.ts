@@ -1,4 +1,4 @@
-// E-6 / S6-2 — REC-17 reconciliation: pre-migration snapshot vs post-migration
+// E-6 / S6-2 - REC-17 reconciliation: pre-migration snapshot vs post-migration
 // re-run. Zero-diff is required (FR-32, NFR-8); any delta fails loudly.
 
 import { describe, expect, it } from "vitest";

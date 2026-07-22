@@ -1,4 +1,4 @@
-// E-1 / S1-1, S1-3, S1-5 — schema shape after the migration: rebuilt enums,
+// E-1 / S1-1, S1-3, S1-5 - schema shape after the migration: rebuilt enums,
 // market_outcomes constraints, dropped legacy columns, RLS, publication, cron.
 
 import { describe, it, expect, beforeEach } from "vitest";
@@ -28,7 +28,7 @@ async function columnExists(
   return r.rows[0].n > 0;
 }
 
-describe("migration 0011 — enums rebuilt", () => {
+describe("migration 0011 - enums rebuilt", () => {
   let db: PGlite;
   beforeEach(async () => {
     db = await bootTestDb();
@@ -55,7 +55,7 @@ describe("migration 0011 — enums rebuilt", () => {
   });
 });
 
-describe("migration 0011 — legacy columns dropped", () => {
+describe("migration 0011 - legacy columns dropped", () => {
   let db: PGlite;
   beforeEach(async () => {
     db = await bootTestDb();
@@ -88,7 +88,7 @@ describe("migration 0011 — legacy columns dropped", () => {
   });
 });
 
-describe("migration 0011 — market_outcomes constraints", () => {
+describe("migration 0011 - market_outcomes constraints", () => {
   let db: PGlite;
   let uid: string;
   const future = (d: number) =>
@@ -172,7 +172,7 @@ describe("migration 0011 — market_outcomes constraints", () => {
   });
 });
 
-describe("migration 0011 — realtime, cron, RLS wiring", () => {
+describe("migration 0011 - realtime, cron, RLS wiring", () => {
   let db: PGlite;
   beforeEach(async () => {
     db = await bootTestDb();
@@ -211,7 +211,7 @@ describe("migration 0011 — realtime, cron, RLS wiring", () => {
   });
 });
 
-describe("migration 0011 — W3 hardening", () => {
+describe("migration 0011 - W3 hardening", () => {
   let db: PGlite;
   beforeEach(async () => {
     db = await bootTestDb();

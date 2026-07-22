@@ -43,6 +43,9 @@ function friendlyBetError(message: string): string {
   if (message.includes("bet amount")) {
     return `Bets must be between 1 and ${CAP_PER_MARKET} HC.`;
   }
+  if (message.includes("creator cannot bet")) {
+    return "You can't bet on a market you created.";
+  }
   return message;
 }
 

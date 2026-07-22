@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { createMarket } from "@/actions/markets";
+import { createMarket, updateMarket } from "@/actions/markets";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -16,9 +16,26 @@ import {
 } from "@/lib/constants";
 import { dismissKeyboard } from "@/lib/dismiss-keyboard";
 
+interface InitialValues {
+  title: string;
+  description: string;
+  category: string;
+  closeAt: string;
+  resolveAt: string;
+  resolutionCriteria: string;
+  outcomes: string[];
+  catchAll: boolean;
+}
+
 interface CreateMarketFormProps {
   /** Configured outcome cap read from app_config; falls back to MAX_OUTCOMES. */
   maxOutcomes?: number;
+  /** "edit" renders the form in update mode; omit for create. */
+  mode?: "create" | "edit";
+  /** Required when mode="edit". */
+  marketId?: string;
+  /** Pre-fills all fields when mode="edit". */
+  initial?: InitialValues;
 }
 
 /** Convert a datetime-local value (wall clock in local TZ) to ISO with offset. */
@@ -29,7 +46,7 @@ function localInputToIso(value: string): string {
 
 // One shared collision UX for form and RPC (Missing Consideration 10): the
 // message below mirrors the server action's refinement verbatim.
-const CATCH_ALL_COLLISION = `"${CATCH_ALL_LABEL}" is added by the catch-all toggle — remove the duplicate label.`;
+const CATCH_ALL_COLLISION = `"${CATCH_ALL_LABEL}" is added by the catch-all toggle - remove the duplicate label.`;
 
 interface FieldErrors {
   title?: string;
@@ -84,13 +101,19 @@ function validateFields(
   return errors;
 }
 
-export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFormProps) {
+export function CreateMarketForm({
+  maxOutcomes = MAX_OUTCOMES,
+  mode = "create",
+  marketId,
+  initial,
+}: CreateMarketFormProps) {
+  const isEdit = mode === "edit";
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
-  const [labels, setLabels] = useState<string[]>(["Yes", "No"]);
-  const [catchAll, setCatchAll] = useState(false);
+  const [labels, setLabels] = useState<string[]>(initial?.outcomes ?? ["Yes", "No"]);
+  const [catchAll, setCatchAll] = useState(initial?.catchAll ?? false);
 
   // The catch-all is appended as the last outcome and counts toward the cap
   // (FR-3): (maxOutcomes - 1) creator labels + catch-all = maxOutcomes.
@@ -150,8 +173,7 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
       return;
     }
 
-    setLoading(true);
-    const result = await createMarket({
+    const payload = {
       title,
       description: String(form.get("description") ?? "") || undefined,
       category: String(form.get("category") ?? ""),
@@ -161,7 +183,12 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
       outcomes: labels,
       catchAll,
       agreeRules: true as const,
-    });
+    };
+
+    setLoading(true);
+    const result = isEdit
+      ? await updateMarket({ ...payload, marketId })
+      : await createMarket(payload);
     setLoading(false);
 
     if (!result.ok) {
@@ -186,6 +213,7 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
         minLength={10}
         maxLength={120}
         placeholder="Will the Green Line run on time Friday?"
+        defaultValue={initial?.title}
         error={fieldErrors.title}
       />
 
@@ -198,6 +226,7 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
           name="description"
           rows={3}
           maxLength={2000}
+          defaultValue={initial?.description}
           className="w-full min-w-0 rounded-md border border-hairline bg-card px-4 py-3 text-base text-text focus:border-red focus:outline-none sm:px-5 sm:py-4"
         />
       </label>
@@ -279,7 +308,7 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
         name="category"
         label="Category"
         required
-        defaultValue="campus"
+        defaultValue={initial?.category ?? "campus"}
         options={CATEGORIES.map((c) => ({ value: c.value, label: c.label }))}
       />
 
@@ -290,6 +319,7 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
           label="Closes (local time)"
           type="datetime-local"
           required
+          defaultValue={initial?.closeAt}
           error={fieldErrors.closeAt}
         />
         <Input
@@ -298,6 +328,7 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
           label="Resolves by (local time)"
           type="datetime-local"
           required
+          defaultValue={initial?.resolveAt}
           error={fieldErrors.resolveAt}
         />
       </div>
@@ -313,6 +344,7 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
           minLength={20}
           maxLength={2000}
           rows={4}
+          defaultValue={initial?.resolutionCriteria}
           aria-describedby={fieldErrors.resolutionCriteria ? "resolutionCriteria-error" : undefined}
           aria-invalid={fieldErrors.resolutionCriteria ? true : undefined}
           className={`w-full min-w-0 rounded-md border ${fieldErrors.resolutionCriteria ? "border-red" : "border-hairline"} bg-card px-4 py-3 text-base text-text focus:border-red focus:outline-none sm:px-5 sm:py-4`}
@@ -329,6 +361,7 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
         <input
           type="checkbox"
           name="agreeRules"
+          defaultChecked={isEdit}
           className="mt-1 size-4 accent-[var(--color-red)]"
         />
         <span>
@@ -341,7 +374,7 @@ export function CreateMarketForm({ maxOutcomes = MAX_OUTCOMES }: CreateMarketFor
       {error ? <InlineError>{error}</InlineError> : null}
 
       <Button type="submit" loading={loading} className="w-full sm:w-auto">
-        {loading ? "Creating…" : "Create market"}
+        {loading ? (isEdit ? "Saving…" : "Creating…") : (isEdit ? "Save changes" : "Create market")}
       </Button>
     </form>
   );

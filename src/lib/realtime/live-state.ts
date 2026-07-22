@@ -4,7 +4,7 @@
 // the event is a no-op, so React can skip the re-render).
 //
 // Post-migration event contract (REC-13): pool movements flow through
-// `market_outcomes` rows — `markets` row UPDATEs carry status/resolution
+// `market_outcomes` rows - `markets` row UPDATEs carry status/resolution
 // only, never prices. History-point identity is (outcomeId, recordedAt):
 // one bet snapshots all N outcomes under a single transaction timestamp
 // (AR-1).
@@ -36,7 +36,7 @@ export type { HistoryPoint };
 
 const SPARK_POINTS = 20;
 
-/** Markets-row UPDATE: status/resolution only — never prices (REC-13). */
+/** Markets-row UPDATE: status/resolution only - never prices (REC-13). */
 export function applyMarketUpdate(
   state: LiveMarketState,
   row: MarketUpdate,
@@ -80,7 +80,7 @@ export function appendHistoryPoint(
   row: { recorded_at: string; outcome_id: string; implied: number },
 ): HistoryPoint[] {
   // Realtime may redeliver on reconnect; (outcome_id, recorded_at) is the
-  // identity of a snapshot point — recorded_at alone would collapse all N
+  // identity of a snapshot point - recorded_at alone would collapse all N
   // outcomes of one snapshot into a single point (AR-1).
   if (
     history.some(
@@ -128,7 +128,7 @@ export function patchMarketList(
 
 /**
  * market_outcomes UPDATE on the list: patch the outcome pool, recompute
- * prices/volume, and extend the spark — which always tracks the leading
+ * prices/volume, and extend the spark - which always tracks the leading
  * outcome (A-2). When the lead flips the spark re-anchors to the new leader;
  * its older series isn't available client-side (AR-8, accepted).
  */
@@ -179,14 +179,14 @@ export function describePayout(
 ): string | null {
   switch (tx.type) {
     case "bet_payout":
-      if (!market) return `+${tx.amount} HC — you called it`;
+      if (!market) return `+${tx.amount} HC - you called it`;
       return market.winningLabel
-        ? `+${tx.amount} HC — called it on "${market.title}" (${market.winningLabel})`
-        : `+${tx.amount} HC — called it on "${market.title}"`;
+        ? `+${tx.amount} HC - called it on "${market.title}" (${market.winningLabel})`
+        : `+${tx.amount} HC - called it on "${market.title}"`;
     case "market_refund":
       return market
-        ? `+${tx.amount} HC — stake back on "${market.title}"`
-        : `+${tx.amount} HC — stake refunded`;
+        ? `+${tx.amount} HC - stake back on "${market.title}"`
+        : `+${tx.amount} HC - stake refunded`;
     default:
       return null;
   }

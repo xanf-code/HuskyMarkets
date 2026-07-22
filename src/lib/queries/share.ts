@@ -63,7 +63,7 @@ export async function getMarketCard(
     title: row.title,
     category: row.category,
     leading: {
-      label: row.leading?.label ?? "—",
+      label: row.leading?.label ?? "-",
       price: row.leading?.implied ?? 0,
     },
     volume: marketVolume(totalPool(outcomes), outcomes.length),

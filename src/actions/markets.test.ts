@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createMarket } from "./markets";
+import { createMarket, updateMarket, deleteOwnMarket, lockOwnMarket } from "./markets";
 
 const { getSession, rpc, from, revalidatePath } = vi.hoisted(() => ({
   getSession: vi.fn(),
@@ -225,8 +225,8 @@ describe("createMarket", () => {
   });
 });
 
-describe("createMarket — runtime cap from app_config (W1 / S7-3)", () => {
-  it("enforces cap=2 — 3 outcomes are rejected before any RPC call", async () => {
+describe("createMarket - runtime cap from app_config (W1 / S7-3)", () => {
+  it("enforces cap=2 - 3 outcomes are rejected before any RPC call", async () => {
     mockConfigCap(2);
 
     const result = await createMarket(validInput({ outcomes: ["A", "B", "C"] }));
@@ -271,5 +271,154 @@ describe("createMarket — runtime cap from app_config (W1 / S7-3)", () => {
       validInput({ outcomes: ["1", "2", "3", "4", "5", "6"] }),
     );
     expect(at.ok).toBe(true);
+  });
+});
+
+// ── updateMarket ─────────────────────────────────────────────────────────
+
+function validUpdateInput(overrides: Record<string, unknown> = {}) {
+  return {
+    marketId: "6f9619ff-8b86-4d01-b42d-00cf4fc964ff",
+    title: "Will it snow in Boston before finals week?",
+    description: "First measurable snowfall on campus.",
+    category: "weather",
+    closeAt: new Date(Date.now() + 86_400_000).toISOString(),
+    resolveAt: new Date(Date.now() + 2 * 86_400_000).toISOString(),
+    resolutionCriteria:
+      "Resolves YES if NWS Boston records at least 0.1in of snow.",
+    outcomes: ["Yes", "No"],
+    catchAll: false,
+    agreeRules: true,
+    ...overrides,
+  };
+}
+
+describe("updateMarket", () => {
+  it("calls update_market RPC with the market id and fields", async () => {
+    const result = await updateMarket(validUpdateInput());
+
+    expect(result).toEqual({
+      ok: true,
+      marketId: "6f9619ff-8b86-4d01-b42d-00cf4fc964ff",
+    });
+    expect(rpc).toHaveBeenCalledWith(
+      "update_market",
+      expect.objectContaining({
+        p_market_id: "6f9619ff-8b86-4d01-b42d-00cf4fc964ff",
+        p_title: "Will it snow in Boston before finals week?",
+        p_outcomes: ["Yes", "No"],
+        p_catch_all: false,
+        p_auto_flagged: false,
+      }),
+    );
+  });
+
+  it("maps 'market has bets' RPC error to a friendly message", async () => {
+    rpc.mockResolvedValueOnce({ data: null, error: { message: "market has bets" } });
+
+    const result = await updateMarket(validUpdateInput());
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/bets/i);
+  });
+
+  it("maps 'not allowed' RPC error to a friendly message", async () => {
+    rpc.mockResolvedValueOnce({ data: null, error: { message: "not allowed" } });
+
+    const result = await updateMarket(validUpdateInput());
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/permission/i);
+  });
+
+  it("rejects without a valid marketId", async () => {
+    const result = await updateMarket(validUpdateInput({ marketId: "not-a-uuid" }));
+
+    expect(result.ok).toBe(false);
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("requires a session", async () => {
+    getSession.mockResolvedValueOnce(null);
+
+    const result = await updateMarket(validUpdateInput());
+
+    expect(result).toEqual({ ok: false, error: "Not signed in." });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+});
+
+// ── deleteOwnMarket ──────────────────────────────────────────────────────
+
+describe("deleteOwnMarket", () => {
+  beforeEach(() => {
+    rpc.mockResolvedValue({ data: null, error: null });
+  });
+
+  it("calls resolve_market with action=void", async () => {
+    const result = await deleteOwnMarket({
+      marketId: "6f9619ff-8b86-4d01-b42d-00cf4fc964ff",
+    });
+
+    expect(result.ok).toBe(true);
+    expect(rpc).toHaveBeenCalledWith("resolve_market", {
+      p_market_id: "6f9619ff-8b86-4d01-b42d-00cf4fc964ff",
+      p_action: "void",
+    });
+  });
+
+  it("surfaces RPC errors", async () => {
+    rpc.mockResolvedValueOnce({ data: null, error: { message: "staff only" } });
+
+    const result = await deleteOwnMarket({
+      marketId: "6f9619ff-8b86-4d01-b42d-00cf4fc964ff",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toBe("staff only");
+  });
+
+  it("rejects an invalid market id", async () => {
+    const result = await deleteOwnMarket({ marketId: "bad" });
+
+    expect(result.ok).toBe(false);
+    expect(rpc).not.toHaveBeenCalled();
+  });
+});
+
+// ── lockOwnMarket ────────────────────────────────────────────────────────
+
+describe("lockOwnMarket", () => {
+  beforeEach(() => {
+    rpc.mockResolvedValue({ data: null, error: null });
+  });
+
+  it("calls lock_market with the market id", async () => {
+    const result = await lockOwnMarket({
+      marketId: "6f9619ff-8b86-4d01-b42d-00cf4fc964ff",
+    });
+
+    expect(result.ok).toBe(true);
+    expect(rpc).toHaveBeenCalledWith("lock_market", {
+      p_market_id: "6f9619ff-8b86-4d01-b42d-00cf4fc964ff",
+    });
+  });
+
+  it("surfaces RPC errors", async () => {
+    rpc.mockResolvedValueOnce({ data: null, error: { message: "market is not open" } });
+
+    const result = await lockOwnMarket({
+      marketId: "6f9619ff-8b86-4d01-b42d-00cf4fc964ff",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toBe("market is not open");
+  });
+
+  it("rejects an invalid market id", async () => {
+    const result = await lockOwnMarket({ marketId: "" });
+
+    expect(result.ok).toBe(false);
+    expect(rpc).not.toHaveBeenCalled();
   });
 });

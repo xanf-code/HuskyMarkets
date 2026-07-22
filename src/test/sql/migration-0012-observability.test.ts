@@ -1,4 +1,4 @@
-// E-6 / S6-2 — observability fixtures (0012): scheduled verify_ledger_invariant
+// E-6 / S6-2 - observability fixtures (0012): scheduled verify_ledger_invariant
 // writing to a human-checked table (REC-16), cron-health check flagging failed
 // runs in 24h (REC-18), and the price_history growth metric (A-3/R-3).
 
@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import type { PGlite } from "@electric-sql/pglite";
 import { bootTestDb } from "./harness";
 
-describe("migration 0012 — scheduled ledger invariant (REC-16)", () => {
+describe("migration 0012 - scheduled ledger invariant (REC-16)", () => {
   let db: PGlite;
   beforeEach(async () => {
     db = await bootTestDb(12);
@@ -58,7 +58,7 @@ describe("migration 0012 — scheduled ledger invariant (REC-16)", () => {
   });
 });
 
-describe("migration 0012 — cron health check (REC-18)", () => {
+describe("migration 0012 - cron health check (REC-18)", () => {
   let db: PGlite;
   beforeEach(async () => {
     db = await bootTestDb(12);
@@ -93,7 +93,7 @@ describe("migration 0012 — cron health check (REC-18)", () => {
   });
 });
 
-describe("migration 0012 — price_history growth metric (A-3/R-3)", () => {
+describe("migration 0012 - price_history growth metric (A-3/R-3)", () => {
   let db: PGlite;
   beforeEach(async () => {
     db = await bootTestDb(12);

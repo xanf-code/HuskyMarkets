@@ -3,7 +3,7 @@
 // result (FR-32 "must reconcile") or fail loudly (NFR-8). Kept I/O-free so
 // the diff is unit-testable; scripts/ do the fetching and file handling.
 //
-// Entries are keyed by `userRef` — a pseudonym assigned at capture time — so
+// Entries are keyed by `userRef` - a pseudonym assigned at capture time - so
 // artifacts carry no real user ids beyond the ops boundary.
 
 export interface AccuracySnapshotEntry {

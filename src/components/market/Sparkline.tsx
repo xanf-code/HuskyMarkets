@@ -8,7 +8,7 @@ interface SparklineProps {
   /**
    * Label of the outcome this sparkline tracks (the market's leading
    * outcome, A-2). Named explicitly because the leader can change as pools
-   * move — the trend line must always say whose trend it is (AR-8).
+   * move - the trend line must always say whose trend it is (AR-8).
    */
   label: string;
   /** Outcome sort_order; picks the series color from the shared palette. */

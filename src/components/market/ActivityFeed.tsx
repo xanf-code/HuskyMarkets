@@ -18,7 +18,7 @@ export function ActivityFeed({ activity }: { activity: ActivityItem[] }) {
     return (
       <EmptyState
         title="No bets yet"
-        description="Be the first — pick an outcome on the ticket above."
+        description="Be the first - pick an outcome on the ticket above."
         className="py-8"
       />
     );

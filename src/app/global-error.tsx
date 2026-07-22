@@ -13,7 +13,7 @@ export default function GlobalError({
     console.error(error);
   }, [error]);
 
-  // Replaces the root layout — must include html/body. Keep styles inline so
+  // Replaces the root layout - must include html/body. Keep styles inline so
   // this still works if the design-system CSS fails to load.
   return (
     <html lang="en">

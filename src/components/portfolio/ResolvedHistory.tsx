@@ -9,7 +9,7 @@ export function ResolvedHistory({ rows }: { rows: ResolvedPosition[] }) {
     return (
       <EmptyState
         title="No settled bets yet"
-        description="When a market resolves, wins land here — and winners get a share card for the board."
+        description="When a market resolves, wins land here - and winners get a share card for the board."
         action={
           <Link
             href="/"
@@ -68,7 +68,7 @@ export function ResolvedHistory({ rows }: { rows: ResolvedPosition[] }) {
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <ShareActions
                 path={`/share/bet/${r.shareBetId}`}
-                title={`Called it — ${r.marketTitle}`}
+                title={`Called it - ${r.marketTitle}`}
               />
               <Link
                 href={`/share/bet/${r.shareBetId}`}

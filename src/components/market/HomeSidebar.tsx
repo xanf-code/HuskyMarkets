@@ -19,8 +19,8 @@ export function getTopMovers(markets: readonly MarketListItem[]): MoverRow[] {
 }
 
 /**
- * Top movers — strip (carousel/grid) or rail (vertical stack for lg sidebar).
- * Derived from the already-fetched market list — no extra queries.
+ * Top movers - strip (carousel/grid) or rail (vertical stack for lg sidebar).
+ * Derived from the already-fetched market list - no extra queries.
  */
 export function HomeSidebar({
   markets,

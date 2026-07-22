@@ -69,7 +69,7 @@ describe("ProbabilityChart", () => {
     expect(legendLabels()).toEqual(["Beta", "Delta", "Zeta", "Other"]);
   });
 
-  it("keeps the legend's color swatches decorative — text carries identity", () => {
+  it("keeps the legend's color swatches decorative - text carries identity", () => {
     render(
       <ProbabilityChart history={history} outcomes={six} variant="desktop" />,
     );

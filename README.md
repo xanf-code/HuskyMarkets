@@ -18,7 +18,7 @@ Story S0-1 extends the payout math from binary markets (YES/NO) to support N-out
 
 ### Changes
 
-- **New function:** `impliedOutcome(outcomePool, totalPool)` — calculates implied probability for any outcome in an N-outcome market
+- **New function:** `impliedOutcome(outcomePool, totalPool)` - calculates implied probability for any outcome in an N-outcome market
 - **Refactored:** `impliedYes()` now uses `impliedOutcome()` for consistency and clarity
 - **Enhanced docs:** `estimatePayout()` and `positionValue()` now explicitly support N-outcome markets
 - **Test coverage:** Added 6 comprehensive tests for `impliedOutcome()` covering 2–6 outcome markets, clamping, backward compatibility
@@ -37,11 +37,11 @@ npm test
 
 ### Project Structure
 
-- `/src/lib` — Core business logic (payout math, formatting, constants)
-- `/src/components` — React components (OrderPanel, UI elements)
-- `/src/actions` — Server actions (placeBet, etc.)
-- `/docs` — Architecture, requirements, and phase plans
-- `/docs/api` — API documentation
+- `/src/lib` - Core business logic (payout math, formatting, constants)
+- `/src/components` - React components (OrderPanel, UI elements)
+- `/src/actions` - Server actions (placeBet, etc.)
+- `/docs` - Architecture, requirements, and phase plans
+- `/docs/api` - API documentation
 
 ## Building
 

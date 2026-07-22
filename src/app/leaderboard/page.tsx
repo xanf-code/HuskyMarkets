@@ -30,7 +30,7 @@ function Hero() {
 export default async function LeaderboardPage() {
   const session = await getSession();
 
-  // Guests see the hero and a fade-locked placeholder — none of the board
+  // Guests see the hero and a fade-locked placeholder - none of the board
   // queries fire, so no standings data leaves the server.
   if (!session) {
     return (

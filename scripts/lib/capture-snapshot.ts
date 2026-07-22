@@ -60,7 +60,7 @@ export async function captureSnapshot(
   const base = supabaseUrl.replace(/\/$/, "");
 
   const semesters = await rpc<SemesterRow[]>(base, serviceRoleKey, "get_current_semester", {});
-  if (!semesters.length) throw new Error("No current semester — cannot snapshot boards.");
+  if (!semesters.length) throw new Error("No current semester - cannot snapshot boards.");
   const semesterId = semesters[0].id;
 
   const accuracyParams: Record<string, unknown> = { p_semester_id: semesterId };

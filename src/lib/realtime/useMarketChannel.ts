@@ -2,12 +2,12 @@
 
 // One realtime channel per market detail page (`market:{id}`). Postgres
 // changes flow through the pure reducers in live-state.ts; the RPC return
-// from place_bet stays the primary write path (applyFill) — realtime only
+// from place_bet stays the primary write path (applyFill) - realtime only
 // reconciles and augments, so nothing breaks if the socket drops.
 //
 // Event contract (REC-13): pool movements arrive as market_outcomes UPDATEs;
 // the markets row carries status/resolution only. Winning-outcome labels are
-// resolved against the already-loaded outcome map — never denormalized into
+// resolved against the already-loaded outcome map - never denormalized into
 // payloads (D-5).
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -106,10 +106,10 @@ export function useMarketChannel({ marketId, initial }: UseMarketChannelArgs) {
         },
         (payload) => {
           const bet = payload.new as Tables<"bets">;
-          // Activity is anonymous — never resolve or ship trader identity.
+          // Activity is anonymous - never resolve or ship trader identity.
           const label =
             outcomesRef.current.find((o) => o.id === bet.outcome_id)?.label ??
-            "—";
+            "-";
           setActivity((current) =>
             prependActivity(
               current,

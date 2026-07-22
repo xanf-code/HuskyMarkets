@@ -1,4 +1,4 @@
--- W1: app_config — runtime lever for operational constants.
+-- W1: app_config - runtime lever for operational constants.
 -- A single-row config table lets operators tune max_outcomes without a deploy.
 -- Only service_role may write; authenticated/anon have read-only SELECT.
 

@@ -131,7 +131,7 @@ echo "verify_ledger_invariant: balanced=true ✓"
 
 echo ""
 echo "=== 5. Running post-migration reconciliation ==="
-# The reconciliation script calls RPCs — never raw SQL — so it is safe to run
+# The reconciliation script calls RPCs - never raw SQL - so it is safe to run
 # against the local stack's PostgREST endpoint (W4 / REC-17).
 NEXT_PUBLIC_SUPABASE_URL="$LOCAL_API_URL" \
   SUPABASE_SERVICE_ROLE_KEY="$LOCAL_SERVICE_KEY" \
@@ -145,4 +145,4 @@ echo "=== 6. Stopping local stack ==="
 supabase stop
 
 echo ""
-echo "=== Dry-run PASSED — migration is safe to push ==="
+echo "=== Dry-run PASSED - migration is safe to push ==="

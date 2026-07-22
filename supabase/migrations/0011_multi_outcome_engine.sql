@@ -1,4 +1,4 @@
--- Phase E-1 · 0011 — Multi-outcome parimutuel: schema, migration, engine, cron.
+-- Phase E-1 · 0011 - Multi-outcome parimutuel: schema, migration, engine, cron.
 --
 -- ONE-WAY DOOR. This whole file is applied as a single transaction (Supabase
 -- wraps each migration file). The sequence is expand → backfill → verify →
@@ -14,7 +14,7 @@
 --   Σ(user tx) + Σ(vig_burn) − Σ_{m : seed entered}(100 × outcome_count(m)) = Σ(grants)
 -- The seed enters the ledger for a market exactly when it produced a vig_burn
 -- (the payout path). Void and empty-winner markets refund stakes and burn
--- nothing, so their seed never enters and they are excluded — this generalizes
+-- nothing, so their seed never enters and they are excluded - this generalizes
 -- REC-1's "voided markets stay excluded" to every refund path.
 
 -- ════════════════════════════════════════════════════════════════════════
@@ -244,7 +244,7 @@ end;
 $$;
 
 -- ════════════════════════════════════════════════════════════════════════
--- 5. Lock in NOT NULL, then contract (drop legacy) — only after verify passed.
+-- 5. Lock in NOT NULL, then contract (drop legacy) - only after verify passed.
 -- ════════════════════════════════════════════════════════════════════════
 
 alter table public.bets alter column outcome_id set not null;
@@ -313,7 +313,7 @@ drop type public.bet_side;
 alter table public.market_outcomes enable row level security;
 
 -- Readable iff the parent market is readable to that user, INCLUDING the
--- hidden-market filter (REC-14) — mirrors "markets: visible unless hidden".
+-- hidden-market filter (REC-14) - mirrors "markets: visible unless hidden".
 create policy "market_outcomes: visible with parent market"
   on public.market_outcomes for select to authenticated
   using (
@@ -355,7 +355,7 @@ $$;
 
 -- create_market: atomic market + 2–6 outcomes, each seeded 100 HC (FR-1..FR-5).
 -- Structural validation only; content-rule screening remains in the server
--- action (flagContent), matching today's title handling — the caller passes
+-- action (flagContent), matching today's title handling - the caller passes
 -- p_auto_flagged. (E-2 extends screening to outcome labels; REC-15.)
 create function public.create_market(
   p_title text,
@@ -522,7 +522,7 @@ begin
   update public.market_outcomes set pool = pool + p_amount where id = p_outcome_id;
 
   -- Snapshot the post-bet price of EVERY outcome (FR-12). Do not optimize this
-  -- all-outcome snapshot away — charts depend on it (REC-20).
+  -- all-outcome snapshot away - charts depend on it (REC-20).
   insert into public.price_history (market_id, outcome_id, implied, pool, recorded_at)
   select o.market_id, o.id,
          least(greatest(round(100.0 * o.pool / t.total)::int, 1), 99),
@@ -672,7 +672,7 @@ drop function if exists public.get_accuracy_leaderboard(uuid);
 drop function if exists public.get_profile_stats(uuid);
 
 -- p_resolved_before: when set, only markets resolved strictly before this
--- timestamp are counted — scopes the re-captured board to the pre-snapshot
+-- timestamp are counted - scopes the re-captured board to the pre-snapshot
 -- window so post-snapshot activity never causes a false reconciliation failure.
 create function public.get_accuracy_leaderboard(
   p_semester_id uuid,
@@ -811,7 +811,7 @@ end;
 $$;
 
 -- ════════════════════════════════════════════════════════════════════════
--- 10. Share-card RPCs — N-outcome bodies (D-2). Replaces the 0010 stubs now
+-- 10. Share-card RPCs - N-outcome bodies (D-2). Replaces the 0010 stubs now
 --     that market_outcomes exists.
 -- ════════════════════════════════════════════════════════════════════════
 
@@ -877,7 +877,7 @@ as $$
 $$;
 
 -- ════════════════════════════════════════════════════════════════════════
--- 11. verify_ledger_invariant() — the money canary (REC-1, REC-16). Seed term
+-- 11. verify_ledger_invariant() - the money canary (REC-1, REC-16). Seed term
 --     is summed per market and only for markets whose seed entered the ledger
 --     (i.e. produced a vig_burn); void/empty-winner refund paths are excluded.
 -- ════════════════════════════════════════════════════════════════════════
@@ -917,7 +917,7 @@ as $$
 $$;
 
 -- ════════════════════════════════════════════════════════════════════════
--- 12. Cron rewrite (REC-7, D-4) — one snapshot row per outcome per open market,
+-- 12. Cron rewrite (REC-7, D-4) - one snapshot row per outcome per open market,
 --     inside this migration (transactional replace by job name).
 -- ════════════════════════════════════════════════════════════════════════
 

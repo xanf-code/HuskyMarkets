@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 export interface EmptyStateProps {
   title: string;
   description?: string;
-  /** Optional next action — usually a Link or Button. */
+  /** Optional next action - usually a Link or Button. */
   action?: ReactNode;
   className?: string;
 }

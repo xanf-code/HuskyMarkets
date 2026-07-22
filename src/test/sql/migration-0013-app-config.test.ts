@@ -1,4 +1,4 @@
-// W1 / S7-3 — app_config-driven outcome cap.
+// W1 / S7-3 - app_config-driven outcome cap.
 //
 // Verifies that create_market reads max_outcomes from app_config at call time
 // so the soak cap is a runtime lever, not a compile-time constant.

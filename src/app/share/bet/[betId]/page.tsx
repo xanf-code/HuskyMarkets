@@ -18,7 +18,7 @@ export async function generateMetadata({
   const card = await getShareCard(betId);
   if (!card) notFound();
   return {
-    title: `Called it at ${formatPercent(card.priceAtBet)} — HuskyMarkets`,
+    title: `Called it at ${formatPercent(card.priceAtBet)} - HuskyMarkets`,
     description: `${card.displayName} backed ${card.outcomeLabel} on "${card.marketTitle}" at ${formatPercent(card.priceAtBet)} and turned ${formatHC(card.stake)} into ${formatHC(card.payout)}.`,
     openGraph: { images: [`/api/og/bet/${betId}`] },
   };
@@ -30,7 +30,7 @@ export default async function ShareBetPage({ params }: ShareBetPageProps) {
   if (!card) notFound();
 
   const sharePath = `/share/bet/${betId}`;
-  const shareTitle = `Called it at ${formatPercent(card.priceAtBet)} — ${card.marketTitle}`;
+  const shareTitle = `Called it at ${formatPercent(card.priceAtBet)} - ${card.marketTitle}`;
 
   return (
     <div className="mx-auto flex min-h-[70vh] w-full max-w-2xl flex-col justify-center">

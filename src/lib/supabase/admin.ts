@@ -5,7 +5,7 @@ export function createAdminClient() {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!serviceRoleKey) {
     throw new Error(
-      "SUPABASE_SERVICE_ROLE_KEY is not set — the admin client is an escape hatch and is not used in normal flows.",
+      "SUPABASE_SERVICE_ROLE_KEY is not set - the admin client is an escape hatch and is not used in normal flows.",
     );
   }
 

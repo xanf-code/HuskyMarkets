@@ -17,7 +17,7 @@ export function AppearanceToggle({ initialAppearance }: AppearanceToggleProps) {
       <div>
         <p className="font-semibold text-text">Dark mode</p>
         <p className="text-sm text-text-muted">
-          {isDark ? "On for this device." : "Off — using the light theme."}
+          {isDark ? "On for this device." : "Off - using the light theme."}
         </p>
       </div>
       <button

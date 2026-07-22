@@ -18,7 +18,7 @@ grant select on public.markets to anon;
 grant select on public.market_outcomes to anon;
 grant select on public.price_history to anon;
 
--- Guests see only non-hidden markets (no staff/creator exceptions — anon
+-- Guests see only non-hidden markets (no staff/creator exceptions - anon
 -- has no uid and is never staff).
 create policy "markets: anon read visible"
   on public.markets for select to anon

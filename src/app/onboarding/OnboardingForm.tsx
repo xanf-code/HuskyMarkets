@@ -100,7 +100,7 @@ export function OnboardingForm({ initialHandle }: OnboardingFormProps) {
             <span className="font-semibold text-text">Anonymous</span>
           </label>
           <p className="text-sm text-text-muted">
-            Generated handle — you can switch later.
+            Generated handle - you can switch later.
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-3 pl-7">
             <span className="num max-w-full truncate rounded-md bg-muted px-3 py-1.5 text-sm font-semibold text-red">

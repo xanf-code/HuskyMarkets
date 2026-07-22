@@ -24,7 +24,7 @@ export function useLoadMore<T>(
   const resetKey = options.resetKey;
   const [visible, setVisible] = useState(pageSize);
 
-  // Reset on filter navigation via guarded setState during render — React's
+  // Reset on filter navigation via guarded setState during render - React's
   // sanctioned "adjust state when props change" pattern (same as OrderPanel).
   const [prevReset, setPrevReset] = useState({ resetKey, pageSize });
   if (prevReset.resetKey !== resetKey || prevReset.pageSize !== pageSize) {
@@ -46,7 +46,7 @@ export function useLoadMore<T>(
 
 /**
  * Fires `onLoadMore` when the sentinel enters the viewport (with a generous
- * rootMargin so the next page is ready before the user hits the fold — key
+ * rootMargin so the next page is ready before the user hits the fold - key
  * on mobile where thumb-scroll is continuous).
  */
 export function InfiniteScrollSentinel({

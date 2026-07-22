@@ -1,4 +1,4 @@
-// E-5 / S5-1 — accuracy leaderboard and profile stats determine a win by the
+// E-5 / S5-1 - accuracy leaderboard and profile stats determine a win by the
 // user's bet outcome matching the market's winning outcome (FR-19), over
 // resolved markets. No yes/no status matching anywhere.
 
@@ -199,7 +199,7 @@ describe("get_profile_stats (FR-19)", () => {
     const m1 = await createMarket(db, admin, ["Yes", "No"]);
     await placeBet(db, a, m1.market_id, m1.outcomes[1].id, 80);
     await placeBet(db, b, m1.market_id, m1.outcomes[0].id, 50);
-    // Market 2 (3-outcome): a hedges — 100 on loser Alpha, 60 on winner Gamma.
+    // Market 2 (3-outcome): a hedges - 100 on loser Alpha, 60 on winner Gamma.
     const m2 = await createMarket(db, admin, ["Alpha", "Beta", "Gamma"]);
     await placeBet(db, a, m2.market_id, m2.outcomes[0].id, 100);
     await placeBet(db, a, m2.market_id, m2.outcomes[2].id, 60);
@@ -238,11 +238,11 @@ describe("get_profile_stats (FR-19)", () => {
   });
 });
 
-// W2 — reconciliation cutoff: markets resolved after the snapshot timestamp must
+// W2 - reconciliation cutoff: markets resolved after the snapshot timestamp must
 // be excluded from the re-captured boards so post-snapshot activity never triggers
 // a false-positive restore decision.
 
-describe("get_accuracy_leaderboard — p_resolved_before (W2)", () => {
+describe("get_accuracy_leaderboard - p_resolved_before (W2)", () => {
   let db: PGlite;
   let admin: string;
   let a: string;
@@ -294,7 +294,7 @@ describe("get_accuracy_leaderboard — p_resolved_before (W2)", () => {
   });
 });
 
-describe("get_profile_stats — p_resolved_before (W2)", () => {
+describe("get_profile_stats - p_resolved_before (W2)", () => {
   let db: PGlite;
   let admin: string;
   let a: string;

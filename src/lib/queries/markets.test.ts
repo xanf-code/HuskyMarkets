@@ -186,8 +186,8 @@ describe("getMarketList", () => {
 
     const list = await getMarketList({});
 
-    // Outcomes ride the markets query as an embedded resource — one round
-    // trip, no N+1 (REC-19) — and come out in canonical sort_order.
+    // Outcomes ride the markets query as an embedded resource - one round
+    // trip, no N+1 (REC-19) - and come out in canonical sort_order.
     expect(selectSpy).toHaveBeenCalledWith(
       expect.stringContaining("market_outcomes"),
     );

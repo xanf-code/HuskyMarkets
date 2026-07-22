@@ -1,6 +1,6 @@
 // Portfolio queries: open positions, resolved history, and the full ledger.
 // Positions group by market + outcome (FR-20); a win is the bet's outcome
-// matching the market's winning outcome (FR-19) — no yes/no branching.
+// matching the market's winning outcome (FR-19) - no yes/no branching.
 
 import { positionValue } from "@/lib/payout";
 import { createClient } from "@/lib/supabase/server";
@@ -81,12 +81,32 @@ export interface LedgerEntry {
   createdAt: string;
 }
 
+export interface CreatedMarket {
+  id: string;
+  title: string;
+  status: MarketStatus;
+  category: string;
+  createdAt: string;
+  closeAt: string;
+}
+
+export interface BetHistoryRow {
+  betId: string;
+  marketId: string;
+  marketTitle: string;
+  outcomeLabel: string;
+  amount: number;
+  priceAtBet: number;
+  createdAt: string;
+  marketStatus: MarketStatus;
+}
+
 const OPEN_STATUSES: MarketStatus[] = ["open", "closed"];
 
 function outcomeLabel(market: MarketRow, outcomeId: string | null): string {
   if (!outcomeId) return "Void";
   return (
-    market.outcomes.find((o) => o.id === outcomeId)?.label ?? "—"
+    market.outcomes.find((o) => o.id === outcomeId)?.label ?? "-"
   );
 }
 
@@ -219,10 +239,59 @@ export function aggregateResolved(
   return rows;
 }
 
+export function aggregateBetHistory(
+  bets: readonly BetRow[],
+  markets: readonly MarketRow[],
+): BetHistoryRow[] {
+  const byId = new Map(markets.map((m) => [m.id, m]));
+  const rows: BetHistoryRow[] = [];
+
+  for (const bet of bets) {
+    const market = byId.get(bet.market_id);
+    if (!market) continue;
+    const outcome = market.outcomes.find((o) => o.id === bet.outcome_id);
+    rows.push({
+      betId: bet.id,
+      marketId: bet.market_id,
+      marketTitle: market.title,
+      outcomeLabel: outcome?.label ?? "—",
+      amount: bet.amount,
+      priceAtBet: bet.price_at_bet,
+      createdAt: bet.created_at,
+      marketStatus: market.status,
+    });
+  }
+
+  return rows.sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
+}
+
+export async function getUserCreatedMarkets(
+  userId: string,
+): Promise<CreatedMarket[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("markets")
+    .select("id, title, status, category, created_at, close_at")
+    .eq("creator_id", userId)
+    .order("created_at", { ascending: false });
+
+  return (data ?? []).map((m) => ({
+    id: m.id,
+    title: m.title,
+    status: m.status,
+    category: m.category,
+    createdAt: m.created_at,
+    closeAt: m.close_at,
+  }));
+}
+
 export async function getPortfolio(userId: string): Promise<{
   open: OpenPosition[];
   resolved: ResolvedPosition[];
   ledger: LedgerEntry[];
+  betHistory: BetHistoryRow[];
 }> {
   const supabase = await createClient();
 
@@ -279,6 +348,7 @@ export async function getPortfolio(userId: string): Promise<{
   return {
     open: aggregateOpenPositions(bets ?? [], markets),
     resolved: aggregateResolved(bets ?? [], markets, payouts),
+    betHistory: aggregateBetHistory(bets ?? [], markets),
     ledger: (txs ?? []).map((t) => ({
       id: t.id,
       type: t.type,

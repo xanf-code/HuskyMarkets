@@ -10,7 +10,7 @@ export const DAILY_BONUS_STORAGE_KEY = "hm.dailyBonus.lastClaimedDay";
 
 /**
  * Invisible mount-time claimer. The localStorage guard only saves an RPC per
- * navigation — the claim itself is idempotent server-side (partial unique
+ * navigation - the claim itself is idempotent server-side (partial unique
  * index on the ET day_key), so a cleared cache or second device can never
  * double-credit.
  */

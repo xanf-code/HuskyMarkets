@@ -1,4 +1,4 @@
--- Phase 6 · 0008 — Report handling, mod applications, market visibility
+-- Phase 6 · 0008 - Report handling, mod applications, market visibility
 -- Complements resolve_market / lock_market from 0006. All staff actions log
 -- to mod_actions. Conflict rules reuse assert_can_moderate_market.
 

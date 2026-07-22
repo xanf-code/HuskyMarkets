@@ -39,7 +39,7 @@
 }
 
 /* Dark mode: same tokens, swapped for a dark surface stack. Brand red,
-   market yes/no, and the outcome palette stay put — they're already vivid
+   market yes/no, and the outcome palette stay put - they're already vivid
    enough to read on dark surfaces, and outcome color must stay constant
    across themes (NFR-7, see lib/theme.ts). */
 .dark {
@@ -61,12 +61,12 @@
   --shadow-card-hover: 0 2px 4px rgba(0, 0, 0, 0.28), 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
-/* Tabular sans for prices — not mono. */
+/* Tabular sans for prices - not mono. */
 @utility num {
   font-variant-numeric: tabular-nums;
 }
 
-/* Rare breaking badges only — not default UI chrome. */
+/* Rare breaking badges only - not default UI chrome. */
 @utility eyebrow {
   font-size: 12px;
   font-weight: 600;

@@ -1,6 +1,6 @@
 // Market list & detail queries. One batched fetch per page: the server
 // component calls these, the pure helpers below do the in-memory shaping
-// (campus-scale data — dozens of open markets, not thousands).
+// (campus-scale data - dozens of open markets, not thousands).
 //
 // ORDERING CONTRACT: outcome `sort_order` is the canonical display order on
 // every surface (order panel, resolve queue, cards, charts, OG images,
@@ -96,7 +96,7 @@ export function filterAndSortMarkets(
 /**
  * Rows arrive newest-first (as fetched); keep up to `perMarket` per
  * market+outcome and flip to chronological order for drawing. Keyed
- * `${market_id}:${outcome_id}` — outcome identity is part of the key (AR-1).
+ * `${market_id}:${outcome_id}` - outcome identity is part of the key (AR-1).
  */
 export function groupSparklines(
   rows: readonly { market_id: string; outcome_id: string; implied: number }[],
@@ -164,7 +164,7 @@ export async function getMarketList(
   if (error || !markets || markets.length === 0) return [];
 
   const ids = markets.map((m) => m.id);
-  // Guests get markets and price history but not bet counts — keeps locked
+  // Guests get markets and price history but not bet counts - keeps locked
   // data out of the RSC payload and avoids permission-denied noise on bets.
   const session = await getSession();
   const isGuest = !session;
@@ -249,15 +249,19 @@ export interface MarketDetail {
   creatorName: string;
   /** Full per-outcome price history, oldest → newest. */
   history: HistoryPoint[];
-  /** Latest bets, newest first — anonymous (no trader identity). Empty for guests. */
+  /** Latest bets, newest first - anonymous (no trader identity). Empty for guests. */
   activity: ActivityItem[];
   /** Null for guests: the count is locked with the rest of the activity data. */
   bettorCount: number | null;
   /** Signed-in user's stake on this market, per outcome (hedging allowed). */
   position: PositionEntry[];
   balance: number;
-  /** True when the viewer has no session — activity/position/balance are locked. */
+  /** True when the viewer has no session - activity/position/balance are locked. */
   isGuest: boolean;
+  /** True when the signed-in user is the market creator. */
+  isCreator: boolean;
+  /** True when at least one bet has been placed (edit is blocked once true). */
+  hasBets: boolean;
 }
 
 const ACTIVITY_LIMIT = ACTIVITY_FEED_LIMIT;
@@ -278,7 +282,7 @@ export async function getMarketDetail(
   const outcomes = toOutcomeStates(market_outcomes ?? []);
   const labelById = new Map(outcomes.map((o) => [o.id, o.label]));
 
-  // Guests get the market, outcomes and price history — but never bets,
+  // Guests get the market, outcomes and price history - but never bets,
   // positions or balances. Skipping the queries server-side (not just hiding
   // the UI) keeps locked data out of the RSC payload entirely.
   const session = await getSession();
@@ -334,7 +338,7 @@ export async function getMarketDetail(
     activity: allBets.slice(0, ACTIVITY_LIMIT).map((b) => ({
       id: b.id,
       outcomeId: b.outcome_id,
-      outcomeLabel: labelById.get(b.outcome_id) ?? "—",
+      outcomeLabel: labelById.get(b.outcome_id) ?? "-",
       amount: b.amount,
       price: b.price_at_bet,
       createdAt: b.created_at,
@@ -349,5 +353,7 @@ export async function getMarketDetail(
       })),
     balance: balanceResponse?.data ?? 0,
     isGuest,
+    isCreator: !isGuest && session.userId === market.creator_id,
+    hasBets: !isGuest && allBets.length > 0,
   };
 }
