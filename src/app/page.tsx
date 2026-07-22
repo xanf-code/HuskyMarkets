@@ -4,6 +4,7 @@ import { GuestScrollPrompt } from "@/components/auth/GuestScrollPrompt";
 import { GuestWelcome } from "@/components/auth/GuestWelcome";
 import { HomeShowcase } from "@/components/market/HomeShowcase";
 import { getTopMovers, HomeSidebar } from "@/components/market/HomeSidebar";
+import { LiveVolumeCounter } from "@/components/market/LiveVolumeCounter";
 import { MarketFilters } from "@/components/market/MarketFilters";
 import { MarketGridLive } from "@/components/market/MarketGridLive";
 import {
@@ -14,6 +15,7 @@ import {
 } from "@/lib/constants";
 import { getSession, verifySession } from "@/lib/dal";
 import { getMarketList } from "@/lib/queries/markets";
+import { getPlatformVolume } from "@/lib/queries/platform-volume";
 
 interface HomeProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -42,6 +44,7 @@ export default async function Home({ searchParams }: HomeProps) {
   const markets = await getMarketList(filters);
   // React-cached in the layout too, so this session read is free.
   const session = await getSession();
+  const platformVolume = await getPlatformVolume();
   // Sidebar always reflects the *unfiltered* pool so the rail stays useful
   // while browsing a category. Cheap: campus-scale list already in memory.
   const allMarkets =
@@ -60,6 +63,7 @@ export default async function Home({ searchParams }: HomeProps) {
     <div className="flex flex-col gap-8 sm:gap-10">
       <h1 className="sr-only">HuskyMarkets - Campus Prediction Markets</h1>
       {!session ? <GuestWelcome /> : <FirstRunBanner />}
+      <LiveVolumeCounter initialVolume={platformVolume} />
       {!showGroups && (
         <Suspense>
           <MarketFilters />
