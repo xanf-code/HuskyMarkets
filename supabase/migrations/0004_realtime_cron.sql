@@ -1,4 +1,4 @@
--- Phase 2 · 0004 — Realtime, cron jobs, semester seed
+-- Phase 2 · 0004 - Realtime, cron jobs, semester seed
 
 -- ── Realtime ─────────────────────────────────────────────────────────────
 

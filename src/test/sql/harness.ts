@@ -1,6 +1,6 @@
 // pglite-backed SQL test harness for the Supabase migration stack.
 //
-// Runs a real Postgres (WASM) in-process — no Docker, no Supabase CLI — so the
+// Runs a real Postgres (WASM) in-process - no Docker, no Supabase CLI - so the
 // migrations in supabase/migrations/*.sql can be applied and exercised in
 // vitest. This is how Epic E-1 (the atomic multi-outcome migration) is tested.
 //
@@ -101,7 +101,7 @@ export function readMigration(filename: string): string {
 /**
  * Apply one migration file inside a single transaction, mirroring how the
  * Supabase CLI wraps each migration. A mid-file `RAISE EXCEPTION` therefore
- * rolls the whole file back cleanly — which is exactly the atomicity guarantee
+ * rolls the whole file back cleanly - which is exactly the atomicity guarantee
  * Epic E-1's one-way-door migration depends on (AD-3).
  */
 export async function applyMigration(db: PGlite, filename: string): Promise<void> {

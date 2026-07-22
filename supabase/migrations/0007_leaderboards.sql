@@ -1,4 +1,4 @@
--- Phase 5 · 0007 — Leaderboards & profile stats
+-- Phase 5 · 0007 - Leaderboards & profile stats
 -- (phase5.md said 0006_leaderboards.sql; 0006 was taken by market_engine.)
 -- Semester-scoped scores, accuracy board, hall-of-fame freeze, profile strip.
 

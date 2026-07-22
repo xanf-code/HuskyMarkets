@@ -19,7 +19,7 @@ function markPrompted() {
   try {
     sessionStorage.setItem(SESSION_KEY, "1");
   } catch {
-    // Storage unavailable — modal will reappear on next mount, acceptable.
+    // Storage unavailable - modal will reappear on next mount, acceptable.
   }
 }
 

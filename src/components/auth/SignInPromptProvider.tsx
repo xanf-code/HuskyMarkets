@@ -28,7 +28,7 @@ export function useSignInPrompt(): SignInPromptApi {
 /**
  * One shared sign-in prompt for the whole tree. Guest-gated controls call
  * promptSignIn(); the single dialog instance lives here. Mounted for every
- * visitor — authenticated components simply never call it.
+ * visitor - authenticated components simply never call it.
  */
 export function SignInPromptProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);

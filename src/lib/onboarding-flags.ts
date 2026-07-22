@@ -1,5 +1,5 @@
 // Client-only first-run flags. Presence means the cue is still active;
-// clearing the key dismisses it. Deliberately not cookies — these are
+// clearing the key dismisses it. Deliberately not cookies - these are
 // UX tips, not auth gates.
 
 export const FIRST_RUN_KEY = "hm-first-run";
@@ -19,7 +19,7 @@ function write(key: string, value: boolean) {
     if (value) localStorage.setItem(key, "1");
     else localStorage.removeItem(key);
   } catch {
-    // Storage unavailable — cues may reappear; acceptable.
+    // Storage unavailable - cues may reappear; acceptable.
   }
 }
 

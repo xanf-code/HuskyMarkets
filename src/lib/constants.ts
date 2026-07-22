@@ -41,6 +41,6 @@ export const ACTIVITY_PAGE_SIZE = 10;
 /** How many recent bets to ship for the market activity feed. */
 export const ACTIVITY_FEED_LIMIT = 100;
 
-/** Hard content rule — rendered verbatim on /create above the form. */
+/** Hard content rule - rendered verbatim on /create above the form. */
 export const CONTENT_RULE =
   "No markets targeting named individual students or private individuals' personal lives, relationships, health, or conduct.";

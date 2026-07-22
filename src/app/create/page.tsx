@@ -25,7 +25,7 @@ export default async function CreatePage() {
           Create a market
         </h1>
         <p className="mt-2 text-pretty text-sm text-text-muted">
-          Clear criteria and a public source — no private lives.
+          Clear criteria and a public source - no private lives.
         </p>
       </div>
       <CreateMarketForm maxOutcomes={maxOutcomes} />

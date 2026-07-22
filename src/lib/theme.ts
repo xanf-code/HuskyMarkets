@@ -25,20 +25,20 @@ export const theme = {
   // CONTRACT (NFR-7): color is a SECONDARY signal. Outcomes must always be
   // distinguishable by label and position first; the palette only reinforces.
   // Tokens alternate light/dark luminance so neighboring outcomes stay
-  // distinguishable in grayscale — the spread is guarded in theme.test.ts.
+  // distinguishable in grayscale - the spread is guarded in theme.test.ts.
   // marketYes/marketNo remain for settled win/loss coloring ONLY (A-7);
   // outcome identity is never "green = yes".
   outcomePalette: [
-    "#00CE8E", // 0 — Yes hue (binary continuity)
-    "#FF3B5C", // 1 — No hue (binary continuity)
-    "#F5A623", // 2 — amber
-    "#4C7DFF", // 3 — blue
-    "#00B8D4", // 4 — teal
-    "#9B59D0", // 5 — purple
+    "#00CE8E", // 0 - Yes hue (binary continuity)
+    "#FF3B5C", // 1 - No hue (binary continuity)
+    "#F5A623", // 2 - amber
+    "#4C7DFF", // 3 - blue
+    "#00B8D4", // 4 - teal
+    "#9B59D0", // 5 - purple
   ],
   // Mirrors `colors`, swapped for the .dark surface stack in globals.css.
   // JS-side twin for values recharts needs as SVG attrs, where CSS custom
-  // properties aren't available. Brand/market/outcome hues are unchanged —
+  // properties aren't available. Brand/market/outcome hues are unchanged -
   // see the .dark rule in globals.css for why.
   darkColors: {
     page: "#0B0D10",

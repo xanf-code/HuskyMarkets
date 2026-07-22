@@ -42,9 +42,9 @@ export function ShareActions({
     const url = absoluteUrl(path);
     try {
       await navigator.clipboard.writeText(url);
-      toast.push("Link copied — paste it anywhere");
+      toast.push("Link copied - paste it anywhere");
     } catch {
-      toast.push("Couldn't copy — try selecting the URL");
+      toast.push("Couldn't copy - try selecting the URL");
     }
   }
 

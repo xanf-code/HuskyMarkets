@@ -1,6 +1,6 @@
 // Pure content screening for market creation. Two tiers:
-//   blocked — hard-block list (slurs); creation is rejected outright.
-//   flagged — heuristic "possible targeting of an individual": a sensitive
+//   blocked - hard-block list (slurs); creation is rejected outright.
+//   flagged - heuristic "possible targeting of an individual": a sensitive
 //             verb co-occurring with two consecutive Capitalized words that
 //             aren't a known campus place. Creation proceeds, but the market
 //             is marked auto_flagged and auto-reported to the admin queue.
@@ -30,8 +30,8 @@ const SENSITIVE_VERBS: readonly RegExp[] = [
   /\boverdos(?:e|ed|ing)\b/i,
 ];
 
-// Words that legitimately appear Capitalized mid-sentence on this campus —
-// places, transit, seasons — plus sentence-leading question words. A
+// Words that legitimately appear Capitalized mid-sentence on this campus -
+// places, transit, seasons - plus sentence-leading question words. A
 // capitalized pair is only treated as a person's name if *both* words
 // survive this list.
 const CAMPUS_ALLOWLIST = new Set(

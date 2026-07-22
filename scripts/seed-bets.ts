@@ -8,7 +8,7 @@
 //   2. Top each user up via a direct transaction insert so multi-market
 //      betting doesn't overdraft them.
 //   3. Sign each user in (password grant) and place bets through the
-//      place_bet engine RPC — bets reference outcome_id, the FR-9 aggregate
+//      place_bet engine RPC - bets reference outcome_id, the FR-9 aggregate
 //      cap is engine-enforced, and price_history snapshots are written by the
 //      engine (FR-12). Each bet is then backdated via secsAgo so charts span
 //      multi-day price paths instead of a 1-second burst. Waves are
@@ -220,7 +220,7 @@ function randInt(min: number, max: number): number {
 // secsAgo placeholders are overwritten by staggerWave at placement time.
 
 const DAY = 24 * 3600;
-/** Chart span per wave index — 3–7 days so price paths look lived-in. */
+/** Chart span per wave index - 3–7 days so price paths look lived-in. */
 const WAVE_SPANS_SECS = [
   5 * DAY,
   3 * DAY,
@@ -241,7 +241,7 @@ const WAVE_SPANS_SECS = [
 ];
 
 const BET_WAVES: SeedBet[][] = [
-  // Wave 1 — 4 predictors, outcome-0 heavy (strong consensus)
+  // Wave 1 - 4 predictors, outcome-0 heavy (strong consensus)
   [
     { userIdx: 0, outcomeIdx: 0, amount: 80,  secsAgo: 0 },
     { userIdx: 1, outcomeIdx: 0, amount: 120, secsAgo: 0 },
@@ -254,7 +254,7 @@ const BET_WAVES: SeedBet[][] = [
     { userIdx: 0, outcomeIdx: 0, amount: 30,  secsAgo: 0 },
     { userIdx: 1, outcomeIdx: 1, amount: 20,  secsAgo: 0 },
   ],
-  // Wave 2 — 2 predictors, contested 50/50 (alice vs bob only)
+  // Wave 2 - 2 predictors, contested 50/50 (alice vs bob only)
   [
     { userIdx: 0, outcomeIdx: 0, amount: 80,  secsAgo: 0 },
     { userIdx: 1, outcomeIdx: 1, amount: 90,  secsAgo: 0 },
@@ -265,7 +265,7 @@ const BET_WAVES: SeedBet[][] = [
     { userIdx: 0, outcomeIdx: 0, amount: 30,  secsAgo: 0 },
     { userIdx: 1, outcomeIdx: 1, amount: 45,  secsAgo: 0 },
   ],
-  // Wave 3 — 4 predictors, outcome-1 heavy
+  // Wave 3 - 4 predictors, outcome-1 heavy
   [
     { userIdx: 1, outcomeIdx: 1, amount: 150, secsAgo: 0 },
     { userIdx: 0, outcomeIdx: 0, amount: 40,  secsAgo: 0 },
@@ -278,14 +278,14 @@ const BET_WAVES: SeedBet[][] = [
     { userIdx: 0, outcomeIdx: 0, amount: 20,  secsAgo: 0 },
     { userIdx: 1, outcomeIdx: 1, amount: 45,  secsAgo: 0 },
   ],
-  // Wave 4 — 1 predictor, solo whale (carol dominates)
+  // Wave 4 - 1 predictor, solo whale (carol dominates)
   [
     { userIdx: 2, outcomeIdx: 0, amount: 200, secsAgo: 0 },
     { userIdx: 2, outcomeIdx: 0, amount: 150, secsAgo: 0 },
     { userIdx: 2, outcomeIdx: 1, amount: 100, secsAgo: 0 },
     { userIdx: 2, outcomeIdx: 0, amount: 50,  secsAgo: 0 },
   ],
-  // Wave 5 — 3 predictors, small stakes, casual (alice, bob, carol)
+  // Wave 5 - 3 predictors, small stakes, casual (alice, bob, carol)
   [
     { userIdx: 0, outcomeIdx: 0, amount: 25,  secsAgo: 0 },
     { userIdx: 1, outcomeIdx: 0, amount: 30,  secsAgo: 0 },
@@ -298,7 +298,7 @@ const BET_WAVES: SeedBet[][] = [
     { userIdx: 2, outcomeIdx: 0, amount: 15,  secsAgo: 0 },
     { userIdx: 0, outcomeIdx: 1, amount: 12,  secsAgo: 0 },
   ],
-  // Wave 6 — 4 predictors, late outcome-0 surge
+  // Wave 6 - 4 predictors, late outcome-0 surge
   [
     { userIdx: 2, outcomeIdx: 1, amount: 150, secsAgo: 0 },
     { userIdx: 3, outcomeIdx: 1, amount: 130, secsAgo: 0 },
@@ -311,7 +311,7 @@ const BET_WAVES: SeedBet[][] = [
     { userIdx: 2, outcomeIdx: 1, amount: 40,  secsAgo: 0 },
     { userIdx: 3, outcomeIdx: 0, amount: 60,  secsAgo: 0 },
   ],
-  // Wave 7 — 2 predictors, volatile swing (bob vs dan)
+  // Wave 7 - 2 predictors, volatile swing (bob vs dan)
   [
     { userIdx: 1, outcomeIdx: 0, amount: 120, secsAgo: 0 },
     { userIdx: 3, outcomeIdx: 1, amount: 140, secsAgo: 0 },
@@ -322,7 +322,7 @@ const BET_WAVES: SeedBet[][] = [
     { userIdx: 1, outcomeIdx: 0, amount: 50,  secsAgo: 0 },
     { userIdx: 3, outcomeIdx: 0, amount: 40,  secsAgo: 0 },
   ],
-  // Wave 8 — 3 predictors, high-volume (alice, bob, dan)
+  // Wave 8 - 3 predictors, high-volume (alice, bob, dan)
   [
     { userIdx: 0, outcomeIdx: 0, amount: 300, secsAgo: 0 },
     { userIdx: 1, outcomeIdx: 1, amount: 250, secsAgo: 0 },
@@ -333,7 +333,7 @@ const BET_WAVES: SeedBet[][] = [
     { userIdx: 0, outcomeIdx: 1, amount: 30,  secsAgo: 0 },
     { userIdx: 1, outcomeIdx: 1, amount: 20,  secsAgo: 0 },
   ],
-  // Wave 9 — 3 predictors, hedged across 3 outcomes (alice, bob, carol; FR-8)
+  // Wave 9 - 3 predictors, hedged across 3 outcomes (alice, bob, carol; FR-8)
   [
     { userIdx: 0, outcomeIdx: 0, amount: 120, secsAgo: 0 },
     { userIdx: 0, outcomeIdx: 2, amount: 60,  secsAgo: 0 },
@@ -344,7 +344,7 @@ const BET_WAVES: SeedBet[][] = [
     { userIdx: 0, outcomeIdx: 1, amount: 80,  secsAgo: 0 },
     { userIdx: 1, outcomeIdx: 2, amount: 60,  secsAgo: 0 },
   ],
-  // Wave 10 — 4 predictors, spread across up to 5 outcomes
+  // Wave 10 - 4 predictors, spread across up to 5 outcomes
   [
     { userIdx: 0, outcomeIdx: 3, amount: 100, secsAgo: 0 },
     { userIdx: 1, outcomeIdx: 4, amount: 90,  secsAgo: 0 },
@@ -355,7 +355,7 @@ const BET_WAVES: SeedBet[][] = [
     { userIdx: 2, outcomeIdx: 3, amount: 45,  secsAgo: 0 },
     { userIdx: 3, outcomeIdx: 4, amount: 40,  secsAgo: 0 },
   ],
-  // Wave 11 — 4 predictors, 4-outcome market; outcome-2 is the crowd favourite
+  // Wave 11 - 4 predictors, 4-outcome market; outcome-2 is the crowd favourite
   [
     { userIdx: 0, outcomeIdx: 2, amount: 160, secsAgo: 0 },
     { userIdx: 1, outcomeIdx: 2, amount: 140, secsAgo: 0 },
@@ -368,7 +368,7 @@ const BET_WAVES: SeedBet[][] = [
     { userIdx: 0, outcomeIdx: 1, amount: 35,  secsAgo: 0 },
     { userIdx: 1, outcomeIdx: 3, amount: 20,  secsAgo: 0 },
   ],
-  // Wave 12 — 3 predictors, 3-outcome market with contrarian minority on outcome-2
+  // Wave 12 - 3 predictors, 3-outcome market with contrarian minority on outcome-2
   [
     { userIdx: 0, outcomeIdx: 0, amount: 200, secsAgo: 0 },
     { userIdx: 1, outcomeIdx: 0, amount: 175, secsAgo: 0 },
@@ -379,7 +379,7 @@ const BET_WAVES: SeedBet[][] = [
     { userIdx: 2, outcomeIdx: 0, amount: 70,  secsAgo: 0 },
     { userIdx: 3, outcomeIdx: 1, amount: 20,  secsAgo: 0 },
   ],
-  // Wave 13 — 4 predictors, 5-outcome market; all outcomes get real money, no clear leader
+  // Wave 13 - 4 predictors, 5-outcome market; all outcomes get real money, no clear leader
   [
     { userIdx: 0, outcomeIdx: 1, amount: 130, secsAgo: 0 },
     { userIdx: 1, outcomeIdx: 3, amount: 115, secsAgo: 0 },
@@ -391,7 +391,7 @@ const BET_WAVES: SeedBet[][] = [
     { userIdx: 3, outcomeIdx: 1, amount: 40,  secsAgo: 0 },
     { userIdx: 0, outcomeIdx: 2, amount: 20,  secsAgo: 0 },
   ],
-  // Wave 14 — 2 predictors whale duel on a 4-outcome market; outcome-0 vs outcome-3
+  // Wave 14 - 2 predictors whale duel on a 4-outcome market; outcome-0 vs outcome-3
   [
     { userIdx: 0, outcomeIdx: 0, amount: 300, secsAgo: 0 },
     { userIdx: 1, outcomeIdx: 3, amount: 280, secsAgo: 0 },
@@ -400,7 +400,7 @@ const BET_WAVES: SeedBet[][] = [
     { userIdx: 0, outcomeIdx: 0, amount: 100, secsAgo: 0 },
     { userIdx: 1, outcomeIdx: 3, amount: 90,  secsAgo: 0 },
   ],
-  // Wave 15 — late-breaking consensus flip: starts on outcome-1, swings to outcome-0
+  // Wave 15 - late-breaking consensus flip: starts on outcome-1, swings to outcome-0
   [
     { userIdx: 2, outcomeIdx: 1, amount: 180, secsAgo: 0 },
     { userIdx: 3, outcomeIdx: 1, amount: 150, secsAgo: 0 },
@@ -439,7 +439,7 @@ async function main() {
     );
 
     if (existing.length > 0) {
-      console.log(`  ${seedUser.email} — already exists (${existing[0].id.substring(0, 8)}…)`);
+      console.log(`  ${seedUser.email} - already exists (${existing[0].id.substring(0, 8)}…)`);
       resolvedUserIds.push(existing[0].id);
       continue;
     }
@@ -465,7 +465,7 @@ async function main() {
 
     const data = (await res.json()) as { id: string };
     resolvedUserIds.push(data.id);
-    console.log(`  ${seedUser.email} — created (${data.id.substring(0, 8)}…)`);
+    console.log(`  ${seedUser.email} - created (${data.id.substring(0, 8)}…)`);
   }
 
   // ── 1b. Top up balances so multi-market betting doesn't overdraft. ───────
@@ -611,7 +611,7 @@ async function main() {
       }),
     );
 
-    // Only untouched markets — partial waves must not get a second wave
+    // Only untouched markets - partial waves must not get a second wave
     // or the FR-9 aggregate cap will fire on re-runs.
     const eligible = withCounts.filter(
       ({ betCount, market }) => betCount === 0 && market.market_outcomes.length >= 2,
@@ -628,7 +628,7 @@ async function main() {
     );
 
     if (targets.length === 0) {
-      console.log("All markets already have bets — nothing to seed (use SEED_MODE=boost).");
+      console.log("All markets already have bets - nothing to seed (use SEED_MODE=boost).");
       process.exit(0);
     }
 

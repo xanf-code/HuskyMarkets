@@ -1,4 +1,4 @@
--- Phase 2 · 0005 — Advisor hardening (post-apply lint pass)
+-- Phase 2 · 0005 - Advisor hardening (post-apply lint pass)
 -- Fixes: anon/public could execute every security-definer function
 -- (lint 0028), and several foreign keys lacked covering indexes (lint 0001).
 

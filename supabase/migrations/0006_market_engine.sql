@@ -1,4 +1,4 @@
--- Phase 3 · 0006 — Market engine: place_bet, resolve_market, lock_market
+-- Phase 3 · 0006 - Market engine: place_bet, resolve_market, lock_market
 -- Sole write paths for bets and market state. All money math is integer HC.
 --
 -- Ledger sign conventions (invariant checked in Phase 3 verification):

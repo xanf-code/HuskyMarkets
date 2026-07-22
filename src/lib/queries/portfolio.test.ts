@@ -1,11 +1,31 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   aggregateOpenPositions,
   aggregateResolved,
+  aggregateBetHistory,
+  getUserCreatedMarkets,
   type BetRow,
   type MarketRow,
   type PayoutRow,
 } from "./portfolio";
+
+// ── Supabase mock (only used by getUserCreatedMarkets tests) ─────────────
+
+const { from } = vi.hoisted(() => ({ from: vi.fn() }));
+
+vi.mock("@/lib/supabase/server", () => ({
+  createClient: async () => ({ from }),
+}));
+
+function chainable(result: { data: unknown; error: null }) {
+  const builder: Record<string, unknown> = {};
+  for (const method of ["eq", "order", "select"]) {
+    builder[method] = vi.fn(() => builder);
+  }
+  builder.then = (resolve: (v: unknown) => unknown) =>
+    Promise.resolve(result).then(resolve);
+  return builder;
+}
 
 const openMarket: MarketRow = {
   id: "m-open",
@@ -132,7 +152,7 @@ describe("aggregateResolved", () => {
         { id: "o-c", label: "Gamma", sort_order: 2, pool: 250 },
       ],
     };
-    // Hedged: 60 on the winner, 100 on a loser — total stake 160.
+    // Hedged: 60 on the winner, 100 on a loser - total stake 160.
     const bets: BetRow[] = [
       bet({ market_id: "m-3", outcome_id: "o-c", amount: 60, price_at_bet: 33 }),
       bet({ id: "b-hedge", market_id: "m-3", outcome_id: "o-a", amount: 100, price_at_bet: 40 }),
@@ -269,5 +289,106 @@ describe("aggregateResolved", () => {
         { market_id: "m-void", type: "market_refund", amount: 50 },
       ])[0].shareBetId,
     ).toBeNull();
+  });
+});
+
+// ── aggregateBetHistory ───────────────────────────────────────────────────
+
+describe("aggregateBetHistory", () => {
+  it("returns one row per bet with market title and outcome label", () => {
+    const bets: BetRow[] = [
+      bet({ outcome_id: "o-yes", amount: 100, price_at_bet: 50, created_at: "2026-07-10T10:00:00Z" }),
+      bet({ id: "b-2", outcome_id: "o-no", amount: 50, price_at_bet: 40, created_at: "2026-07-09T08:00:00Z" }),
+    ];
+
+    const history = aggregateBetHistory(bets, [openMarket]);
+
+    expect(history).toHaveLength(2);
+    // Sorted newest-first
+    expect(history[0].betId).toBe("b-id");
+    expect(history[0].outcomeLabel).toBe("Yes");
+    expect(history[0].amount).toBe(100);
+    expect(history[0].priceAtBet).toBe(50);
+    expect(history[0].marketTitle).toBe("Will the Green Line delay?");
+    expect(history[0].marketStatus).toBe("open");
+    expect(history[1].outcomeLabel).toBe("No");
+  });
+
+  it("sorts bets newest-first across markets", () => {
+    const bets: BetRow[] = [
+      bet({ id: "b-old", market_id: "m-open", outcome_id: "o-yes", created_at: "2026-07-08T00:00:00Z" }),
+      bet({ id: "b-new", market_id: "m-res", outcome_id: "o-yes", created_at: "2026-07-12T00:00:00Z" }),
+    ];
+
+    const history = aggregateBetHistory(bets, [openMarket, resolvedMarket]);
+
+    expect(history[0].betId).toBe("b-new");
+    expect(history[1].betId).toBe("b-old");
+  });
+
+  it("includes the market status so the UI can show settled state", () => {
+    const bets: BetRow[] = [bet({ market_id: "m-res", outcome_id: "o-yes" })];
+
+    const history = aggregateBetHistory(bets, [resolvedMarket]);
+
+    expect(history[0].marketStatus).toBe("resolved");
+  });
+
+  it("ignores bets for unknown markets (data integrity guard)", () => {
+    const bets: BetRow[] = [bet({ market_id: "unknown" })];
+    expect(aggregateBetHistory(bets, [])).toHaveLength(0);
+  });
+
+  it("returns empty array for empty inputs", () => {
+    expect(aggregateBetHistory([], [])).toEqual([]);
+  });
+});
+
+// ── getUserCreatedMarkets ─────────────────────────────────────────────────
+
+describe("getUserCreatedMarkets", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("fetches markets for the given user and shapes them correctly", async () => {
+    const marketsBuilder = chainable({
+      data: [
+        {
+          id: "m-1",
+          title: "Will it snow?",
+          status: "open",
+          category: "weather",
+          created_at: "2026-07-10T10:00:00Z",
+          close_at: "2026-07-20T20:00:00Z",
+        },
+      ],
+      error: null,
+    });
+    from.mockReturnValue(marketsBuilder);
+
+    const result = await getUserCreatedMarkets("user-1");
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual({
+      id: "m-1",
+      title: "Will it snow?",
+      status: "open",
+      category: "weather",
+      createdAt: "2026-07-10T10:00:00Z",
+      closeAt: "2026-07-20T20:00:00Z",
+    });
+    expect(from).toHaveBeenCalledWith("markets");
+    const b = marketsBuilder;
+    expect(b.select).toHaveBeenCalled();
+    expect(b.eq).toHaveBeenCalledWith("creator_id", "user-1");
+    expect(b.order).toHaveBeenCalledWith("created_at", { ascending: false });
+  });
+
+  it("returns an empty array when the user has no created markets", async () => {
+    const marketsBuilder = chainable({ data: [], error: null });
+    from.mockReturnValue(marketsBuilder);
+
+    const result = await getUserCreatedMarkets("user-2");
+
+    expect(result).toEqual([]);
   });
 });

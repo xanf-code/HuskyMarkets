@@ -74,7 +74,7 @@ function buildCreateMarketSchema(maxOutcomes: number) {
           (label) => label.toLowerCase() === CATCH_ALL_LABEL.toLowerCase(),
         ),
       {
-        message: `"${CATCH_ALL_LABEL}" is added by the catch-all toggle — remove the duplicate label.`,
+        message: `"${CATCH_ALL_LABEL}" is added by the catch-all toggle - remove the duplicate label.`,
       },
     );
 }
@@ -108,7 +108,7 @@ export async function createMarket(
     catchAll,
   } = parsed.data;
 
-  // Outcome labels go through the same content rule as the title — a clean
+  // Outcome labels go through the same content rule as the title - a clean
   // title must not smuggle a profane or person-targeting label (REC-15).
   const screening = flagContent(
     title,
@@ -154,4 +154,121 @@ export async function createMarket(
 
   revalidatePath("/");
   return { ok: true, marketId };
+}
+
+function buildUpdateMarketSchema(maxOutcomes: number) {
+  return buildCreateMarketSchema(maxOutcomes).and(
+    z.object({ marketId: z.uuid() }),
+  );
+}
+
+function mapUpdateError(message: string): string {
+  if (message.includes("market has bets")) {
+    return "This market has bets and can no longer be edited.";
+  }
+  if (message.includes("not allowed")) {
+    return "You don't have permission to edit this market.";
+  }
+  if (message.includes("market not editable")) {
+    return "This market is no longer editable.";
+  }
+  return message;
+}
+
+export async function updateMarket(
+  input: unknown,
+): Promise<ActionResult<{ marketId: string }>> {
+  const supabase = await createClient();
+
+  const { data: cfg } = await supabase
+    .from("app_config")
+    .select("int_val")
+    .eq("key", "max_outcomes")
+    .single();
+  const maxOutcomes = cfg?.int_val ?? MAX_OUTCOMES;
+
+  const updateMarketSchema = buildUpdateMarketSchema(maxOutcomes);
+  const parsed = updateMarketSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0].message };
+  }
+
+  const {
+    marketId,
+    title,
+    description,
+    category,
+    closeAt,
+    resolveAt,
+    resolutionCriteria,
+    outcomes,
+    catchAll,
+  } = parsed.data;
+
+  const screening = flagContent(
+    title,
+    description ?? "",
+    [resolutionCriteria, ...outcomes].join("\n"),
+  );
+  if (screening.blocked) {
+    return {
+      ok: false,
+      error: "This market violates community standards and can't be saved.",
+    };
+  }
+
+  const session = await getSession();
+  if (!session) return { ok: false, error: "Not signed in." };
+
+  const { error } = await supabase.rpc("update_market", {
+    p_market_id: marketId,
+    p_title: title,
+    p_description: description ?? "",
+    p_category: category,
+    p_resolution_criteria: resolutionCriteria,
+    p_close_at: closeAt,
+    p_resolve_at: resolveAt,
+    p_outcomes: outcomes,
+    p_catch_all: catchAll,
+    p_auto_flagged: screening.flagged,
+  });
+
+  if (error) return { ok: false, error: mapUpdateError(error.message) };
+
+  revalidatePath(`/market/${marketId}`);
+  revalidatePath("/");
+  return { ok: true, marketId };
+}
+
+const ownMarketSchema = z.object({ marketId: z.uuid() });
+
+export async function deleteOwnMarket(input: unknown): Promise<ActionResult> {
+  const parsed = ownMarketSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0].message };
+  }
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("resolve_market", {
+    p_market_id: parsed.data.marketId,
+    p_action: "void",
+  });
+  if (error) return { ok: false, error: error.message };
+  revalidatePath(`/market/${parsed.data.marketId}`);
+  revalidatePath("/");
+  return { ok: true };
+}
+
+export async function lockOwnMarket(input: unknown): Promise<ActionResult> {
+  const parsed = ownMarketSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0].message };
+  }
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("lock_market", {
+    p_market_id: parsed.data.marketId,
+  });
+  if (error) return { ok: false, error: error.message };
+  revalidatePath(`/market/${parsed.data.marketId}`);
+  revalidatePath("/");
+  return { ok: true };
 }

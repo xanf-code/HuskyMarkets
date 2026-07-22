@@ -1,10 +1,10 @@
 // Admin / moderator queue queries. When `excludeUserId` is set (moderator
-// dashboard), markets the user created or bet on are filtered out — mirrors
+// dashboard), markets the user created or bet on are filtered out - mirrors
 // assert_can_moderate_market on the server.
 
 import { createClient } from "@/lib/supabase/server";
 
-/** Pure conflict filter — UI mirror of assert_can_moderate_market. */
+/** Pure conflict filter - UI mirror of assert_can_moderate_market. */
 export function filterConflictMarkets<
   T extends { id: string; creatorId: string },
 >(

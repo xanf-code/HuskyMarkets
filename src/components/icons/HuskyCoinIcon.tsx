@@ -1,7 +1,7 @@
 interface HuskyCoinIconProps {
   size?: number;
   className?: string;
-  /** When true (default), hide from assistive tech — pair with a labeled amount. */
+  /** When true (default), hide from assistive tech - pair with a labeled amount. */
   "aria-hidden"?: boolean | "true" | "false";
 }
 

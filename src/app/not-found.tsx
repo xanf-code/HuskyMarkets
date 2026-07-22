@@ -9,7 +9,7 @@ export default function NotFound() {
         Page not found
       </h1>
       <p className="text-pretty text-sm text-text-muted sm:text-base">
-        That market or page isn&apos;t here — it may have been removed, or the
+        That market or page isn&apos;t here - it may have been removed, or the
         link is off.
       </p>
       <Link href="/" className={buttonStyles({ variant: "primary" })}>

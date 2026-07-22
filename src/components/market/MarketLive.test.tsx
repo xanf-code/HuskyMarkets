@@ -132,7 +132,7 @@ describe("MarketLive", () => {
       </>,
     );
 
-    expect(screen.getByText(/Resolved — Yes/)).toBeInTheDocument();
+    expect(screen.getByText(/Resolved - Yes/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /closed/i })).toBeDisabled();
   });
 

@@ -1,10 +1,10 @@
 // Shared N-outcome contract. `OutcomeState` mirrors the `_outcome_map` jsonb
 // payload returned by the engine RPCs (create_market / place_bet) and is the
-// canonical shape every surface consumes — binary markets are simply the
+// canonical shape every surface consumes - binary markets are simply the
 // N = 2 case (C-5, no dual path).
 //
 // ORDERING CONTRACT: `sortOrder` is the canonical display order for outcomes
-// on every surface — order panel, resolve queue, cards, charts, OG images,
+// on every surface - order panel, resolve queue, cards, charts, OG images,
 // and portfolio. Never re-derive display order from pool or label.
 
 export interface OutcomeState {

@@ -1,6 +1,6 @@
 // Font loading for ImageResponse OG routes. Fonts are bundled subsetted TTFs
 // under src/assets/fonts (see docs/implementation_sofar.md, Phase 8), read
-// from disk once and memoized — the first OG request pays the read, later
+// from disk once and memoized - the first OG request pays the read, later
 // requests reuse it. OG routes run in the Node runtime (fs access); see the
 // ImageResponse docs for this pattern.
 

@@ -1,7 +1,7 @@
 "use client";
 
 // Fade-lock for guest-gated content: static placeholder rows (never real
-// data — the server skips those queries entirely) behind a gradient overlay
+// data - the server skips those queries entirely) behind a gradient overlay
 // with a sign-in prompt. Used for the market activity feed and, via
 // LockedLeaderboard, the leaderboard.
 

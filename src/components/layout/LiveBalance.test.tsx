@@ -102,7 +102,7 @@ describe("LiveBalance", () => {
     await emitTransaction({ type: "bet_payout", amount: 158, market_id: "m1" });
 
     expect(
-      screen.getByText('+158 HC — called it on "Will it snow?" (Yes)'),
+      screen.getByText('+158 HC - called it on "Will it snow?" (Yes)'),
     ).toBeInTheDocument();
   });
 

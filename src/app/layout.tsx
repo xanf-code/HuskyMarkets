@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   ),
   title: "HuskyMarkets",
   description:
-    "Prediction markets for Northeastern students — virtual HuskyCoin only.",
+    "Prediction markets for Northeastern students - virtual HuskyCoin only.",
 };
 
 export const viewport: Viewport = {

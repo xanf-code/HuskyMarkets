@@ -1,4 +1,4 @@
-// E-6 / S6-1 — pure planning helpers for the seed scripts. The scripts
+// E-6 / S6-1 - pure planning helpers for the seed scripts. The scripts
 // themselves hit a live Supabase REST API; everything money- or shape-relevant
 // is tested here (FR-9 aggregate cap, C-1/C-2 outcome bounds, D-7 mix).
 
@@ -81,7 +81,7 @@ describe("capViolations (FR-9 aggregate cap)", () => {
   });
 
   it("aggregates across ALL outcomes, not per outcome", () => {
-    // Three separate 200 HC stakes on three outcomes: 600 total — over cap.
+    // Three separate 200 HC stakes on three outcomes: 600 total - over cap.
     const wave = [bet(2, 0, 200), bet(2, 1, 200), bet(2, 2, 200)];
     expect(capViolations(wave)).toHaveLength(1);
   });

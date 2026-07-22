@@ -32,7 +32,7 @@ describe("MarketOgCard", () => {
     expect(screen.getByText("Green Line 41%")).toBeInTheDocument();
   });
 
-  it("escapes UGC labels — markup in a label renders as text, never HTML", () => {
+  it("escapes UGC labels - markup in a label renders as text, never HTML", () => {
     const { container } = render(
       <MarketOgCard
         card={{
@@ -76,7 +76,7 @@ describe("BetOgCard", () => {
     expect(screen.getByText(/Outtakes · huskymarkets/)).toBeInTheDocument();
   });
 
-  it("escapes UGC labels — markup in a label renders as text, never HTML", () => {
+  it("escapes UGC labels - markup in a label renders as text, never HTML", () => {
     const { container } = render(
       <BetOgCard
         card={{ ...card, outcomeLabel: '<script>alert("x")</script>' }}

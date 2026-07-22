@@ -1,8 +1,8 @@
--- 0012 — Observability fixtures (E-6 / S6-2).
+-- 0012 - Observability fixtures (E-6 / S6-2).
 --
 -- The three standing instruments the rollout soak consumes (REC-16, REC-18):
 --   1. Scheduled verify_ledger_invariant() whose results land in a
---      human-checked table — a failing check writing to an unread table is
+--      human-checked table - a failing check writing to an unread table is
 --      not monitoring, so ledger_checks is the ops-canary sink.
 --   2. check_cron_health(): any failed run of any cron job in the last 24h
 --      (pg_cron failures are silent; they only land in cron.job_run_details).
@@ -65,7 +65,7 @@ $$;
 
 -- ── 3. price_history_growth() (A-3/R-3) ──────────────────────────────────────
 -- N-outcome snapshots multiply row volume (up to 6 rows/snapshot/market vs 2).
--- Retention is accepted and monitored, not thinned — REVISIT retention when
+-- Retention is accepted and monitored, not thinned - REVISIT retention when
 -- total_rows passes 5,000,000 or table_bytes passes 1 GB.
 
 create function public.price_history_growth()

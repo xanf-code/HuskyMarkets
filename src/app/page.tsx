@@ -52,7 +52,7 @@ export default async function Home({ searchParams }: HomeProps) {
 
   return (
     <div className="flex flex-col gap-8 sm:gap-10">
-      <h1 className="sr-only">HuskyMarkets — Campus Prediction Markets</h1>
+      <h1 className="sr-only">HuskyMarkets - Campus Prediction Markets</h1>
       {!session ? <GuestWelcome /> : <FirstRunBanner />}
       {!showGroups && (
         <Suspense>

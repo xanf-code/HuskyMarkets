@@ -1,9 +1,9 @@
 "use client";
 
 // Home grid enhancement: one unfiltered `markets:list` channel patches the
-// visible cards — `markets` UPDATEs remove closed/hidden cards, and
+// visible cards - `markets` UPDATEs remove closed/hidden cards, and
 // `market_outcomes` UPDATEs move prices (REC-13). The server-fetched list is
-// the source of truth — filter navigation reseeds via props. Infinite scroll
+// the source of truth - filter navigation reseeds via props. Infinite scroll
 // windows the client list so phones don't paint dozens of cards at once.
 
 import { useEffect, useState } from "react";
@@ -24,7 +24,7 @@ import { MarketGrid } from "./MarketGrid";
 export function MarketGridLive({ initial }: { initial: MarketListItem[] }) {
   const [markets, setMarkets] = useState(initial);
 
-  // Server navigation (filter/sort change) reseeds the list — guarded
+  // Server navigation (filter/sort change) reseeds the list - guarded
   // setState during render, per React's "adjust state when props change".
   const [syncedInitial, setSyncedInitial] = useState(initial);
   if (initial !== syncedInitial) {

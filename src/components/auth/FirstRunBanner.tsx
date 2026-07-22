@@ -10,7 +10,7 @@ import {
 /**
  * Post-onboarding home cue for beginners: get them to a first bet that
  * lands them on the semester board (and sets up a future share card).
- * Matches GuestWelcome — muted invitation strip, not a lifted card.
+ * Matches GuestWelcome - muted invitation strip, not a lifted card.
  */
 export function FirstRunBanner() {
   const [visible, setVisible] = useState(false);

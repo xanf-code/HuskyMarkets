@@ -32,7 +32,7 @@ describe("buildChartSeries", () => {
   it("mobile caps at the top-3 outcomes by pool plus an 'Other' aggregate", () => {
     const series = buildChartSeries(six, "mobile");
 
-    // Top-3 by pool: Beta (300), Delta (250), Zeta (150) — then Other.
+    // Top-3 by pool: Beta (300), Delta (250), Zeta (150) - then Other.
     expect(series.map((s) => s.label)).toEqual([
       "Beta",
       "Delta",

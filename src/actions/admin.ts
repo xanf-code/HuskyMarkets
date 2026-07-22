@@ -7,10 +7,10 @@ import type { ActionResult } from "./profile";
 
 function mapStaffError(message: string): string {
   if (message.includes("conflict of interest: you created")) {
-    return "You created this market — hand it to another staff member.";
+    return "You created this market - hand it to another staff member.";
   }
   if (message.includes("conflict of interest: you bet")) {
-    return "You bet on this market — hand it to another staff member.";
+    return "You bet on this market - hand it to another staff member.";
   }
   if (message.includes("admin only")) {
     return "Only admins can do that.";
@@ -32,7 +32,7 @@ function revalidateStaff() {
   revalidatePath("/");
 }
 
-// Explicit resolve/void discriminant — no null-sentinel void (REC-10).
+// Explicit resolve/void discriminant - no null-sentinel void (REC-10).
 const resolveSchema = z
   .object({
     marketId: z.uuid(),

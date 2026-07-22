@@ -1,4 +1,4 @@
--- Phase 2 · 0003 — Row-level security
+-- Phase 2 · 0003 - Row-level security
 -- No insert/update policies exist on transactions/bets/price_history or on
 -- market state: all money writes go through security-definer functions only.
 

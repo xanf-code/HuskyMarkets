@@ -49,7 +49,7 @@ describe("outcome palette (D-3, NFR-7)", () => {
     expect(theme.outcomePalette).toHaveLength(6);
   });
 
-  it("reuses no color — every token is distinct", () => {
+  it("reuses no color - every token is distinct", () => {
     expect(new Set(theme.outcomePalette).size).toBe(6);
   });
 

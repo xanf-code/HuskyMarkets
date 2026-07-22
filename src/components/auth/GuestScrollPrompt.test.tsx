@@ -9,7 +9,7 @@ vi.mock("@/components/auth/SignInPromptProvider", () => ({
   useSignInPrompt: () => ({ promptSignIn }),
 }));
 
-// IntersectionObserver mock — lets tests manually fire intersection callbacks.
+// IntersectionObserver mock - lets tests manually fire intersection callbacks.
 let observerCallback: IntersectionObserverCallback | null = null;
 let observedElement: Element | null = null;
 

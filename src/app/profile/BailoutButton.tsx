@@ -23,11 +23,11 @@ export function BailoutButton() {
       }
       if (!result.claimed) {
         setMessage(
-          "You already took a bailout this week — the next one unlocks Monday (ET).",
+          "You already took a bailout this week - the next one unlocks Monday (ET).",
         );
         return;
       }
-      push(`+${BAILOUT} HC — back in the game`);
+      push(`+${BAILOUT} HC - back in the game`);
     } catch {
       setMessage("Couldn't claim the bailout. Check your connection and try again.");
     } finally {

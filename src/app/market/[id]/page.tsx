@@ -11,6 +11,7 @@ import {
   LiveStatusBanner,
   MarketLiveProvider,
 } from "@/components/market/MarketLive";
+import { CreatorControls } from "@/components/market/CreatorControls";
 import { ReportDialog } from "@/components/market/ReportDialog";
 import { Chip } from "@/components/ui/Chip";
 import { HcAmount } from "@/components/ui/HcAmount";
@@ -48,10 +49,10 @@ export async function generateMetadata({
 }: MarketMetadataProps): Promise<Metadata> {
   const { id } = await params;
   const card = await getMarketCard(id);
-  if (!card) return { title: "Market — HuskyMarkets" };
+  if (!card) return { title: "Market - HuskyMarkets" };
   return {
-    title: `${card.title} — HuskyMarkets`,
-    description: `${card.leading.label} at ${formatPercent(card.leading.price)} · ${formatHC(card.volume)} in play — HuskyMarkets`,
+    title: `${card.title} - HuskyMarkets`,
+    description: `${card.leading.label} at ${formatPercent(card.leading.price)} · ${formatHC(card.volume)} in play - HuskyMarkets`,
     openGraph: { images: [`/api/og/market/${id}`] },
   };
 }
@@ -113,27 +114,37 @@ export default async function MarketPage({
         </div>
 
         <div className="order-3 lg:col-start-2 lg:row-start-1 lg:row-span-3 lg:sticky lg:top-24">
-          <LiveOrderPanel
-            marketId={market.id}
-            closeAt={market.close_at}
-            position={detail.position}
-            balance={detail.balance}
-            question={market.title}
-            guest={detail.isGuest}
-            initialOutcomeId={initialOutcomeId}
-          />
-          {totalStaked > 0 ? (
-            <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-text-muted">
-              <span>Your position:</span>
-              {detail.position.map((p, i) => (
-                <span key={p.outcomeId} className="inline-flex items-center gap-1">
-                  {i > 0 ? <span aria-hidden="true">·</span> : null}
-                  <HcAmount amount={p.stake} size={12} />
-                  <span className="truncate">{p.label}</span>
-                </span>
-              ))}
-            </p>
-          ) : null}
+          {detail.isCreator ? (
+            <CreatorControls
+              marketId={market.id}
+              status={market.status}
+              hasBets={detail.hasBets}
+            />
+          ) : (
+            <>
+              <LiveOrderPanel
+                marketId={market.id}
+                closeAt={market.close_at}
+                position={detail.position}
+                balance={detail.balance}
+                question={market.title}
+                guest={detail.isGuest}
+                initialOutcomeId={initialOutcomeId}
+              />
+              {totalStaked > 0 ? (
+                <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-text-muted">
+                  <span>Your position:</span>
+                  {detail.position.map((p, i) => (
+                    <span key={p.outcomeId} className="inline-flex items-center gap-1">
+                      {i > 0 ? <span aria-hidden="true">·</span> : null}
+                      <HcAmount amount={p.stake} size={12} />
+                      <span className="truncate">{p.label}</span>
+                    </span>
+                  ))}
+                </p>
+              ) : null}
+            </>
+          )}
         </div>
 
         <div className="order-2 lg:col-start-1 lg:row-start-2">

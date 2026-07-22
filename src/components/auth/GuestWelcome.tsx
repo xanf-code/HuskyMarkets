@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/Button";
 import { useSignInPrompt } from "./SignInPromptProvider";
 
-/** Slim first-run hook for guests above the board — invitation, not interruption. */
+/** Slim first-run hook for guests above the board - invitation, not interruption. */
 export function GuestWelcome() {
   const { promptSignIn } = useSignInPrompt();
 

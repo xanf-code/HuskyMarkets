@@ -159,7 +159,7 @@ export function OrderPanel(props: OrderPanelProps) {
     props.onFill?.({ outcomes: result.outcomes });
     setStaked((current) => current + amount);
     setAmountInput("");
-    // Est. payout repeats at the moment of purchase, not just on the panel —
+    // Est. payout repeats at the moment of purchase, not just on the panel -
     // this is where the parimutuel expectation is actually set (FR-24).
     toast.push(
       `Locked in · ${formatHC(amount)} on ${selected.label} · ${formatPercent(priceNow)} · est. ${formatHC(estimate)}`,
@@ -176,7 +176,7 @@ export function OrderPanel(props: OrderPanelProps) {
   const submitLabel = open
     ? pending
       ? "Placing…"
-      : `Buy ${selected?.label ?? "—"} · ${formatPercent(selected?.implied ?? 0)}`
+      : `Buy ${selected?.label ?? "-"} · ${formatPercent(selected?.implied ?? 0)}`
     : "Market closed";
 
   return (
@@ -194,7 +194,7 @@ export function OrderPanel(props: OrderPanelProps) {
           <p className="line-clamp-2 text-xs text-text-muted">{props.question}</p>
         ) : null}
         <p className="truncate text-2xl leading-tight font-bold text-text">
-          {selected?.label ?? "—"}
+          {selected?.label ?? "-"}
         </p>
       </div>
 
@@ -314,19 +314,19 @@ export function OrderPanel(props: OrderPanelProps) {
         <div className="flex items-baseline justify-between gap-3">
           <dt className="shrink-0 text-text-muted">Balance</dt>
           <dd className="whitespace-nowrap text-text">
-            {guest ? "—" : <HcAmount amount={balance} size={14} />}
+            {guest ? "-" : <HcAmount amount={balance} size={14} />}
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="shrink-0 text-text-muted">Stake cap left</dt>
           <dd className="whitespace-nowrap text-text">
-            {guest ? "—" : <HcAmount amount={capRemaining} size={14} />}
+            {guest ? "-" : <HcAmount amount={capRemaining} size={14} />}
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3 border-t border-hairline pt-3">
           <dt className="shrink-0 font-semibold text-text">Est. payout</dt>
           <dd className="text-2xl font-bold whitespace-nowrap text-text">
-            {valid ? <HcAmount amount={estimate} size={20} /> : "—"}
+            {valid ? <HcAmount amount={estimate} size={20} /> : "-"}
           </dd>
         </div>
       </dl>

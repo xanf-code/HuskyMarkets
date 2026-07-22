@@ -24,7 +24,7 @@ export function impliedOutcome(outcomePool: number, totalPool: number): number {
  * Estimated payout if this bet wins, assuming pools freeze after it.
  * Mirrors resolve_market with the bet added to the pools: the vig is floored
  * on the total first (`v_total*5/100` in integer SQL), then the pro-rata
- * share is floored — two separate floors, not a single ×0.95.
+ * share is floored - two separate floors, not a single ×0.95.
  *
  * Works for any outcome in an N-outcome market: pass the chosen outcome's
  * current pool as `sidePool` and the sum of all outcome pools as `totalPool`.

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { PortfolioTabs } from "@/components/portfolio/PortfolioTabs";
 import { verifySession } from "@/lib/dal";
-import { getPortfolio } from "@/lib/queries/portfolio";
+import { getPortfolio, getUserCreatedMarkets } from "@/lib/queries/portfolio";
 
 export const metadata: Metadata = {
   title: "Portfolio · HuskyMarkets",
@@ -10,7 +10,10 @@ export const metadata: Metadata = {
 export default async function PortfolioPage() {
   const { userId } = await verifySession();
 
-  const portfolio = await getPortfolio(userId);
+  const [portfolio, created] = await Promise.all([
+    getPortfolio(userId),
+    getUserCreatedMarkets(userId),
+  ]);
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 py-8 sm:py-12">
@@ -26,6 +29,8 @@ export default async function PortfolioPage() {
         open={portfolio.open}
         resolved={portfolio.resolved}
         ledger={portfolio.ledger}
+        created={created}
+        betHistory={portfolio.betHistory}
       />
     </div>
   );

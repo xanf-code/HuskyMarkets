@@ -1,4 +1,4 @@
-// E-1 / S1-4, S1-5 — engine RPCs (create_market, place_bet, resolve_market)
+// E-1 / S1-4, S1-5 - engine RPCs (create_market, place_bet, resolve_market)
 // and verify_ledger_invariant, exercised on the migrated N-outcome schema.
 
 import { describe, it, expect, beforeEach } from "vitest";
@@ -371,14 +371,14 @@ describe("verify_ledger_invariant", () => {
   });
 
   it("stays balanced when a resolved market had an empty winner (no seed injected)", async () => {
-    // Only Yes is backed; resolving No takes the refund path — no vig_burn, so
+    // Only Yes is backed; resolving No takes the refund path - no vig_burn, so
     // the seed never enters the ledger and must be excluded from the seed term.
     const m = await createMarket(db, admin, ["Yes", "No"]);
     await placeBet(db, a, m.market_id, m.outcomes[0].id, 75);
     await setUid(db, admin);
     await db.query("select public.resolve_market($1,'resolve',$2)", [
       m.market_id,
-      m.outcomes[1].id, // No — nobody backed it
+      m.outcomes[1].id, // No - nobody backed it
     ]);
     const inv = await invariant();
     expect(inv.delta).toBe(0);

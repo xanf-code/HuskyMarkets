@@ -167,7 +167,7 @@ export function replayPriceHistory(
 /**
  * Fill long gaps between bet snapshots with carry-forward points so charts
  * span calendar days instead of looking like a handful of dots. Step is in
- * ms (default 12h). Does not invent price moves — only holds the last pools.
+ * ms (default 12h). Does not invent price moves - only holds the last pools.
  */
 export function densifyPriceHistory(
   rows: readonly PriceHistoryRow[],

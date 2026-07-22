@@ -127,6 +127,18 @@ describe("placeBet", () => {
     if (!result.ok) expect(result.error).toMatch(/doesn't belong to this market/i);
   });
 
+  it("maps 'creator cannot bet' to a friendly message", async () => {
+    rpc.mockResolvedValue({
+      data: null,
+      error: { message: "creator cannot bet on own market" },
+    });
+
+    const result = await placeBet({ marketId: MARKET_ID, outcomeId: OUTCOME_ID, amount: 10 });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/can't bet on a market you created/i);
+  });
+
   it("surfaces unknown RPC errors as-is", async () => {
     rpc.mockResolvedValue({ data: null, error: { message: "boom" } });
 

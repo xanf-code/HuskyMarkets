@@ -28,7 +28,7 @@ export async function claimBailout(): Promise<
     if (error.message.includes("balance below 100")) {
       return {
         ok: false,
-        error: `Bailouts are for when you're broke — your balance must be below ${BAILOUT_THRESHOLD} HC.`,
+        error: `Bailouts are for when you're broke - your balance must be below ${BAILOUT_THRESHOLD} HC.`,
       };
     }
     return { ok: false, error: error.message };

@@ -1,4 +1,4 @@
--- Phase 2 · 0001 — Enums, tables, indexes
+-- Phase 2 · 0001 - Enums, tables, indexes
 -- All money columns are integer (whole HuskyCoin), all times timestamptz.
 
 create extension if not exists btree_gist with schema extensions;

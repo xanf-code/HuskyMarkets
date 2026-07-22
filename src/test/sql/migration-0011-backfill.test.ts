@@ -1,4 +1,4 @@
-// E-1 / S1-2 — destructive backfill of legacy binary markets onto the
+// E-1 / S1-2 - destructive backfill of legacy binary markets onto the
 // N-outcome model. Seed legacy state through 0010, apply 0011, assert the
 // rewrite is lossless (FR-31/FR-32, AR-6, REC-6).
 
@@ -83,7 +83,7 @@ async function seedLegacy(db: PGlite): Promise<Seeded> {
   return { admin, u1, u2, open, resolvedYes, resolvedNo, voided };
 }
 
-describe("migration 0011 — backfill", () => {
+describe("migration 0011 - backfill", () => {
   let db: PGlite;
   let s: Seeded;
   beforeEach(async () => {
@@ -190,7 +190,7 @@ describe("migration 0011 — backfill", () => {
   });
 });
 
-describe("migration 0011 — loud failure on verification mismatch", () => {
+describe("migration 0011 - loud failure on verification mismatch", () => {
   it("rolls back the whole migration if a stake-sum check is corrupted", async () => {
     const db = await bootTestDb(10);
     await seedLegacy(db);

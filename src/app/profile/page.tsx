@@ -50,7 +50,7 @@ export default async function ProfilePage() {
 
   const streakLabel =
     stats.currentStreak === 0
-      ? "—"
+      ? "-"
       : stats.currentStreak > 0
         ? `${stats.currentStreak}W`
         : `${Math.abs(stats.currentStreak)}L`;
@@ -135,7 +135,7 @@ export default async function ProfilePage() {
         <section className="card-surface p-4 sm:p-6">
           <h2 className="text-xl font-semibold text-text">Bailout</h2>
           <p className="mt-2 mb-4 text-sm text-text-muted">
-            Balance under {BAILOUT_THRESHOLD} HC — claim once per week. Tops you
+            Balance under {BAILOUT_THRESHOLD} HC - claim once per week. Tops you
             up; hides you from the leaderboard until Monday.
           </p>
           <BailoutButton />

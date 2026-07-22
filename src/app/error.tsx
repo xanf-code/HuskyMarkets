@@ -22,7 +22,7 @@ export default function Error({
         Couldn&apos;t load this page
       </h1>
       <p className="text-pretty text-sm text-text-muted sm:text-base">
-        A temporary glitch hit the board. Try again — your stakes and balance
+        A temporary glitch hit the board. Try again - your stakes and balance
         are safe.
       </p>
       <div className="flex flex-wrap gap-3">

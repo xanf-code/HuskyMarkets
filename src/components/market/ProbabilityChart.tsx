@@ -126,7 +126,7 @@ export function ProbabilityChart({
     fontSize: 11,
   };
 
-  // Drag-to-zoom is pointer/mouse only — on phones it fights vertical scroll,
+  // Drag-to-zoom is pointer/mouse only - on phones it fights vertical scroll,
   // so the mobile chart variant keeps tooltip taps and skips the zoom gesture.
   const chartVariant = variant ?? detected;
   const zoomEnabled = chartVariant === "desktop";

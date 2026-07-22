@@ -33,7 +33,7 @@ async function main() {
     { headers: HEADERS },
   );
   const aliceRows = (await aliceRes.json()) as { id: string }[];
-  if (!aliceRows[0]) throw new Error("alice.seed profile not found — run seed-bets first");
+  if (!aliceRows[0]) throw new Error("alice.seed profile not found - run seed-bets first");
   const aliceId = aliceRows[0].id;
 
   await fetch(`${BASE}/profiles?id=eq.${aliceId}`, {

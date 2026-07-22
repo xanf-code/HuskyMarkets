@@ -14,7 +14,7 @@ import { createClient } from "@/lib/supabase/client";
 
 interface LiveBalanceProps {
   initialBalance: number;
-  /** null when signed out — renders statically, no subscription. */
+  /** null when signed out - renders statically, no subscription. */
   userId: string | null;
 }
 
@@ -29,7 +29,7 @@ export function LiveBalance({ initialBalance, userId }: LiveBalanceProps) {
     toastRef.current = toast;
   }, [toast]);
 
-  // Server re-renders (revalidatePath after grants/bets) reseed the chip —
+  // Server re-renders (revalidatePath after grants/bets) reseed the chip -
   // guarded setState during render, per React's "adjust state when props
   // change" pattern.
   const [syncedInitial, setSyncedInitial] = useState(initialBalance);

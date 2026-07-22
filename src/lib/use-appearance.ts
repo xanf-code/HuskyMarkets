@@ -22,7 +22,7 @@ function getSnapshot(): Appearance {
  * of this hook instantly, with no context provider required.
  *
  * `initial` is only consulted as the Server Components render (React never
- * calls the client `getSnapshot` during SSR) — it must match whatever class
+ * calls the client `getSnapshot` during SSR) - it must match whatever class
  * the root layout already put on <html> from the same cookie, otherwise
  * React logs a hydration-mismatch warning. It is NOT applied to the DOM by
  * this hook; only {@link applyAppearance} mutates the class, so multiple

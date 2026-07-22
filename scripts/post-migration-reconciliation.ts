@@ -28,7 +28,7 @@ async function main() {
     before = JSON.parse(readFileSync(file, "utf8")) as BoardSnapshot;
   } catch {
     console.error(
-      "No ops/pre-migration-snapshot.json found — run scripts/pre-migration-snapshot.ts first.",
+      "No ops/pre-migration-snapshot.json found - run scripts/pre-migration-snapshot.ts first.",
     );
     process.exit(1);
   }
@@ -36,7 +36,7 @@ async function main() {
   // Pass the pre-migration snapshot's capturedAt as the resolved-before cutoff
   // so the re-captured boards only include markets resolved before the snapshot.
   // Any remaining diff is therefore "unexplained" and attributable to the
-  // migration itself — no 2 a.m. judgment call needed (W2 / REC-17).
+  // migration itself - no 2 a.m. judgment call needed (W2 / REC-17).
   console.log(`Baseline captured at ${before.capturedAt}. Re-capturing with cutoff ${before.capturedAt}…`);
   const after = await captureSnapshot(SUPABASE_URL, SERVICE_ROLE_KEY, before.capturedAt);
 
@@ -46,7 +46,7 @@ async function main() {
     process.exit(0);
   }
 
-  console.error(`Reconciliation FAILED — ${diff.length} delta(s):`);
+  console.error(`Reconciliation FAILED - ${diff.length} delta(s):`);
   for (const line of diff) console.error(`  ${line}`);
   process.exit(1);
 }

@@ -1,7 +1,7 @@
 // Presence-based onboarding stamp. The cookie's mere existence means "this
 // user has completed onboarding"; its value is always "1". Absence means
 // "unknown", which triggers a one-time backfill lookup in the proxy. We never
-// write "0" — a not-onboarded user simply has no cookie.
+// write "0" - a not-onboarded user simply has no cookie.
 //
 // UX-only guarantee: spoofing this cookie just skips an onboarding redirect;
 // RLS still protects all data.

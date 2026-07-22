@@ -2,7 +2,7 @@
 // Seed demo markets across all categories via the create_market engine RPC
 // (E-6 / S6-1: engine-first, so the AR-5 insert order and outcome validation
 // are exercised by the seed itself). Markets get a 2/3/4/5/6-outcome mix (D-7).
-// Works on Node.js 20+ (no WebSocket needed — plain fetch only).
+// Works on Node.js 20+ (no WebSocket needed - plain fetch only).
 //
 // Usage from repo root:
 //   SEED_ENV=dev npx tsx --env-file=.env.local scripts/seed-markets.ts
@@ -31,7 +31,7 @@ const HEADERS = {
 };
 
 // The engine's create_market RPC runs as the caller (auth.uid()), so seeding
-// needs a real user JWT — the service role key alone is rejected. A dedicated
+// needs a real user JWT - the service role key alone is rejected. A dedicated
 // seed creator is provisioned via the Auth Admin API, then signed in.
 const SEED_CREATOR = {
   email: "creator.seed@northeastern.edu",
@@ -87,7 +87,7 @@ const MARKETS: MarketInsert[] = [
   {
     category: "campus",
     title: "Will the library extend hours during finals week?",
-    description: "Snell Library finals week hours are historically extended — will they announce the same for this semester?",
+    description: "Snell Library finals week hours are historically extended - will they announce the same for this semester?",
     close_at: daysFromNow(7),
     resolve_at: daysFromNow(14),
     resolution_criteria: "Resolves YES if Northeastern officially announces extended Snell Library hours for finals week on the library website.",
@@ -250,7 +250,7 @@ const MARKETS: MarketInsert[] = [
   {
     category: "weather",
     title: "Will it rain on Northeastern's commencement day?",
-    description: "Spring commencement is held outdoors on the quad — rain would force a move indoors.",
+    description: "Spring commencement is held outdoors on the quad - rain would force a move indoors.",
     close_at: daysFromNow(90),
     resolve_at: daysFromNow(100),
     resolution_criteria: "Resolves YES if NWS Boston records measurable rainfall (0.01 inch or more) at Logan Airport during the hours of Northeastern's official spring commencement ceremony.",
@@ -605,11 +605,11 @@ const MARKETS: MarketInsert[] = [
     resolution_criteria: "Resolves YES if any official Northeastern student club, team, or organization wins a national-level competition (hackathon, case competition, academic bowl, etc.) reported by Northeastern News.",
   },
 
-  // ── Multi-option markets — Northeastern 2026 ──────────────────────────────
+  // ── Multi-option markets - Northeastern 2026 ──────────────────────────────
   {
     category: "academics",
     title: "What will Northeastern's final US News National Universities rank be in 2026?",
-    description: "NU has climbed steadily — from #49 in 2020 to #34 in 2024. Where does 2026 land?",
+    description: "NU has climbed steadily - from #49 in 2020 to #34 in 2024. Where does 2026 land?",
     close_at: daysFromNow(120),
     resolve_at: daysFromNow(150),
     resolution_criteria: "Resolves to the band that contains Northeastern's rank in the US News & World Report 2026 Best National Universities list, published in fall 2025.",
@@ -627,7 +627,7 @@ const MARKETS: MarketInsert[] = [
   {
     category: "academics",
     title: "What will be the highest-demand co-op sector for NU students in the Spring 2026 cycle?",
-    description: "The co-op office placement data by sector — which industry absorbs the most Huskies?",
+    description: "The co-op office placement data by sector - which industry absorbs the most Huskies?",
     close_at: daysFromNow(60),
     resolve_at: daysFromNow(100),
     resolution_criteria: "Resolves to the employment sector with the highest number of Northeastern co-op placements in the Spring 2026 cycle as reported by the Co-op & Careers office.",
@@ -645,7 +645,7 @@ const MARKETS: MarketInsert[] = [
   {
     category: "campus",
     title: "Which major campus construction project will break ground first in 2026?",
-    description: "Several projects are in the pipeline — sciences complex, graduate housing, innovation center, and athletics expansion.",
+    description: "Several projects are in the pipeline - sciences complex, graduate housing, innovation center, and athletics expansion.",
     close_at: daysFromNow(80),
     resolve_at: daysFromNow(120),
     resolution_criteria: "Resolves to the project for which Northeastern Facilities Management officially initiates groundbreaking (permit issued + site work started) first in calendar year 2026.",
@@ -663,7 +663,7 @@ const MARKETS: MarketInsert[] = [
   {
     category: "sports",
     title: "How many Hockey East regular-season wins will Northeastern men's hockey finish with in 2025–26?",
-    description: "The Huskies have been competitive in HEA — where does the final win total land?",
+    description: "The Huskies have been competitive in HEA - where does the final win total land?",
     close_at: daysFromNow(55),
     resolve_at: daysFromNow(75),
     resolution_criteria: "Resolves to the win-count band matching Northeastern men's hockey's final Hockey East regular-season record as published on hockeyeast.com at season end.",
@@ -681,7 +681,7 @@ const MARKETS: MarketInsert[] = [
   {
     category: "transit",
     title: "Which MBTA line will cause the most documented service disruptions near NU in Spring 2026?",
-    description: "Green Line E Branch and Orange Line both serve Northeastern heavily — neither has a clean track record.",
+    description: "Green Line E Branch and Orange Line both serve Northeastern heavily - neither has a clean track record.",
     close_at: daysFromNow(40),
     resolve_at: daysFromNow(70),
     resolution_criteria: "Resolves to the MBTA line with the highest number of T-Alerts delay notifications of 15+ minutes affecting stops within 0.5 miles of Northeastern between January 1 and May 31, 2026.",
@@ -699,7 +699,7 @@ const MARKETS: MarketInsert[] = [
   {
     category: "wildcard",
     title: "What will be the biggest Northeastern news story of Spring 2026?",
-    description: "From research breakthroughs to athletics, campus expansions to partnerships — which story dominates the headlines?",
+    description: "From research breakthroughs to athletics, campus expansions to partnerships - which story dominates the headlines?",
     close_at: daysFromNow(30),
     resolve_at: daysFromNow(100),
     resolution_criteria: "Resolves to the category with the most media impressions in stories mentioning Northeastern University between January and May 2026, based on news.northeastern.edu coverage volume by section.",
@@ -772,7 +772,7 @@ async function main() {
   const existingCount = parseInt(countRes.headers.get("content-range")?.split("/")[1] ?? "0", 10);
 
   if (existingCount >= 60) {
-    console.log(`Database already has ${existingCount} markets — skipping seed.`);
+    console.log(`Database already has ${existingCount} markets - skipping seed.`);
     process.exit(0);
   }
 

@@ -5,7 +5,7 @@ interface StatBlockProps {
   value: ReactNode;
 }
 
-/** Large tabular numeral + label — used in inverse “by the numbers” bands. */
+/** Large tabular numeral + label - used in inverse “by the numbers” bands. */
 export function StatBlock({ label, value }: StatBlockProps) {
   return (
     <div className="bg-card p-4 sm:p-5">

@@ -1,6 +1,6 @@
 /**
  * iOS Safari never leaves "keyboard mode" when the focused input is removed
- * from the DOM without a blur — the layout viewport stays shrunk by the
+ * from the DOM without a blur - the layout viewport stays shrunk by the
  * keyboard's height, so every position:fixed element (the bottom nav) floats
  * mid-screen with page background bleeding below it, and client-side
  * navigation carries the broken viewport to every subsequent screen.
