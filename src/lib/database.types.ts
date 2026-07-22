@@ -640,6 +640,95 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_market_proposals: {
+        Row: {
+          created_at: string
+          market_id: string
+          model: string
+          research_summary: string | null
+          sources: Json
+        }
+        Insert: {
+          created_at?: string
+          market_id: string
+          model: string
+          research_summary?: string | null
+          sources?: Json
+        }
+        Update: {
+          created_at?: string
+          market_id?: string
+          model?: string
+          research_summary?: string | null
+          sources?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_market_proposals_market_id_fkey"
+            columns: ["market_id"]
+            isOneToOne: true
+            referencedRelation: "markets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_trade_log: {
+        Row: {
+          action: string
+          amount: number | null
+          bot_user_id: string
+          created_at: string
+          edge: number | null
+          est_prob: number | null
+          id: string
+          implied: number | null
+          market_id: string
+          outcome_id: string | null
+          reasoning: string | null
+        }
+        Insert: {
+          action: string
+          amount?: number | null
+          bot_user_id: string
+          created_at?: string
+          edge?: number | null
+          est_prob?: number | null
+          id?: string
+          implied?: number | null
+          market_id: string
+          outcome_id?: string | null
+          reasoning?: string | null
+        }
+        Update: {
+          action?: string
+          amount?: number | null
+          bot_user_id?: string
+          created_at?: string
+          edge?: number | null
+          est_prob?: number | null
+          id?: string
+          implied?: number | null
+          market_id?: string
+          outcome_id?: string | null
+          reasoning?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_trade_log_bot_user_id_fkey"
+            columns: ["bot_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_trade_log_market_id_fkey"
+            columns: ["market_id"]
+            isOneToOne: false
+            referencedRelation: "markets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           amount: number
@@ -756,6 +845,20 @@ export type Database = {
           p_catch_all?: boolean
           p_category: Database["public"]["Enums"]["market_category"]
           p_close_at: string
+          p_description: string
+          p_outcomes: Json
+          p_resolution_criteria: string
+          p_resolve_at: string
+          p_title: string
+        }
+        Returns: Json
+      }
+      create_market_ai: {
+        Args: {
+          p_auto_flagged?: boolean
+          p_category: Database["public"]["Enums"]["market_category"]
+          p_close_at: string
+          p_creator_id: string
           p_description: string
           p_outcomes: Json
           p_resolution_criteria: string

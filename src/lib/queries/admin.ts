@@ -49,6 +49,11 @@ export interface AdminMarketRow {
   createdAt: string;
 }
 
+export interface AiProposalSource {
+  url: string;
+  title: string;
+}
+
 export interface PendingMarketItem {
   id: string;
   title: string;
@@ -58,6 +63,9 @@ export interface PendingMarketItem {
   autoFlagged: boolean;
   creatorId: string;
   creatorName: string;
+  /** Present when the market was created by the AI market generator. */
+  aiSources?: AiProposalSource[];
+  aiSummary?: string;
 }
 
 export interface ModApplicationRow {
@@ -220,13 +228,28 @@ export async function getPendingMarketsQueue(
   if (!markets || markets.length === 0) return [];
 
   const creatorIds = [...new Set(markets.map((m) => m.creator_id))];
-  const { data: profiles } = await supabase
-    .from("public_profiles")
-    .select("id, display_name")
-    .in("id", creatorIds);
+  const marketIds = markets.map((m) => m.id);
+
+  const [{ data: profiles }, { data: aiProposals }] = await Promise.all([
+    supabase
+      .from("public_profiles")
+      .select("id, display_name")
+      .in("id", creatorIds),
+    supabase
+      .from("ai_market_proposals")
+      .select("market_id, sources, research_summary")
+      .in("market_id", marketIds),
+  ]);
 
   const nameById = new Map(
     (profiles ?? []).map((p) => [p.id!, p.display_name ?? "Unknown"]),
+  );
+
+  const aiById = new Map(
+    (aiProposals ?? []).map((p) => [
+      p.market_id,
+      { sources: p.sources as unknown as AiProposalSource[], summary: p.research_summary ?? "" },
+    ]),
   );
 
   let conflictIds = new Set<string>();
@@ -241,16 +264,20 @@ export async function getPendingMarketsQueue(
 
   return markets
     .filter((m) => !conflictIds.has(m.id))
-    .map((m) => ({
-      id: m.id,
-      title: m.title,
-      category: m.category,
-      closeAt: m.close_at,
-      createdAt: m.created_at,
-      autoFlagged: m.auto_flagged,
-      creatorId: m.creator_id,
-      creatorName: nameById.get(m.creator_id) ?? "Unknown",
-    }));
+    .map((m) => {
+      const ai = aiById.get(m.id);
+      return {
+        id: m.id,
+        title: m.title,
+        category: m.category,
+        closeAt: m.close_at,
+        createdAt: m.created_at,
+        autoFlagged: m.auto_flagged,
+        creatorId: m.creator_id,
+        creatorName: nameById.get(m.creator_id) ?? "Unknown",
+        ...(ai ? { aiSources: ai.sources, aiSummary: ai.summary } : {}),
+      };
+    });
 }
 
 export async function getAdminMarkets(): Promise<AdminMarketRow[]> {
