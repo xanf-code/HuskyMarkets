@@ -281,6 +281,10 @@ export async function reviewMarketAction(
     p_action: parsed.data.action,
   });
   if (error) return { ok: false, error: mapStaffError(error.message) };
+  const reviewedMarketId = parsed.data.marketId;
+  after(async () => {
+    await sendResolutionEmails(reviewedMarketId);
+  });
   revalidateStaff();
   revalidatePath(`/market/${parsed.data.marketId}`);
   return { ok: true };

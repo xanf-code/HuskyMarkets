@@ -4,6 +4,7 @@ import {
   handleReportAction,
   reopenSemester,
   resolveMarketAction,
+  reviewMarketAction,
   reviewModApplication,
   setMarketHidden,
 } from "./admin";
@@ -165,6 +166,59 @@ describe("closeSemester", () => {
     });
     expect(revalidatePath).toHaveBeenCalledWith("/admin/semesters");
     expect(revalidatePath).toHaveBeenCalledWith("/leaderboard");
+  });
+});
+
+describe("reviewMarketAction", () => {
+  it("calls review_market with approve and schedules email via after()", async () => {
+    const { after } = await import("next/server");
+    const result = await reviewMarketAction({ marketId: MARKET_ID, action: "approve" });
+    expect(result).toEqual({ ok: true });
+    expect(rpc).toHaveBeenCalledWith("review_market", {
+      p_market_id: MARKET_ID,
+      p_action: "approve",
+    });
+    expect(after).toHaveBeenCalled();
+  });
+
+  it("calls review_market with reject and schedules email via after()", async () => {
+    const { after } = await import("next/server");
+    const result = await reviewMarketAction({ marketId: MARKET_ID, action: "reject" });
+    expect(result).toEqual({ ok: true });
+    expect(rpc).toHaveBeenCalledWith("review_market", {
+      p_market_id: MARKET_ID,
+      p_action: "reject",
+    });
+    expect(after).toHaveBeenCalled();
+  });
+
+  it("the after() callback invokes sendResolutionEmails with the market id", async () => {
+    const { after } = await import("next/server");
+    const { sendResolutionEmails } = await import("@/lib/email/send-resolution-emails");
+    await reviewMarketAction({ marketId: MARKET_ID, action: "approve" });
+    // Extract and invoke the callback passed to after()
+    const callback = vi.mocked(after).mock.calls[0][0] as () => Promise<void>;
+    await callback();
+    expect(sendResolutionEmails).toHaveBeenCalledWith(MARKET_ID);
+  });
+
+  it("revalidates /admin/pending and / on success", async () => {
+    await reviewMarketAction({ marketId: MARKET_ID, action: "approve" });
+    expect(revalidatePath).toHaveBeenCalledWith("/admin/pending");
+    expect(revalidatePath).toHaveBeenCalledWith("/");
+  });
+
+  it("rejects an invalid action", async () => {
+    const result = await reviewMarketAction({ marketId: MARKET_ID, action: "void" });
+    expect(result.ok).toBe(false);
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("propagates RPC errors", async () => {
+    rpc.mockResolvedValue({ data: null, error: { message: "market is not pending review" } });
+    const result = await reviewMarketAction({ marketId: MARKET_ID, action: "approve" });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/pending review/i);
   });
 });
 

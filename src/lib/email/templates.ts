@@ -21,6 +21,9 @@ function buildSubject(notification: NotificationForEmail): string {
   const result = String(payload.result ?? '');
   const role = String(payload.role ?? '');
 
+  if (type === 'market_approved') return 'Your market was approved and is now live!';
+  if (type === 'market_rejected') return 'Your market was not approved';
+
   if (type === 'market_resolved') {
     if (result === 'won') return 'You won on HuskyMarkets! 🎉';
     if (result === 'lost') return 'Market resolved on HuskyMarkets';
@@ -43,6 +46,14 @@ function buildBodyCopy(notification: NotificationForEmail): string {
   const refund = Number(payload.refund ?? 0);
   const result = String(payload.result ?? '');
   const role = String(payload.role ?? '');
+
+  if (type === 'market_approved') {
+    return `Your market &#39;${market_title}&#39; has been approved and is now live. Huskies can start betting!`;
+  }
+
+  if (type === 'market_rejected') {
+    return `Your market &#39;${market_title}&#39; was not approved. It may not meet the community guidelines — you can create a new market that does.`;
+  }
 
   if (type === 'market_resolved') {
     if (result === 'won') {
