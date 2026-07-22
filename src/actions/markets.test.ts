@@ -57,7 +57,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   getSession.mockResolvedValue({ userId: "user-1", email: null });
   rpc.mockResolvedValue({
-    data: { market_id: "market-1", outcomes: [] },
+    data: { market_id: "market-1", outcomes: [], status: "open" },
     error: null,
   });
   reportInsert.mockResolvedValue({ error: null });
@@ -69,7 +69,7 @@ describe("createMarket", () => {
   it("creates via the create_market RPC with the outcome labels", async () => {
     const result = await createMarket(validInput());
 
-    expect(result).toEqual({ ok: true, marketId: "market-1" });
+    expect(result).toEqual({ ok: true, marketId: "market-1", status: "open" });
     expect(rpc).toHaveBeenCalledWith(
       "create_market",
       expect.objectContaining({
@@ -178,18 +178,40 @@ describe("createMarket", () => {
     expect(rpc).not.toHaveBeenCalled();
   });
 
-  it("creates flagged-but-allowed content with auto_flagged and an auto-report", async () => {
+  it("creates flagged content as pending without an auto-report", async () => {
+    rpc.mockResolvedValue({
+      data: { market_id: "market-1", outcomes: [], status: "pending" },
+      error: null,
+    });
+
     const result = await createMarket(
       validInput({
         title: "Will Jake Thompson hook up with anyone at the formal?",
       }),
     );
 
-    expect(result).toEqual({ ok: true, marketId: "market-1" });
+    expect(result).toEqual({
+      ok: true,
+      marketId: "market-1",
+      status: "pending",
+    });
     expect(rpc).toHaveBeenCalledWith(
       "create_market",
       expect.objectContaining({ p_auto_flagged: true }),
     );
+    // Pending markets already sit in the staff queue — no duplicate report.
+    expect(reportInsert).not.toHaveBeenCalled();
+  });
+
+  it("auto-reports flagged content only when the market went live open", async () => {
+    // Rare path: RPC returns open despite auto_flagged (e.g. trusted creator).
+    const result = await createMarket(
+      validInput({
+        title: "Will Jake Thompson hook up with anyone at the formal?",
+      }),
+    );
+
+    expect(result).toEqual({ ok: true, marketId: "market-1", status: "open" });
     expect(reportInsert).toHaveBeenCalledWith(
       expect.objectContaining({
         market_id: "market-1",
@@ -200,11 +222,20 @@ describe("createMarket", () => {
   });
 
   it("flags on a person-targeting outcome label even when the title is clean", async () => {
+    rpc.mockResolvedValue({
+      data: { market_id: "market-1", outcomes: [], status: "pending" },
+      error: null,
+    });
+
     const result = await createMarket(
       validInput({ outcomes: ["Jake Thompson hooks up", "He does not"] }),
     );
 
-    expect(result).toEqual({ ok: true, marketId: "market-1" });
+    expect(result).toEqual({
+      ok: true,
+      marketId: "market-1",
+      status: "pending",
+    });
     expect(rpc).toHaveBeenCalledWith(
       "create_market",
       expect.objectContaining({ p_auto_flagged: true }),

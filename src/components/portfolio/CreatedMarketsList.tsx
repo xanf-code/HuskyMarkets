@@ -19,6 +19,8 @@ const STATUS_LABELS: Record<MarketStatus, string> = {
   closed: "Closed",
   resolved: "Resolved",
   voided: "Voided",
+  pending: "Pending review",
+  rejected: "Rejected",
 };
 
 interface CreatedMarketsListProps {

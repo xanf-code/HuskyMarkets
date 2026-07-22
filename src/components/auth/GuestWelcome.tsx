@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { isPromoBannerDismissed } from "@/lib/onboarding-flags";
+import {
+  PROMO_DISMISSED_EVENT,
+  isPromoBannerDismissed,
+} from "@/lib/onboarding-flags";
 import { useSignInPrompt } from "./SignInPromptProvider";
 
 /** Slim first-run hook for guests above the board - invitation, not interruption.
@@ -13,7 +16,13 @@ export function GuestWelcome() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    setShow(isPromoBannerDismissed());
+    function sync() {
+      setShow(isPromoBannerDismissed());
+    }
+
+    sync();
+    window.addEventListener(PROMO_DISMISSED_EVENT, sync);
+    return () => window.removeEventListener(PROMO_DISMISSED_EVENT, sync);
   }, []);
 
   if (!show) return null;

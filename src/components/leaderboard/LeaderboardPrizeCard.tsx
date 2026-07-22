@@ -1,7 +1,37 @@
-import Image from "next/image";
+"use client";
 
-/** Permanent leaderboard prize callout — always visible, not dismissible. */
-export function LeaderboardPrizeCard() {
+import Image from "next/image";
+import { useEffect, useState } from "react";
+import {
+  PROMO_DISMISSED_EVENT,
+  isPromoBannerDismissed,
+} from "@/lib/onboarding-flags";
+
+type Props = {
+  /** When true, hide while the guest promo banner is still showing. */
+  onlyAfterPromoDismissed?: boolean;
+};
+
+/** Permanent leaderboard prize callout — not dismissible on its own. */
+export function LeaderboardPrizeCard({
+  onlyAfterPromoDismissed = false,
+}: Props) {
+  const [show, setShow] = useState(!onlyAfterPromoDismissed);
+
+  useEffect(() => {
+    if (!onlyAfterPromoDismissed) return;
+
+    function sync() {
+      setShow(isPromoBannerDismissed());
+    }
+
+    sync();
+    window.addEventListener(PROMO_DISMISSED_EVENT, sync);
+    return () => window.removeEventListener(PROMO_DISMISSED_EVENT, sync);
+  }, [onlyAfterPromoDismissed]);
+
+  if (!show) return null;
+
   return (
     <aside
       aria-label="Semester prize"

@@ -83,7 +83,7 @@ function buildCreateMarketSchema(maxOutcomes: number) {
 
 export async function createMarket(
   input: unknown,
-): Promise<ActionResult<{ marketId: string }>> {
+): Promise<ActionResult<{ marketId: string; status: "open" | "pending" }>> {
   const supabase = await createClient();
 
   const { data: cfg } = await supabase
@@ -140,13 +140,24 @@ export async function createMarket(
     p_auto_flagged: screening.flagged,
   });
 
-  if (error) return { ok: false, error: error.message };
+  if (error) {
+    if (error.message.startsWith("rate_limited:")) {
+      return {
+        ok: false,
+        error: "You're creating markets too fast — try again later.",
+      };
+    }
+    return { ok: false, error: error.message };
+  }
 
-  const { market_id: marketId } = data as { market_id: string };
+  const { market_id: marketId, status } = data as {
+    market_id: string;
+    status: "open" | "pending";
+  };
 
-  if (screening.flagged) {
-    // Auto-report into the admin queue; filed under the creator since the
-    // system has no identity of its own and reports RLS requires self.
+  // Auto-report only when the market actually went live; flagged-pending
+  // markets are already in the staff queue.
+  if (screening.flagged && status === "open") {
     await supabase.from("reports").insert({
       market_id: marketId,
       reporter_id: session.userId,
@@ -155,7 +166,7 @@ export async function createMarket(
   }
 
   revalidatePath("/");
-  return { ok: true, marketId };
+  return { ok: true, marketId, status };
 }
 
 function buildUpdateMarketSchema(maxOutcomes: number) {

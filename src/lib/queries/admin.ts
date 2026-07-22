@@ -49,6 +49,17 @@ export interface AdminMarketRow {
   createdAt: string;
 }
 
+export interface PendingMarketItem {
+  id: string;
+  title: string;
+  category: string;
+  closeAt: string;
+  createdAt: string;
+  autoFlagged: boolean;
+  creatorId: string;
+  creatorName: string;
+}
+
 export interface ModApplicationRow {
   id: string;
   userId: string;
@@ -192,6 +203,53 @@ export async function getReportQueue(
       reason: r.reason,
       createdAt: r.created_at,
       reporterName: nameById.get(r.reporter_id) ?? "Unknown",
+    }));
+}
+
+export async function getPendingMarketsQueue(
+  excludeUserId?: string,
+): Promise<PendingMarketItem[]> {
+  const supabase = await createClient();
+
+  const { data: markets } = await supabase
+    .from("markets")
+    .select("id, title, category, close_at, created_at, auto_flagged, creator_id")
+    .eq("status", "pending")
+    .order("created_at", { ascending: true });
+
+  if (!markets || markets.length === 0) return [];
+
+  const creatorIds = [...new Set(markets.map((m) => m.creator_id))];
+  const { data: profiles } = await supabase
+    .from("public_profiles")
+    .select("id, display_name")
+    .in("id", creatorIds);
+
+  const nameById = new Map(
+    (profiles ?? []).map((p) => [p.id!, p.display_name ?? "Unknown"]),
+  );
+
+  let conflictIds = new Set<string>();
+  if (excludeUserId) {
+    const { data: created } = await supabase
+      .from("markets")
+      .select("id")
+      .eq("creator_id", excludeUserId)
+      .eq("status", "pending");
+    conflictIds = new Set((created ?? []).map((m) => m.id));
+  }
+
+  return markets
+    .filter((m) => !conflictIds.has(m.id))
+    .map((m) => ({
+      id: m.id,
+      title: m.title,
+      category: m.category,
+      closeAt: m.close_at,
+      createdAt: m.created_at,
+      autoFlagged: m.auto_flagged,
+      creatorId: m.creator_id,
+      creatorName: nameById.get(m.creator_id) ?? "Unknown",
     }));
 }
 

@@ -26,6 +26,7 @@ function mapStaffError(message: string): string {
 function revalidateStaff() {
   revalidatePath("/admin/resolve");
   revalidatePath("/admin/reports");
+  revalidatePath("/admin/pending");
   revalidatePath("/admin/markets");
   revalidatePath("/admin/mods");
   revalidatePath("/admin/semesters");
@@ -259,5 +260,28 @@ export async function reopenSemester(input: unknown): Promise<ActionResult> {
   if (error) return { ok: false, error: mapStaffError(error.message) };
   revalidatePath("/admin/semesters");
   revalidatePath("/leaderboard");
+  return { ok: true };
+}
+
+const reviewMarketSchema = z.object({
+  marketId: z.uuid(),
+  action: z.enum(["approve", "reject"]),
+});
+
+export async function reviewMarketAction(
+  input: unknown,
+): Promise<ActionResult> {
+  const parsed = reviewMarketSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0].message };
+  }
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("review_market", {
+    p_market_id: parsed.data.marketId,
+    p_action: parsed.data.action,
+  });
+  if (error) return { ok: false, error: mapStaffError(error.message) };
+  revalidateStaff();
+  revalidatePath(`/market/${parsed.data.marketId}`);
   return { ok: true };
 }

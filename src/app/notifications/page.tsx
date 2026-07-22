@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 interface NotificationRow {
   id: string;
   user_id: string;
-  type: "market_resolved" | "market_voided";
+  type: "market_resolved" | "market_voided" | "market_approved" | "market_rejected";
   market_id: string | null;
   payload: Record<string, unknown>;
   read_at: string | null;
@@ -56,6 +56,14 @@ function describeNotification(row: NotificationRow): string {
     }
     if (role === "creator") return `Your market was voided: ${title}`;
     return title;
+  }
+
+  if (row.type === "market_approved") {
+    return `Your market was approved and is now live: ${title}`;
+  }
+
+  if (row.type === "market_rejected") {
+    return `Your market was not approved: ${title}`;
   }
 
   return title;

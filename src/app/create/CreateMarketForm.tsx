@@ -126,6 +126,7 @@ export function CreateMarketForm({
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [labels, setLabels] = useState<string[]>(initial?.outcomes ?? ["Yes", "No"]);
   const [catchAll, setCatchAll] = useState(initial?.catchAll ?? false);
 
@@ -216,7 +217,26 @@ export function CreateMarketForm({
       setError(result.error);
       return;
     }
+
+    if (!isEdit && "status" in result && result.status === "pending") {
+      setSubmitted(true);
+      return;
+    }
     router.push(`/market/${result.marketId}`);
+  }
+
+  if (submitted) {
+    return (
+      <div className="card-surface p-6 sm:p-8">
+        <p className="text-lg font-semibold text-text">
+          Market submitted for review
+        </p>
+        <p className="mt-2 text-sm text-text-muted">
+          A moderator will review it shortly. You&apos;ll receive a notification
+          once it&apos;s approved or rejected.
+        </p>
+      </div>
+    );
   }
 
   return (

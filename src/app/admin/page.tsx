@@ -1,18 +1,25 @@
 import Link from "next/link";
 import {
   getPendingApplications,
+  getPendingMarketsQueue,
   getReportQueue,
   getResolveQueue,
 } from "@/lib/queries/admin";
 
 export default async function AdminHomePage() {
-  const [resolve, reports, apps] = await Promise.all([
+  const [resolve, reports, apps, pending] = await Promise.all([
     getResolveQueue(),
     getReportQueue(),
     getPendingApplications(),
+    getPendingMarketsQueue(),
   ]);
 
   const cards = [
+    {
+      href: "/admin/pending",
+      label: "Pending markets",
+      count: pending.length,
+    },
     { href: "/admin/resolve", label: "Resolve queue", count: resolve.length },
     { href: "/admin/reports", label: "Open reports", count: reports.length },
     {

@@ -6,6 +6,8 @@ export const FIRST_RUN_KEY = "hm-first-run";
 export const FIRST_BET_DONE_KEY = "hm-first-bet-done";
 export const ODDS_TIP_KEY = "hm-odds-tip-seen";
 export const PROMO_FALL_2026_KEY = "promo-fall-2026-dismissed";
+/** Fired in-tab when the guest promo banner is dismissed. */
+export const PROMO_DISMISSED_EVENT = "hm-promo-dismissed";
 
 function read(key: string): boolean {
   try {
@@ -61,4 +63,7 @@ export function isPromoBannerDismissed(): boolean {
 
 export function dismissPromoBanner(): void {
   write(PROMO_FALL_2026_KEY, true);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(PROMO_DISMISSED_EVENT));
+  }
 }

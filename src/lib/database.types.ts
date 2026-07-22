@@ -831,6 +831,10 @@ export type Database = {
         }
         Returns: Json
       }
+      review_market: {
+        Args: { p_action: string; p_market_id: string }
+        Returns: undefined
+      }
       review_mod_application: {
         Args: { p_application_id: string; p_decision: string }
         Returns: undefined
@@ -869,7 +873,13 @@ export type Database = {
         | "academics"
         | "dining"
         | "wildcard"
-      market_status: "open" | "closed" | "resolved" | "voided"
+      market_status:
+        | "open"
+        | "closed"
+        | "resolved"
+        | "voided"
+        | "pending"
+        | "rejected"
       mod_action_type:
         | "resolve"
         | "void"
@@ -878,6 +888,8 @@ export type Database = {
         | "report_action"
         | "hide"
         | "mod_revoke"
+        | "approve_market"
+        | "reject_market"
       report_status: "open" | "dismissed" | "actioned"
       tx_type:
         | "signup_grant"
@@ -1026,7 +1038,14 @@ export const Constants = {
         "dining",
         "wildcard",
       ],
-      market_status: ["open", "closed", "resolved", "voided"],
+      market_status: [
+        "open",
+        "closed",
+        "resolved",
+        "voided",
+        "pending",
+        "rejected",
+      ],
       mod_action_type: [
         "resolve",
         "void",
@@ -1035,6 +1054,8 @@ export const Constants = {
         "report_action",
         "hide",
         "mod_revoke",
+        "approve_market",
+        "reject_market",
       ],
       report_status: ["open", "dismissed", "actioned"],
       tx_type: [

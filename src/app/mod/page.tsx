@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { PendingQueue } from "@/components/admin/PendingQueue";
 import { ReportQueue } from "@/components/admin/ReportQueue";
 import { ResolveQueue } from "@/components/admin/ResolveQueue";
-import { getReportQueue, getResolveQueue } from "@/lib/queries/admin";
+import {
+  getPendingMarketsQueue,
+  getReportQueue,
+  getResolveQueue,
+} from "@/lib/queries/admin";
 import { verifySession } from "@/lib/dal";
 import { createClient } from "@/lib/supabase/server";
 
@@ -16,7 +21,8 @@ export default async function ModPage() {
   const { data: isStaff } = await supabase.rpc("is_staff");
   if (!isStaff) redirect("/");
 
-  const [resolve, reports] = await Promise.all([
+  const [pending, resolve, reports] = await Promise.all([
+    getPendingMarketsQueue(userId),
     getResolveQueue(userId),
     getReportQueue(userId),
   ]);
@@ -32,6 +38,13 @@ export default async function ModPage() {
           enforces the same conflict rule.
         </p>
       </div>
+
+      <section>
+        <h2 className="mb-4 text-sm font-semibold text-text">
+          Pending markets
+        </h2>
+        <PendingQueue items={pending} />
+      </section>
 
       <section>
         <h2 className="mb-4 text-sm font-semibold text-text">Resolve queue</h2>

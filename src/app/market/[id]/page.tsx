@@ -120,6 +120,11 @@ export default async function MarketPage({
               status={market.status}
               hasBets={detail.hasBets}
             />
+          ) : market.hidden ? (
+            <div className="card-surface p-5 text-sm text-text-muted">
+              This market has been removed from the public feed and is no longer
+              accepting bets.
+            </div>
           ) : (
             <>
               <LiveOrderPanel

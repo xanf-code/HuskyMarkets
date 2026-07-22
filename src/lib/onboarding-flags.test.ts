@@ -3,10 +3,14 @@ import {
   FIRST_BET_DONE_KEY,
   FIRST_RUN_KEY,
   ODDS_TIP_KEY,
+  PROMO_DISMISSED_EVENT,
+  PROMO_FALL_2026_KEY,
   clearFirstRun,
+  dismissPromoBanner,
   hasCompletedFirstBet,
   hasSeenOddsTip,
   isFirstRunPending,
+  isPromoBannerDismissed,
   markFirstBetDone,
   markFirstRunPending,
   markOddsTipSeen,
@@ -43,5 +47,18 @@ describe("onboarding-flags", () => {
     markOddsTipSeen();
     expect(hasSeenOddsTip()).toBe(true);
     expect(localStorage.getItem(ODDS_TIP_KEY)).toBe("1");
+  });
+
+  it("persists promo dismissal and notifies listeners", () => {
+    let heard = false;
+    window.addEventListener(PROMO_DISMISSED_EVENT, () => {
+      heard = true;
+    });
+
+    expect(isPromoBannerDismissed()).toBe(false);
+    dismissPromoBanner();
+    expect(isPromoBannerDismissed()).toBe(true);
+    expect(localStorage.getItem(PROMO_FALL_2026_KEY)).toBe("1");
+    expect(heard).toBe(true);
   });
 });

@@ -26,7 +26,7 @@ export default async function OnboardingPage() {
           Set your board name
         </h1>
         <p className="mt-2 text-pretty text-sm text-text-muted">
-          1,000 HuskyCoin to start. About a minute - then pick a campus take.
+        1,000 play-money HuskyCoin to start - not real cash. About a minute, then pick a campus take.
         </p>
       </div>
 
@@ -41,9 +41,7 @@ export default async function OnboardingPage() {
         <li className="flex gap-3 text-sm">
           <span className="num shrink-0 font-semibold text-text">2</span>
           <span className="text-pretty text-text-muted">
-            <span className="font-semibold text-text">Stake</span> free
-            HuskyCoin on an outcome. One bet puts you on the semester
-            leaderboard.
+            <span className="font-semibold text-text">Stake</span> free play-money HuskyCoin - not real cash. One bet puts you on the semester leaderboard.
           </span>
         </li>
         <li className="flex gap-3 text-sm">

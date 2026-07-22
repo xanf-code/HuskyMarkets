@@ -18,9 +18,7 @@ export function SignInDialog({ open, onClose }: SignInDialogProps) {
     <Dialog open={open} onClose={onClose} title="Sign in to bet">
       <div className="flex flex-col gap-4">
         <p className="text-sm text-pretty text-text-muted">
-          Northeastern students only - use your{" "}
-          <span className="font-semibold text-text">@northeastern.edu</span>{" "}
-          email.
+          Predict campus events. Free play-money HuskyCoin - not real cash. Climb the board, share the wins.
         </p>
         <Link
           href={loginHref}
