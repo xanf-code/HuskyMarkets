@@ -3,12 +3,15 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LoginForm } from "./LoginForm";
 
-const { signInWithOtp, verifyOtp, searchParams, routerPush } = vi.hoisted(() => ({
-  signInWithOtp: vi.fn(),
-  verifyOtp: vi.fn(),
-  searchParams: { value: "" },
-  routerPush: vi.fn(),
-}));
+const { signInWithOtp, verifyOtp, searchParams, routerPush, routerRefresh } = vi.hoisted(
+  () => ({
+    signInWithOtp: vi.fn(),
+    verifyOtp: vi.fn(),
+    searchParams: { value: "" },
+    routerPush: vi.fn(),
+    routerRefresh: vi.fn(),
+  }),
+);
 
 vi.mock("@/lib/supabase/client", () => ({
   createClient: () => ({
@@ -18,7 +21,7 @@ vi.mock("@/lib/supabase/client", () => ({
 
 vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(searchParams.value),
-  useRouter: () => ({ push: routerPush }),
+  useRouter: () => ({ push: routerPush, refresh: routerRefresh }),
 }));
 
 async function fillAndSendEmail(
@@ -42,6 +45,7 @@ describe("LoginForm — email step", () => {
     signInWithOtp.mockReset();
     verifyOtp.mockReset();
     routerPush.mockReset();
+    routerRefresh.mockReset();
     signInWithOtp.mockResolvedValue({ error: null });
     verifyOtp.mockResolvedValue({ error: null });
   });
@@ -106,6 +110,7 @@ describe("LoginForm — verify step", () => {
     signInWithOtp.mockReset();
     verifyOtp.mockReset();
     routerPush.mockReset();
+    routerRefresh.mockReset();
     signInWithOtp.mockResolvedValue({ error: null });
     verifyOtp.mockResolvedValue({ error: null });
   });
@@ -141,6 +146,19 @@ describe("LoginForm — verify step", () => {
     await user.click(screen.getByRole("button", { name: /verify code/i }));
 
     await vi.waitFor(() => expect(routerPush).toHaveBeenCalledWith("/"));
+  });
+
+  it("calls router.refresh() after push so server components re-read the session", async () => {
+    const user = userEvent.setup();
+    await goToVerifyStep(user);
+
+    await user.type(screen.getByLabelText(/6-digit code/i), "123456");
+    await user.click(screen.getByRole("button", { name: /verify code/i }));
+
+    await vi.waitFor(() => {
+      expect(routerPush).toHaveBeenCalledWith("/");
+      expect(routerRefresh).toHaveBeenCalled();
+    });
   });
 
   it("redirects to the next param after successful verification", async () => {

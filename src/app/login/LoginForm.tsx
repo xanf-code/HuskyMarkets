@@ -99,7 +99,10 @@ export function LoginForm() {
         setError(friendlyError(verifyError.message));
         return;
       }
+      // push() navigates; refresh() tells Next.js the RSC cache is stale so
+      // server components re-read the new Supabase session cookie immediately.
       router.push(next);
+      router.refresh();
     } catch {
       setError(
         "Couldn't reach the sign-in service. Check your connection and try again.",
