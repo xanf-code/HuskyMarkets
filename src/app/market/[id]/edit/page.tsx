@@ -93,9 +93,12 @@ export default async function EditMarketPage({ params }: EditMarketPageProps) {
   const catchAll = (outcomes ?? []).some((o) => o.is_catch_all);
 
   function toDatetimeLocal(iso: string): string {
-    const d = new Date(iso);
-    const pad = (n: number) => String(n).padStart(2, "0");
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    // Slice the UTC ISO string directly so the prefilled value is always in
+    // UTC — matching how localInputToIso() re-parses it on submit (as UTC).
+    // Using local-time getters here would format in the server's timezone
+    // (UTC on Vercel), while the browser re-parses in the user's TZ, silently
+    // shifting close_at/resolve_at by the UTC offset on every save.
+    return new Date(iso).toISOString().slice(0, 16);
   }
 
   return (

@@ -38,10 +38,12 @@ interface CreateMarketFormProps {
   initial?: InitialValues;
 }
 
-/** Convert a datetime-local value (wall clock in local TZ) to ISO with offset. */
+/** Convert a datetime-local value (UTC wall clock) to an ISO UTC string. */
 function localInputToIso(value: string): string {
-  const d = new Date(value);
-  return d.toISOString();
+  // Append "Z" so the browser parses the string as UTC rather than local time.
+  // The edit page prefills inputs via toISOString().slice(0,16) (UTC), so this
+  // must match — otherwise the UTC offset is applied twice on every save.
+  return new Date(value + "Z").toISOString();
 }
 
 // One shared collision UX for form and RPC (Missing Consideration 10): the
