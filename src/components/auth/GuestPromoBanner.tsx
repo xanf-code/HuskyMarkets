@@ -41,7 +41,7 @@ export function GuestPromoBanner() {
         {/* Text content */}
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-text">
-            🏆 Win a{" "}
+            Win a{" "}
             <span className="text-red">$150 Campus Store Gift Card</span>
           </p>
           <p className="text-xs text-text-muted leading-snug mt-0.5">

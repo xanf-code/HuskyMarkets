@@ -15,13 +15,13 @@ export const BAILOUT = 200;
 export const BAILOUT_THRESHOLD = 100;
 
 export const CATEGORIES = [
+  { value: "wildcard", label: "Wildcard" },
   { value: "campus", label: "Campus" },
   { value: "transit", label: "Transit" },
   { value: "weather", label: "Weather" },
   { value: "sports", label: "Sports" },
   { value: "academics", label: "Academics" },
   { value: "dining", label: "Dining" },
-  { value: "wildcard", label: "Wildcard" },
 ] as const;
 
 export type Category = (typeof CATEGORIES)[number]["value"];

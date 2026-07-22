@@ -1,16 +1,15 @@
 import { Skeleton } from "@/components/ui/Skeleton";
 
-// Nested inside AdminLayout (which supplies the chrome and nav); mirrors the
-// admin overview's 3-up card grid.
+// Nested inside AdminLayout; mirrors the overview's 4-up queue cards.
 export default function Loading() {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-      {["a", "b", "c"].map((k) => (
-        <div key={k} className="card-surface p-5">
-          <Skeleton className="h-8 w-12" />
+    <ul className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      {["a", "b", "c", "d"].map((k) => (
+        <li key={k} className="card-surface p-5">
+          <Skeleton className="h-9 w-12" />
           <Skeleton className="mt-2 h-4 w-28" />
-        </div>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }

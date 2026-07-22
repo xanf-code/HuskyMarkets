@@ -1,31 +1,55 @@
-import { Skeleton } from "@/components/ui/Skeleton";
+import {
+  MarketCardSkeleton,
+  MoverCardSkeleton,
+  Skeleton,
+} from "@/components/ui/Skeleton";
 
-// Mirrors the home grid: a filter pill row over a 6-card market grid
-// (see MarketCard) so the layout does not shift when markets stream in.
+// Mirrors default home: Top movers (strip + lg rail) beside HomeShowcase
+// category sections with hideCategory market cards.
 export default function Loading() {
   return (
-    <div className="flex flex-col gap-5 sm:gap-6">
-      <div className="flex flex-wrap gap-2">
-        {["a", "b", "c", "d", "e"].map((k) => (
-          <Skeleton key={k} className="h-9 w-24 rounded-pill" />
-        ))}
-      </div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {["a", "b", "c", "d", "e", "f"].map((k) => (
-          <div key={k} className="card-surface flex flex-col gap-3 p-4 sm:p-5">
-            <div className="flex items-center justify-between gap-3">
-              <Skeleton className="h-6 w-20 rounded-pill" />
-              <Skeleton className="h-4 w-16" />
+    <div className="flex flex-col gap-8 sm:gap-10">
+      <div className="flex flex-col gap-8 sm:gap-10 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-8">
+        <div className="lg:hidden">
+          <section className="flex flex-col gap-2 sm:gap-3" aria-hidden>
+            <div className="flex flex-col gap-0.5">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-20" />
             </div>
-            <Skeleton className="h-5 w-full" />
-            <Skeleton className="h-5 w-3/4" />
-            <Skeleton className="h-2 w-full rounded-pill" />
-            <div className="grid grid-cols-2 gap-2">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
+            <div className="no-scrollbar flex gap-3 overflow-x-auto sm:grid sm:grid-cols-2 sm:overflow-visible lg:grid-cols-4">
+              {["a", "b", "c", "d"].map((k) => (
+                <MoverCardSkeleton key={k} />
+              ))}
             </div>
-          </div>
-        ))}
+          </section>
+        </div>
+
+        <div className="flex flex-col gap-8 sm:gap-10">
+          {["Campus", "Sports", "Events"].map((label) => (
+            <section key={label} className="flex flex-col gap-3" aria-hidden>
+              <Skeleton className="h-7 w-28" />
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+                {["1", "2", "3", "4"].map((k) => (
+                  <MarketCardSkeleton key={k} hideCategory />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+
+        <aside className="hidden lg:sticky lg:top-24 lg:block" aria-hidden>
+          <section className="flex flex-col gap-2 sm:gap-3">
+            <div className="flex flex-col gap-0.5">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-20" />
+            </div>
+            <div className="flex flex-col gap-2">
+              {["a", "b", "c", "d"].map((k) => (
+                <MoverCardSkeleton key={k} layout="rail" />
+              ))}
+            </div>
+          </section>
+        </aside>
       </div>
     </div>
   );

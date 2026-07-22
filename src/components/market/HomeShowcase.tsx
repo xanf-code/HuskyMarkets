@@ -1,4 +1,3 @@
-import { Fragment, type ReactNode } from "react";
 import Link from "next/link";
 import { CATEGORIES } from "@/lib/constants";
 import type { MarketListItem } from "@/lib/queries/markets";
@@ -12,19 +11,12 @@ const CARDS_PER_CATEGORY = 6;
  * 6 markets; the header link opens the filtered full list.
  * Filtering/searching swaps this for the live grid.
  */
-export function HomeShowcase({
-  markets,
-  afterFirstSection,
-}: {
-  markets: MarketListItem[];
-  /** Injected after the first category (e.g. mobile Top movers). */
-  afterFirstSection?: ReactNode;
-}) {
+export function HomeShowcase({ markets }: { markets: MarketListItem[] }) {
   if (markets.length === 0) {
     return (
       <EmptyState
         title="No open markets right now"
-        description="Check back soon, or create one for campus."
+        description="Check back soon — or start one and get the board moving."
         action={
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
             <Link
@@ -33,13 +25,17 @@ export function HomeShowcase({
             >
               Create a market
             </Link>
+            <Link
+              href="/leaderboard"
+              className="text-sm font-semibold text-text-muted hover:text-text focus-visible:outline-red"
+            >
+              View leaderboard
+            </Link>
           </div>
         }
       />
     );
   }
-
-  let firstSection = true;
 
   return (
     <div className="flex flex-col gap-8 sm:gap-10">
@@ -49,8 +45,9 @@ export function HomeShowcase({
           .slice(0, CARDS_PER_CATEGORY);
         if (list.length === 0) return null;
 
-        const section = (
+        return (
           <section
+            key={category.value}
             aria-label={`${category.label} markets`}
             className="flex flex-col gap-3"
           >
@@ -65,7 +62,7 @@ export function HomeShowcase({
                 </span>
               </h2>
             </Link>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 [&>article]:h-full">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 [&>article]:h-full">
               {list.map((market) => (
                 <MarketCard
                   key={market.id}
@@ -76,18 +73,6 @@ export function HomeShowcase({
             </div>
           </section>
         );
-
-        if (firstSection && afterFirstSection) {
-          firstSection = false;
-          return (
-            <Fragment key={category.value}>
-              {section}
-              {afterFirstSection}
-            </Fragment>
-          );
-        }
-        firstSection = false;
-        return <Fragment key={category.value}>{section}</Fragment>;
       })}
     </div>
   );
