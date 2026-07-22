@@ -18,11 +18,11 @@ export function LeaderboardPrizeCard() {
       </div>
       <div className="min-w-0">
         <p className="text-sm font-semibold text-text">
-          Top the board, win a{" "}
+          Win a{" "}
           <span className="text-red">$150 Campus Store gift card</span>
         </p>
         <p className="mt-0.5 text-pretty text-xs leading-snug text-text-muted">
-          Finish #1 on the Fall 2026 semester leaderboard to claim the prize.
+          #1 on the Fall 2026 semester leaderboard
         </p>
       </div>
     </aside>
