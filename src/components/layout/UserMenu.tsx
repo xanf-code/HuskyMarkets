@@ -77,6 +77,14 @@ export function UserMenu() {
           >
             Profile
           </Link>
+          <Link
+            href="/tos"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="flex min-h-11 w-full items-center px-4 text-sm font-medium text-text transition-colors duration-150 hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+          >
+            Terms of Service
+          </Link>
           <div className="border-t border-hairline" />
           <button
             type="button"

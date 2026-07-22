@@ -37,6 +37,10 @@ describe("UserMenu", () => {
 
     expect(screen.getByRole("menu")).toBeInTheDocument();
     expect(screen.getByRole("menuitem", { name: /profile/i })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: /terms of service/i })).toHaveAttribute(
+      "href",
+      "/tos",
+    );
     expect(screen.getByRole("menuitem", { name: /sign out/i })).toBeInTheDocument();
   });
 

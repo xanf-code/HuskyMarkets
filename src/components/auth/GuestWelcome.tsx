@@ -1,11 +1,22 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { isPromoBannerDismissed } from "@/lib/onboarding-flags";
 import { useSignInPrompt } from "./SignInPromptProvider";
 
-/** Slim first-run hook for guests above the board - invitation, not interruption. */
+/** Slim first-run hook for guests above the board - invitation, not interruption.
+ *  Only renders after the promo banner has been dismissed, so the two CTAs
+ *  never appear at the same time. */
 export function GuestWelcome() {
   const { promptSignIn } = useSignInPrompt();
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    setShow(isPromoBannerDismissed());
+  }, []);
+
+  if (!show) return null;
 
   return (
     <div className="flex flex-col gap-3 rounded-lg bg-muted px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-5">

@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { ToastProvider } from "@/components/ui/Toast";
 import { APPEARANCE_COOKIE } from "@/lib/appearance";
 import { getSession } from "@/lib/dal";
+import { GuestPromoBanner } from "@/components/auth/GuestPromoBanner";
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 
@@ -75,7 +76,7 @@ export default async function RootLayout({
                 ) : null
               }
             />
-            {user ? <DailyBonusClaimer /> : null}
+            {user ? <DailyBonusClaimer /> : <GuestPromoBanner />}
             <main
               className={`mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 sm:py-10 ${
                 user ? "max-md:pb-24" : ""

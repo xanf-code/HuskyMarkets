@@ -5,6 +5,7 @@
 export const FIRST_RUN_KEY = "hm-first-run";
 export const FIRST_BET_DONE_KEY = "hm-first-bet-done";
 export const ODDS_TIP_KEY = "hm-odds-tip-seen";
+export const PROMO_FALL_2026_KEY = "promo-fall-2026-dismissed";
 
 function read(key: string): boolean {
   try {
@@ -52,4 +53,12 @@ export function hasSeenOddsTip(): boolean {
 
 export function markOddsTipSeen(): void {
   write(ODDS_TIP_KEY, true);
+}
+
+export function isPromoBannerDismissed(): boolean {
+  return read(PROMO_FALL_2026_KEY);
+}
+
+export function dismissPromoBanner(): void {
+  write(PROMO_FALL_2026_KEY, true);
 }
