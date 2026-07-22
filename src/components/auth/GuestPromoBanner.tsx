@@ -32,8 +32,8 @@ export function GuestPromoBanner() {
             src="/gift-card.png"
             alt="Northeastern Campus Store $150 Gift Card"
             width={72}
-            height={46}
-            className="rounded object-cover shadow-sm"
+            height={45}
+            className="h-auto w-auto rounded object-cover shadow-sm"
             priority
           />
         </div>

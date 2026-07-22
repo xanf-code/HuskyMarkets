@@ -12,8 +12,8 @@ export function LeaderboardPrizeCard() {
           src="/gift-card.png"
           alt=""
           width={56}
-          height={36}
-          className="rounded object-cover"
+          height={35}
+          className="h-auto w-auto rounded object-cover"
         />
       </div>
       <div className="min-w-0">
