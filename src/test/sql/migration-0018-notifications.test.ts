@@ -1,4 +1,4 @@
-// 0018 · Notifications — exhaustive test suite
+// 0018 · Notifications -exhaustive test suite
 // Covers: notification shape on resolve/void, winner/loser/creator/refund paths,
 // creator-is-bettor deduplication, handle_report void path, double-resolve guard,
 // RLS policy existence, and column-grant discipline.
@@ -72,7 +72,7 @@ async function insertBetDirect(
   outcomeId: string,
   amount: number,
 ): Promise<void> {
-  // price_at_bet is arbitrary (50) — only the amount matters for payout math.
+  // price_at_bet is arbitrary (50) -only the amount matters for payout math.
   await db.query(
     `INSERT INTO public.bets (market_id, user_id, outcome_id, amount, price_at_bet)
      VALUES ($1, $2, $3, $4, 50)`,
@@ -210,7 +210,7 @@ describe("0018 notifications: creator-is-bettor deduplication", () => {
 
     const m = await createMarket(db, creator, ["Win", "Lose"]);
     marketId = m.market_id;
-    outcomeA = m.outcomes[0].id; // Win — winning outcome
+    outcomeA = m.outcomes[0].id; // Win -winning outcome
     outcomeB = m.outcomes[1].id;
 
     // Creator bets on the winning outcome directly (bypasses the RPC guard).
@@ -330,7 +330,7 @@ describe("0018 notifications: empty-winner refund path", () => {
   });
 
   it("test 8: empty-winner resolve → all bettors get market_resolved with result=refunded and matching refund amount", async () => {
-    // Resolve to outcome B — nobody backed it → refund path.
+    // Resolve to outcome B -nobody backed it → refund path.
     await resolveMarket(db, admin, marketId, "resolve", outcomeB);
 
     for (const uid of [bettorA, bettorB]) {
@@ -398,7 +398,7 @@ describe("0018 notifications: double-resolve guard", () => {
 
     await insertBetDirect(db, marketId, bettor, outcomeA, 100);
 
-    // First resolution — succeeds.
+    // First resolution -succeeds.
     await resolveMarket(db, admin, marketId, "resolve", outcomeA);
 
     const countAfterFirst = await db.query<{ n: number }>(
@@ -408,7 +408,7 @@ describe("0018 notifications: double-resolve guard", () => {
     const expectedCount = countAfterFirst.rows[0].n;
     expect(expectedCount).toBeGreaterThan(0);
 
-    // Second resolution — must throw.
+    // Second resolution -must throw.
     await expect(
       resolveMarket(db, admin, marketId, "resolve", outcomeA),
     ).rejects.toThrow(/market already resolved/i);

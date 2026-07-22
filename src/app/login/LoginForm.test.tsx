@@ -38,7 +38,7 @@ async function goToVerifyStep(user: ReturnType<typeof userEvent.setup>) {
   await screen.findByLabelText(/6-digit code/i);
 }
 
-describe("LoginForm — email step", () => {
+describe("LoginForm -email step", () => {
   beforeEach(() => {
     vi.stubEnv("NEXT_PUBLIC_SITE_URL", "http://localhost:3000");
     searchParams.value = "";
@@ -60,7 +60,7 @@ describe("LoginForm — email step", () => {
     expect(signInWithOtp).not.toHaveBeenCalled();
   });
 
-  it("calls signInWithOtp with the email only — no redirect URL", async () => {
+  it("calls signInWithOtp with the email only -no redirect URL", async () => {
     const user = userEvent.setup();
     render(<LoginForm />);
 
@@ -103,7 +103,7 @@ describe("LoginForm — email step", () => {
   });
 });
 
-describe("LoginForm — verify step", () => {
+describe("LoginForm -verify step", () => {
   beforeEach(() => {
     vi.stubEnv("NEXT_PUBLIC_SITE_URL", "http://localhost:3000");
     searchParams.value = "";

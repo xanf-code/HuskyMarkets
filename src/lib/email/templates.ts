@@ -58,7 +58,7 @@ function buildBodyCopy(notification: NotificationForEmail): string {
       return `You lost ${amount} HC on ${market_title}.`;
     }
     if (result === 'refunded') {
-      return `Your stakes were refunded on ${market_title} — there were no winning bettors.`;
+      return `Your stakes were refunded on ${market_title} -there were no winning bettors.`;
     }
     if (role === 'creator') {
       return `Your market &#39;${market_title}&#39; has resolved.`;

@@ -55,7 +55,7 @@ export function CreatorControls({
       setError(result.error);
       return;
     }
-    toast.push("Pool voided — all stakes refunded.");
+    toast.push("Pool voided -all stakes refunded.");
     router.refresh();
   }
 
@@ -68,7 +68,7 @@ export function CreatorControls({
       <div className="flex flex-col gap-2">
         {hasBets ? (
           <div className="rounded-md border border-hairline bg-muted px-4 py-3 text-sm text-text-muted">
-            Editing locked — bets have been placed.
+            Editing locked -bets have been placed.
           </div>
         ) : (
           <Link

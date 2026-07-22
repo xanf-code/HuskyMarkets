@@ -49,7 +49,7 @@ function sanitizeRedirect(redirectTo: string): string {
   return "/";
 }
 
-// Always builds from the server-side SITE_URL — never trusts payload.email_data.site_url
+// Always builds from the server-side SITE_URL -never trusts payload.email_data.site_url
 function buildConfirmUrl(tokenHash: string, type: string, redirectTo: string): string {
   const safeRedirect = sanitizeRedirect(redirectTo);
   return `${SITE_URL}/auth/confirm?token_hash=${encodeURIComponent(tokenHash)}&type=${encodeURIComponent(type)}&next=${encodeURIComponent(safeRedirect)}`;
@@ -71,7 +71,7 @@ function buildEmail(payload: AuthHookPayload): { subject: string; html: string }
   const email = payload.user.email;
 
   switch (email_action_type) {
-    // OTP code flow — user types the code into the app
+    // OTP code flow -user types the code into the app
     case "magiclink":
     case "signup": {
       return {
@@ -177,7 +177,7 @@ function emailWrapper(icon: string, heading: string, body: string, url: string, 
           <tr>
             <td style="padding:20px 8px 0 8px;">
               <p style="margin:0;font-size:12px;color:#9ca3af;text-align:center;line-height:1.6;">
-                If you didn't request this, you can safely ignore this email — your account remains secure.<br/>
+                If you didn't request this, you can safely ignore this email -your account remains secure.<br/>
                 HuskyMarkets is for Huskies only &mdash; huskymarket.lol
               </p>
             </td>
@@ -258,7 +258,7 @@ function otpTemplate(email: string, token: string): string {
           <tr>
             <td style="padding:20px 8px 0 8px;">
               <p style="margin:0;font-size:12px;color:#9ca3af;text-align:center;line-height:1.6;">
-                If you didn't request this, you can safely ignore this email — your account remains secure.<br/>
+                If you didn't request this, you can safely ignore this email -your account remains secure.<br/>
                 HuskyMarkets is for Huskies only &mdash; huskymarket.lol
               </p>
             </td>
@@ -298,7 +298,7 @@ serve(async (req) => {
   }
 
   // Verify Supabase Auth Hook signature (standardwebhooks).
-  // Pass the full headers object — Supabase's own example uses Object.fromEntries(req.headers).
+  // Pass the full headers object -Supabase's own example uses Object.fromEntries(req.headers).
   const rawBody = await req.text();
   const allHeaders = Object.fromEntries(req.headers);
   let payload: AuthHookPayload;
