@@ -22,7 +22,14 @@ export function safeReturnPath(next: string | null): string | null {
 }
 
 // Paths that never require a session, before or after onboarding.
-const AUTH_EXEMPT_EXACT = new Set(["/login", "/tos"]);
+const AUTH_EXEMPT_EXACT = new Set([
+  "/login",
+  "/tos",
+  // App Router metadata icons (served with or without an extension).
+  "/icon",
+  "/apple-icon",
+  "/favicon.ico",
+]);
 // `/auth/` covers the magic-link callback (`/auth/callback`): the code is
 // exchanged for a session there, so the request must reach the route handler
 // while the visitor is still unauthenticated instead of being bounced to /login.

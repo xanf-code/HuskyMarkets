@@ -51,6 +51,12 @@ describe("getAuthRedirect", () => {
       expect(getAuthRedirect("/tos", false, false)).toBeNull();
     });
 
+    it("allows metadata icon routes so favicons are not gated", () => {
+      expect(getAuthRedirect("/icon", false, false)).toBeNull();
+      expect(getAuthRedirect("/apple-icon", false, false)).toBeNull();
+      expect(getAuthRedirect("/favicon.ico", false, false)).toBeNull();
+    });
+
     it("allows shared bet pages", () => {
       expect(getAuthRedirect("/share/bet/abc-123", false, false)).toBeNull();
     });
@@ -109,6 +115,11 @@ describe("getAuthRedirect", () => {
 
     it("allows /tos so the terms can be read mid-onboarding", () => {
       expect(getAuthRedirect("/tos", true, false)).toBeNull();
+    });
+
+    it("allows metadata icon routes mid-onboarding", () => {
+      expect(getAuthRedirect("/icon", true, false)).toBeNull();
+      expect(getAuthRedirect("/apple-icon", true, false)).toBeNull();
     });
 
     it("allows public prefixes such as shared bet pages", () => {

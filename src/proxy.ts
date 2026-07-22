@@ -91,6 +91,10 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // Skip Next static assets and metadata icons. `/icon` and `/apple-icon`
+    // are App Router file-convention routes (often without a file extension),
+    // so they must be listed explicitly - otherwise auth gating sends them to
+    // /login and browsers fall back to a generic letter favicon.
+    "/((?!_next/static|_next/image|favicon.ico|icon(?:\\.(?:ico|png|jpg|jpeg|svg))?$|apple-icon(?:\\.(?:png|jpg|jpeg))?$|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
