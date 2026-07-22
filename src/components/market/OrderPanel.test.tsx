@@ -2,6 +2,10 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ToastProvider } from "@/components/ui/Toast";
+import {
+  FIRST_BET_DONE_KEY,
+  ODDS_TIP_KEY,
+} from "@/lib/onboarding-flags";
 import type { OutcomeState } from "@/lib/outcomes";
 import { OrderPanel } from "./OrderPanel";
 
@@ -42,6 +46,10 @@ function renderPanel(overrides: Record<string, unknown> = {}) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  localStorage.clear();
+  // Experienced-user defaults so existing fill tests stay toast-only.
+  localStorage.setItem(FIRST_BET_DONE_KEY, "1");
+  localStorage.setItem(ODDS_TIP_KEY, "1");
   placeBet.mockResolvedValue({
     ok: true,
     outcomes: FILLED,
@@ -267,6 +275,56 @@ describe("OrderPanel", () => {
     await user.click(screen.getByRole("button", { name: /Buy Yes · 67%/i }));
 
     expect(await screen.findByText(/est\. 126 HC/i, { exact: false })).toBeInTheDocument();
+  });
+
+  it("shows a beginner odds tip until dismissed", async () => {
+    localStorage.removeItem(ODDS_TIP_KEY);
+    const user = userEvent.setup();
+    renderPanel();
+
+    expect(
+      await screen.findByText(/board thinks that outcome is likelier/i),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /^got it$/i }));
+
+    expect(
+      screen.queryByText(/board thinks that outcome is likelier/i),
+    ).not.toBeInTheDocument();
+    expect(localStorage.getItem(ODDS_TIP_KEY)).toBe("1");
+  });
+
+  it("celebrates the first bet with a leaderboard cue", async () => {
+    localStorage.removeItem(FIRST_BET_DONE_KEY);
+    localStorage.setItem("hm-first-run", "1");
+    const user = userEvent.setup();
+    renderPanel();
+
+    await user.type(screen.getByLabelText(/amount/i), "100");
+    await user.click(screen.getByRole("button", { name: /Buy Yes · 67%/i }));
+
+    expect(
+      await screen.findByRole("heading", { name: /you're on the board/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /see the leaderboard/i }),
+    ).toHaveAttribute("href", "/leaderboard");
+    expect(localStorage.getItem(FIRST_BET_DONE_KEY)).toBe("1");
+  });
+
+  it("does not celebrate a fill for returning users without a first-run flag", async () => {
+    localStorage.removeItem(FIRST_BET_DONE_KEY);
+    const user = userEvent.setup();
+    renderPanel();
+
+    await user.type(screen.getByLabelText(/amount/i), "100");
+    await user.click(screen.getByRole("button", { name: /Buy Yes · 67%/i }));
+
+    expect(await screen.findByText(/est\. 126 HC/i, { exact: false })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: /you're on the board/i }),
+    ).not.toBeInTheDocument();
+    expect(localStorage.getItem(FIRST_BET_DONE_KEY)).toBe("1");
   });
 
   describe("guest mode", () => {

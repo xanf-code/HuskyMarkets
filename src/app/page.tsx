@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { FirstRunBanner } from "@/components/auth/FirstRunBanner";
 import { GuestScrollPrompt } from "@/components/auth/GuestScrollPrompt";
 import { GuestWelcome } from "@/components/auth/GuestWelcome";
 import { HomeShowcase } from "@/components/market/HomeShowcase";
@@ -52,7 +53,7 @@ export default async function Home({ searchParams }: HomeProps) {
   return (
     <div className="flex flex-col gap-8 sm:gap-10">
       <h1 className="sr-only">HuskyMarkets — Campus Prediction Markets</h1>
-      {!session ? <GuestWelcome /> : null}
+      {!session ? <GuestWelcome /> : <FirstRunBanner />}
       {!showGroups && (
         <Suspense>
           <MarketFilters />

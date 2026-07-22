@@ -20,15 +20,41 @@ export default async function OnboardingPage() {
     .single();
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col gap-6 py-8 sm:py-16">
+    <div className="mx-auto flex w-full max-w-md flex-col gap-8 py-8 sm:py-16">
       <div>
         <h1 className="text-balance text-3xl font-semibold text-text sm:text-4xl">
           Set your board name
         </h1>
         <p className="mt-2 text-pretty text-sm text-text-muted">
-          1,000 HuskyCoin to start. You can change this later.
+          1,000 HuskyCoin to start. About a minute - then pick a campus take.
         </p>
       </div>
+
+      <ol className="flex flex-col gap-3 rounded-lg bg-muted px-4 py-4 sm:px-5">
+        <li className="flex gap-3 text-sm">
+          <span className="num shrink-0 font-semibold text-text">1</span>
+          <span className="text-pretty text-text-muted">
+            <span className="font-semibold text-text">Odds</span> are the
+            chance the board implies right now - not a guarantee.
+          </span>
+        </li>
+        <li className="flex gap-3 text-sm">
+          <span className="num shrink-0 font-semibold text-text">2</span>
+          <span className="text-pretty text-text-muted">
+            <span className="font-semibold text-text">Stake</span> free
+            HuskyCoin on an outcome. One bet puts you on the semester
+            leaderboard.
+          </span>
+        </li>
+        <li className="flex gap-3 text-sm">
+          <span className="num shrink-0 font-semibold text-text">3</span>
+          <span className="text-pretty text-text-muted">
+            <span className="font-semibold text-text">Win</span>&nbsp;and Portfolio
+            &rarr; Resolved unlocks a share card - brag the take that paid.
+          </span>
+        </li>
+      </ol>
+
       <OnboardingForm initialHandle={profile?.anon_handle ?? "Husky"} />
     </div>
   );

@@ -77,6 +77,8 @@ export interface SemesterRow {
   name: string;
   startsAt: string;
   endsAt: string;
+  /** True when a Hall of Fame snapshot exists for this semester. */
+  isClosed: boolean;
 }
 
 export async function getResolveQueue(
@@ -299,15 +301,21 @@ export async function getActionLog(limit = 100): Promise<ActionLogRow[]> {
 
 export async function getSemesters(): Promise<SemesterRow[]> {
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("semesters")
-    .select("id, name, starts_at, ends_at")
-    .order("starts_at", { ascending: false });
+  const [{ data }, { data: hof }] = await Promise.all([
+    supabase
+      .from("semesters")
+      .select("id, name, starts_at, ends_at")
+      .order("starts_at", { ascending: false }),
+    supabase.from("hall_of_fame").select("semester_id"),
+  ]);
+
+  const closedIds = new Set((hof ?? []).map((row) => row.semester_id));
 
   return (data ?? []).map((s) => ({
     id: s.id,
     name: s.name,
     startsAt: s.starts_at,
     endsAt: s.ends_at,
+    isClosed: closedIds.has(s.id),
   }));
 }

@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { ToastProvider } from "@/components/ui/Toast";
 import { ResolvedHistory } from "./ResolvedHistory";
 import type { ResolvedPosition } from "@/lib/queries/portfolio";
 
@@ -19,38 +20,55 @@ function row(overrides: Partial<ResolvedPosition>): ResolvedPosition {
   };
 }
 
+function renderHistory(rows: ResolvedPosition[]) {
+  return render(
+    <ToastProvider>
+      <ResolvedHistory rows={rows} />
+    </ToastProvider>,
+  );
+}
+
 describe("ResolvedHistory", () => {
-  it("links won positions to the bet share page", () => {
-    render(<ResolvedHistory rows={[row({})]} />);
-    expect(screen.getByRole("link", { name: /share/i })).toHaveAttribute(
+  it("offers copy + view actions for a winning share card", () => {
+    renderHistory([row({})]);
+    expect(screen.getByRole("button", { name: /copy link/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /view card/i })).toHaveAttribute(
       "href",
       "/share/bet/b-best",
     );
   });
 
-  it("hides the share link for lost positions", () => {
-    render(
-      <ResolvedHistory
-        rows={[
-          row({ won: false, shareBetId: null, outcomeLabel: "No", payout: 0, pnl: -100, estimatedPayout: null }),
-        ]}
-      />,
-    );
-    expect(screen.queryByRole("link", { name: /share/i })).toBeNull();
+  it("hides share actions for lost positions", () => {
+    renderHistory([
+      row({
+        won: false,
+        shareBetId: null,
+        outcomeLabel: "No",
+        payout: 0,
+        pnl: -100,
+        estimatedPayout: null,
+      }),
+    ]);
+    expect(screen.queryByRole("button", { name: /copy link/i })).toBeNull();
+    expect(screen.queryByRole("link", { name: /view card/i })).toBeNull();
   });
 
   it("shows the bet-time estimate next to the actual payout (FR-21, FR-24)", () => {
-    render(<ResolvedHistory rows={[row({})]} />);
+    renderHistory([row({})]);
     expect(screen.getByText(/Est\. payout/)).toBeInTheDocument();
     expect(screen.getByLabelText("200 HC")).toBeInTheDocument();
   });
 
   it("omits the estimate for lost positions", () => {
-    render(
-      <ResolvedHistory
-        rows={[row({ won: false, shareBetId: null, payout: 0, pnl: -100, estimatedPayout: null })]}
-      />,
-    );
+    renderHistory([
+      row({
+        won: false,
+        shareBetId: null,
+        payout: 0,
+        pnl: -100,
+        estimatedPayout: null,
+      }),
+    ]);
     expect(screen.queryByText(/Est\. payout/)).toBeNull();
   });
 });

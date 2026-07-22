@@ -8,9 +8,17 @@ import { HcAmount } from "@/components/ui/HcAmount";
 import { HuskyCoinIcon } from "@/components/icons/HuskyCoinIcon";
 import { InlineError } from "@/components/ui/InlineError";
 import { useToast } from "@/components/ui/Toast";
+import { FirstBetCelebration } from "@/components/market/FirstBetCelebration";
 import { CAP_PER_MARKET } from "@/lib/constants";
 import type { Database } from "@/lib/database.types";
 import { formatHC, formatPercent } from "@/lib/format";
+import {
+  hasCompletedFirstBet,
+  hasSeenOddsTip,
+  isFirstRunPending,
+  markFirstBetDone,
+  markOddsTipSeen,
+} from "@/lib/onboarding-flags";
 import { totalPool, type OutcomeState } from "@/lib/outcomes";
 import { estimatePayout } from "@/lib/payout";
 import type { PositionEntry } from "@/lib/queries/markets";
@@ -73,6 +81,8 @@ export function OrderPanel(props: OrderPanelProps) {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [pastClose, setPastClose] = useState(false);
+  const [showOddsTip, setShowOddsTip] = useState(false);
+  const [celebrateFirstBet, setCelebrateFirstBet] = useState(false);
 
   // Realtime/refresh reconciliation: whenever the parent hands down new pool
   // or balance values (realtime UPDATE, server revalidation), they win over
@@ -101,6 +111,11 @@ export function OrderPanel(props: OrderPanelProps) {
     return () => clearInterval(timer);
   }, [props.closeAt]);
 
+  useEffect(() => {
+    if (guest) return;
+    setShowOddsTip(!hasSeenOddsTip());
+  }, [guest]);
+
   const open = props.status === "open" && !pastClose;
   const selected =
     outcomes.find((o) => o.id === outcomeId) ?? outcomes[0] ?? null;
@@ -112,6 +127,11 @@ export function OrderPanel(props: OrderPanelProps) {
   const valid = amount >= 1 && amount <= maxStake && selected !== null;
   const estimate =
     valid && selected ? estimatePayout(amount, selected.pool, total) : 0;
+
+  function dismissOddsTip() {
+    markOddsTipSeen();
+    setShowOddsTip(false);
+  }
 
   async function submit() {
     if (guest) {
@@ -144,6 +164,13 @@ export function OrderPanel(props: OrderPanelProps) {
     toast.push(
       `Locked in · ${formatHC(amount)} on ${selected.label} · ${formatPercent(priceNow)} · est. ${formatHC(estimate)}`,
     );
+
+    if (!hasCompletedFirstBet()) {
+      const celebrate = isFirstRunPending();
+      markFirstBetDone();
+      dismissOddsTip();
+      if (celebrate) setCelebrateFirstBet(true);
+    }
   }
 
   const submitLabel = open
@@ -269,6 +296,21 @@ export function OrderPanel(props: OrderPanelProps) {
             {formatPercent(selected?.implied ?? 0)} chance
           </dd>
         </div>
+        {showOddsTip ? (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-muted px-3 py-2">
+            <p className="min-w-0 flex-1 text-xs text-pretty text-text-muted">
+              Higher % means the board thinks that outcome is likelier. Your
+              stake buys a share of the winning pool.
+            </p>
+            <button
+              type="button"
+              onClick={dismissOddsTip}
+              className="inline-flex min-h-11 shrink-0 cursor-pointer items-center px-1 text-xs font-semibold text-red hover:text-red-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
+            >
+              Got it
+            </button>
+          </div>
+        ) : null}
         <div className="flex items-baseline justify-between gap-3">
           <dt className="shrink-0 text-text-muted">Balance</dt>
           <dd className="whitespace-nowrap text-text">
@@ -290,7 +332,7 @@ export function OrderPanel(props: OrderPanelProps) {
       </dl>
 
       <p className="text-xs text-text-tertiary">
-        Final payout depends on the pools at close · Closes{" "}
+        Closes{" "}
         {CLOSE_DATE.format(new Date(props.closeAt))}
       </p>
 
@@ -304,6 +346,11 @@ export function OrderPanel(props: OrderPanelProps) {
       >
         {submitLabel}
       </Button>
+
+      <FirstBetCelebration
+        open={celebrateFirstBet}
+        onClose={() => setCelebrateFirstBet(false)}
+      />
     </section>
   );
 }

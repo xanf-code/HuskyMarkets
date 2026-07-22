@@ -6,12 +6,15 @@ import { describe, expect, it } from "vitest";
 import {
   applyBetToPools,
   capViolations,
+  densifyPriceHistory,
+  impliedFromPools,
   OUTCOME_LABEL_POOL,
+  replayPriceHistory,
   seedOutcomeSets,
   staggerWave,
   type SeedBet,
 } from "./seed-plan";
-import { CAP_PER_MARKET, MAX_OUTCOMES, MIN_OUTCOMES } from "./constants";
+import { CAP_PER_MARKET, HOUSE_SEED, MAX_OUTCOMES, MIN_OUTCOMES } from "./constants";
 
 describe("seedOutcomeSets (D-7)", () => {
   it("produces a mix spanning every outcome count from 2 to 6", () => {
@@ -123,5 +126,106 @@ describe("staggerWave", () => {
     expect(staggerWave([bet(0, 0, 10)], DAY)).toEqual([
       { userIdx: 0, outcomeIdx: 0, amount: 10, secsAgo: DAY },
     ]);
+  });
+});
+
+describe("impliedFromPools", () => {
+  it("matches the engine clamp into [1, 99]", () => {
+    expect(impliedFromPools(100, 200)).toBe(50);
+    expect(impliedFromPools(800, 1080)).toBe(74);
+    expect(impliedFromPools(1, 10_000)).toBe(1);
+    expect(impliedFromPools(9999, 10_000)).toBe(99);
+  });
+
+  it("guards a zero total", () => {
+    expect(impliedFromPools(0, 0)).toBe(1);
+  });
+});
+
+describe("replayPriceHistory", () => {
+  const HOUR = 3600_000;
+
+  it("writes an opening equal-odds snapshot then post-bet rows", () => {
+    const rows = replayPriceHistory(
+      2,
+      [{ outcomeIdx: 0, amount: 100, atMs: 2 * HOUR }],
+      { openAtMs: HOUR },
+    );
+    // open: 2 outcomes; after bet: 2 more
+    expect(rows).toHaveLength(4);
+    expect(rows[0]).toMatchObject({
+      outcomeIdx: 0,
+      pool: HOUSE_SEED,
+      implied: 50,
+      recordedAtMs: HOUR,
+    });
+    expect(rows[2]).toMatchObject({
+      outcomeIdx: 0,
+      pool: HOUSE_SEED + 100,
+      recordedAtMs: 2 * HOUR,
+    });
+    expect(rows[3]).toMatchObject({
+      outcomeIdx: 1,
+      pool: HOUSE_SEED,
+      recordedAtMs: 2 * HOUR,
+    });
+  });
+
+  it("replays bets in chronological order regardless of input order", () => {
+    const rows = replayPriceHistory(2, [
+      { outcomeIdx: 1, amount: 50, atMs: 3 * HOUR },
+      { outcomeIdx: 0, amount: 100, atMs: 1 * HOUR },
+    ]);
+    expect(rows[0].recordedAtMs).toBe(HOUR);
+    expect(rows[0].outcomeIdx).toBe(0);
+    expect(rows[0].pool).toBe(HOUSE_SEED + 100);
+    expect(rows[2].recordedAtMs).toBe(3 * HOUR);
+    expect(rows[3].pool).toBe(HOUSE_SEED + 50);
+  });
+
+  it("covers multi-outcome markets", () => {
+    const rows = replayPriceHistory(4, [
+      { outcomeIdx: 2, amount: 200, atMs: HOUR },
+    ]);
+    expect(rows).toHaveLength(4);
+    expect(rows.map((r) => r.pool)).toEqual([
+      HOUSE_SEED,
+      HOUSE_SEED,
+      HOUSE_SEED + 200,
+      HOUSE_SEED,
+    ]);
+    const total = 4 * HOUSE_SEED + 200;
+    expect(rows[2].implied).toBe(impliedFromPools(HOUSE_SEED + 200, total));
+  });
+});
+
+describe("densifyPriceHistory", () => {
+  const DAY = 24 * 3600_000;
+
+  it("inserts carry-forward points between sparse snapshots", () => {
+    const sparse = [
+      { outcomeIdx: 0, implied: 50, pool: 100, recordedAtMs: 0 },
+      { outcomeIdx: 1, implied: 50, pool: 100, recordedAtMs: 0 },
+      { outcomeIdx: 0, implied: 60, pool: 150, recordedAtMs: 2 * DAY },
+      { outcomeIdx: 1, implied: 40, pool: 100, recordedAtMs: 2 * DAY },
+    ];
+    const dense = densifyPriceHistory(sparse, DAY);
+    const times = [...new Set(dense.map((r) => r.recordedAtMs))].sort(
+      (a, b) => a - b,
+    );
+    expect(times).toEqual([0, DAY, 2 * DAY]);
+    // Midday hold copies the opening pools.
+    expect(dense.filter((r) => r.recordedAtMs === DAY)).toEqual([
+      { outcomeIdx: 0, implied: 50, pool: 100, recordedAtMs: DAY },
+      { outcomeIdx: 1, implied: 50, pool: 100, recordedAtMs: DAY },
+    ]);
+  });
+
+  it("is a no-op for a single timestamp", () => {
+    const rows = [
+      { outcomeIdx: 0, implied: 50, pool: 100, recordedAtMs: 0 },
+      { outcomeIdx: 1, implied: 50, pool: 100, recordedAtMs: 0 },
+    ];
+    expect(densifyPriceHistory(rows)).toEqual(rows);
   });
 });

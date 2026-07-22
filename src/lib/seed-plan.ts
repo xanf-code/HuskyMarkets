@@ -2,7 +2,7 @@
 // Kept free of I/O so the seed shape (D-7's 2–6 outcome mix) and the FR-9
 // aggregate cap are unit-testable without a live database.
 
-import { CAP_PER_MARKET } from "./constants";
+import { CAP_PER_MARKET, HOUSE_SEED } from "./constants";
 
 /** Labels the seed scripts draw from for 3+-outcome markets. */
 export const OUTCOME_LABEL_POOL = [
@@ -95,4 +95,109 @@ export function staggerWave(
         : Math.round(Math.sin(i * 2.7) * 20 * 60);
     return { ...bet, secsAgo: Math.max(0, Math.round(base + jitter)) };
   });
+}
+
+/**
+ * Engine implied-price clamp: round(100 * pool / total) into [1, 99].
+ * Matches place_bet / snapshot-price-history cron.
+ */
+export function impliedFromPools(pool: number, total: number): number {
+  if (total <= 0) return 1;
+  return Math.min(99, Math.max(1, Math.round((100 * pool) / total)));
+}
+
+export interface ReplayBet {
+  /** Index into the outcomes/pools array. */
+  outcomeIdx: number;
+  amount: number;
+  /** Unix ms timestamp for the post-bet snapshot. */
+  atMs: number;
+}
+
+export interface PriceHistoryRow {
+  outcomeIdx: number;
+  implied: number;
+  pool: number;
+  recordedAtMs: number;
+}
+
+/**
+ * Replay bets chronologically into per-outcome price_history rows (FR-12).
+ * Starts from house seed pools, writes one snapshot per outcome after each
+ * bet (and an optional opening snapshot at `openAtMs`).
+ */
+export function replayPriceHistory(
+  outcomeCount: number,
+  bets: readonly ReplayBet[],
+  options: {
+    seedPool?: number;
+    openAtMs?: number;
+  } = {},
+): PriceHistoryRow[] {
+  const seed = options.seedPool ?? HOUSE_SEED;
+  let pools = Array.from({ length: outcomeCount }, () => seed);
+  const rows: PriceHistoryRow[] = [];
+
+  const snapshot = (atMs: number) => {
+    const total = pools.reduce((s, p) => s + p, 0);
+    for (let i = 0; i < pools.length; i++) {
+      rows.push({
+        outcomeIdx: i,
+        implied: impliedFromPools(pools[i], total),
+        pool: pools[i],
+        recordedAtMs: atMs,
+      });
+    }
+  };
+
+  if (options.openAtMs !== undefined) {
+    snapshot(options.openAtMs);
+  }
+
+  const ordered = [...bets].sort((a, b) => a.atMs - b.atMs);
+  for (const bet of ordered) {
+    const idx = ((bet.outcomeIdx % outcomeCount) + outcomeCount) % outcomeCount;
+    pools = applyBetToPools(pools, idx, bet.amount);
+    snapshot(bet.atMs);
+  }
+
+  return rows;
+}
+
+/**
+ * Fill long gaps between bet snapshots with carry-forward points so charts
+ * span calendar days instead of looking like a handful of dots. Step is in
+ * ms (default 12h). Does not invent price moves — only holds the last pools.
+ */
+export function densifyPriceHistory(
+  rows: readonly PriceHistoryRow[],
+  stepMs: number = 12 * 60 * 60 * 1000,
+): PriceHistoryRow[] {
+  if (rows.length === 0 || stepMs <= 0) return [...rows];
+
+  const byTime = new Map<number, PriceHistoryRow[]>();
+  for (const row of rows) {
+    const bucket = byTime.get(row.recordedAtMs) ?? [];
+    bucket.push(row);
+    byTime.set(row.recordedAtMs, bucket);
+  }
+  const times = [...byTime.keys()].sort((a, b) => a - b);
+  if (times.length < 2) return [...rows];
+
+  const out: PriceHistoryRow[] = [];
+  for (let i = 0; i < times.length; i++) {
+    const snap = byTime.get(times[i])!;
+    out.push(...snap);
+    if (i === times.length - 1) break;
+
+    const next = times[i + 1];
+    let cursor = times[i] + stepMs;
+    while (cursor < next - stepMs / 2) {
+      for (const row of snap) {
+        out.push({ ...row, recordedAtMs: cursor });
+      }
+      cursor += stepMs;
+    }
+  }
+  return out;
 }

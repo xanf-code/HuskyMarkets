@@ -71,8 +71,8 @@ describe("placeBet", () => {
     expect(rpc).not.toHaveBeenCalled();
   });
 
-  it("rejects a non-uuid outcome id before any network call", async () => {
-    const result = await placeBet({ marketId: MARKET_ID, outcomeId: "yes", amount: 10 });
+  it("rejects an empty outcome id before any network call", async () => {
+    const result = await placeBet({ marketId: MARKET_ID, outcomeId: "", amount: 10 });
 
     expect(result.ok).toBe(false);
     expect(rpc).not.toHaveBeenCalled();

@@ -23,7 +23,7 @@ export function SemesterBoard({ entries, currentUserId }: SemesterBoardProps) {
     return (
       <EmptyState
         title="Nobody on the board yet"
-        description="Place a bet this semester to climb the rankings."
+        description="Place a bet this semester - your name shows up here, and wins unlock a share card."
         action={
           <Link
             href="/"

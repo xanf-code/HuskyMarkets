@@ -66,7 +66,7 @@ export function GuestScrollPrompt() {
         title="Join HuskyMarkets"
       >
         <p className="text-sm text-text-muted">
-          Sign in with your Northeastern email to place your first bet — free
+          Sign in with your Northeastern email to place your first bet - free
           HuskyCoin, no real money.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">

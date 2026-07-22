@@ -12,7 +12,7 @@ export function GuestWelcome() {
       <p className="min-w-0 text-pretty text-sm text-text">
         <span className="font-semibold">Predict campus events.</span>{" "}
         <span className="text-text-muted">
-          Win bragging rights with free HuskyCoin!!
+          Stake free HuskyCoin, climb the board, share the wins.
         </span>
       </p>
       <Button

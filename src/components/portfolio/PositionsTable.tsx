@@ -10,7 +10,7 @@ export function PositionsTable({ positions }: { positions: OpenPosition[] }) {
     return (
       <EmptyState
         title="No open positions yet"
-        description="Browse markets to place a bet and build your board."
+        description="Stake HuskyCoin on a campus take — one bet puts you on the semester leaderboard."
         action={
           <Link
             href="/"
@@ -64,6 +64,9 @@ export function PositionsTable({ positions }: { positions: OpenPosition[] }) {
               </dd>
             </div>
           </dl>
+          <p className="mt-3 text-xs text-text-tertiary">
+            Waiting on resolution — a win unlocks a share card under Resolved.
+          </p>
         </li>
       ))}
     </ul>

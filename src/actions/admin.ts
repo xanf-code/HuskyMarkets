@@ -229,3 +229,18 @@ export async function closeSemester(input: unknown): Promise<ActionResult> {
   revalidatePath("/leaderboard");
   return { ok: true };
 }
+
+export async function reopenSemester(input: unknown): Promise<ActionResult> {
+  const parsed = snapshotSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0].message };
+  }
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("reopen_semester", {
+    p_semester_id: parsed.data.semesterId,
+  });
+  if (error) return { ok: false, error: mapStaffError(error.message) };
+  revalidatePath("/admin/semesters");
+  revalidatePath("/leaderboard");
+  return { ok: true };
+}
