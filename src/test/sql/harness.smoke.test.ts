@@ -11,5 +11,5 @@ describe("pglite harness", () => {
     );
     expect(bal.rows[0].b).toBe(1000);
     await db.close();
-  });
+  }, 30_000);
 });

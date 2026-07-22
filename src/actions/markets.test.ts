@@ -15,6 +15,10 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath }));
+vi.mock("next/server", () => ({ after: vi.fn() }));
+vi.mock("@/lib/email/send-resolution-emails", () => ({
+  sendResolutionEmails: vi.fn(),
+}));
 
 const reportInsert = vi.fn();
 

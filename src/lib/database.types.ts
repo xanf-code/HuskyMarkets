@@ -16,18 +16,18 @@ export type Database = {
     Tables: {
       app_config: {
         Row: {
-          key: string
           int_val: number | null
+          key: string
           updated_at: string
         }
         Insert: {
-          key: string
           int_val?: number | null
+          key: string
           updated_at?: string
         }
         Update: {
-          key?: string
           int_val?: number | null
+          key?: string
           updated_at?: string
         }
         Relationships: []
@@ -140,6 +140,30 @@ export type Database = {
           },
         ]
       }
+      ledger_checks: {
+        Row: {
+          balanced: boolean
+          checked_at: string
+          delta: number
+          detail: Json
+          id: number
+        }
+        Insert: {
+          balanced: boolean
+          checked_at?: string
+          delta: number
+          detail: Json
+          id?: never
+        }
+        Update: {
+          balanced?: boolean
+          checked_at?: string
+          delta?: number
+          detail?: Json
+          id?: never
+        }
+        Relationships: []
+      }
       market_outcomes: {
         Row: {
           created_at: string
@@ -232,39 +256,39 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "markets_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "markets_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "markets_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "markets_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "markets_winning_outcome_fk"
             columns: ["winning_outcome_id", "id"]
             isOneToOne: false
             referencedRelation: "market_outcomes"
             referencedColumns: ["id", "market_id"]
-          },
-          {
-            foreignKeyName: "markets_creator_id_fkey"
-            columns: ["creator_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "markets_creator_id_fkey"
-            columns: ["creator_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "markets_resolved_by_fkey"
-            columns: ["resolved_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "markets_resolved_by_fkey"
-            columns: ["resolved_by"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
           },
         ]
       }
@@ -393,6 +417,64 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string
+          email_sent_at: string | null
+          email_status: string
+          id: string
+          market_id: string | null
+          payload: Json
+          read_at: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_sent_at?: string | null
+          email_status?: string
+          id?: string
+          market_id?: string | null
+          payload?: Json
+          read_at?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_sent_at?: string | null
+          email_status?: string
+          id?: string
+          market_id?: string | null
+          payload?: Json
+          read_at?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_market_id_fkey"
+            columns: ["market_id"]
+            isOneToOne: false
+            referencedRelation: "markets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       price_history: {
         Row: {
           id: number
@@ -441,6 +523,7 @@ export type Database = {
           created_at: string
           display_mode: Database["public"]["Enums"]["display_mode"]
           email: string
+          email_notifications: boolean
           id: string
           onboarded: boolean
           real_name: string | null
@@ -451,6 +534,7 @@ export type Database = {
           created_at?: string
           display_mode?: Database["public"]["Enums"]["display_mode"]
           email: string
+          email_notifications?: boolean
           id: string
           onboarded?: boolean
           real_name?: string | null
@@ -461,6 +545,7 @@ export type Database = {
           created_at?: string
           display_mode?: Database["public"]["Enums"]["display_mode"]
           email?: string
+          email_notifications?: boolean
           id?: string
           onboarded?: boolean
           real_name?: string | null
@@ -639,6 +724,7 @@ export type Database = {
       }
     }
     Functions: {
+      _outcome_map: { Args: { p_market_id: string }; Returns: Json }
       assert_can_manage_market: {
         Args: {
           p_market: Database["public"]["Tables"]["markets"]["Row"]
@@ -652,6 +738,15 @@ export type Database = {
           p_uid: string
         }
         Returns: undefined
+      }
+      check_cron_health: {
+        Args: never
+        Returns: {
+          failed_runs: number
+          jobid: number
+          last_failure: string
+          last_message: string
+        }[]
       }
       claim_bailout: { Args: never; Returns: boolean }
       claim_daily_bonus: { Args: never; Returns: boolean }
@@ -671,7 +766,7 @@ export type Database = {
       }
       gen_anon_handle: { Args: never; Returns: string }
       get_accuracy_leaderboard: {
-        Args: { p_semester_id: string }
+        Args: { p_resolved_before?: string; p_semester_id: string }
         Returns: {
           display_name: string
           losses: number
@@ -691,10 +786,19 @@ export type Database = {
           name: string
           starts_at: string
         }[]
+        SetofOptions: {
+          from: "*"
+          to: "semesters"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       get_market_card: { Args: { p_market_id: string }; Returns: Json }
       get_my_balance: { Args: never; Returns: number }
-      get_profile_stats: { Args: { p_user: string }; Returns: Json }
+      get_profile_stats: {
+        Args: { p_resolved_before?: string; p_user: string }
+        Returns: Json
+      }
       get_semester_leaderboard: {
         Args: { p_limit?: number; p_semester_id: string }
         Returns: {
@@ -716,6 +820,8 @@ export type Database = {
         Args: { p_amount: number; p_market_id: string; p_outcome_id: string }
         Returns: Json
       }
+      price_history_growth: { Args: never; Returns: Json }
+      reopen_semester: { Args: { p_semester_id: string }; Returns: number }
       reroll_anon_handle: { Args: never; Returns: string }
       resolve_market: {
         Args: {
@@ -734,7 +840,6 @@ export type Database = {
         Args: { p_hidden: boolean; p_market_id: string }
         Returns: undefined
       }
-      reopen_semester: { Args: { p_semester_id: string }; Returns: number }
       snapshot_semester: { Args: { p_semester_id: string }; Returns: number }
       update_market: {
         Args: {

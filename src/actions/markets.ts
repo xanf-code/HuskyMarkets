@@ -1,8 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { z } from "zod";
 import { flagContent } from "@/lib/content-flags";
+import { sendResolutionEmails } from "@/lib/email/send-resolution-emails";
 import {
   CATCH_ALL_LABEL,
   CATEGORIES,
@@ -253,6 +255,10 @@ export async function deleteOwnMarket(input: unknown): Promise<ActionResult> {
     p_action: "void",
   });
   if (error) return { ok: false, error: error.message };
+  const deletedMarketId = parsed.data.marketId;
+  after(async () => {
+    await sendResolutionEmails(deletedMarketId);
+  });
   revalidatePath(`/market/${parsed.data.marketId}`);
   revalidatePath("/");
   return { ok: true };

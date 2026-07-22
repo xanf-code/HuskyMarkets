@@ -1,8 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { sendResolutionEmails } from "@/lib/email/send-resolution-emails";
 import type { ActionResult } from "./profile";
 
 function mapStaffError(message: string): string {
@@ -57,6 +59,10 @@ export async function resolveMarketAction(
     p_winning_outcome_id: parsed.data.winningOutcomeId,
   });
   if (error) return { ok: false, error: mapStaffError(error.message) };
+  const resolvedMarketId = parsed.data.marketId;
+  after(async () => {
+    await sendResolutionEmails(resolvedMarketId);
+  });
   revalidateStaff();
   revalidatePath(`/market/${parsed.data.marketId}`);
   return { ok: true };
@@ -93,12 +99,23 @@ export async function handleReportAction(
     return { ok: false, error: parsed.error.issues[0].message };
   }
   const supabase = await createClient();
+  const { data: reportRow } = await supabase
+    .from("reports")
+    .select("market_id")
+    .eq("id", parsed.data.reportId)
+    .single();
   const { error } = await supabase.rpc("handle_report", {
     p_report_id: parsed.data.reportId,
     p_action: parsed.data.action,
     p_note: parsed.data.note,
   });
   if (error) return { ok: false, error: mapStaffError(error.message) };
+  if (parsed.data.action === "action" && reportRow?.market_id) {
+    const actionedMarketId = reportRow.market_id;
+    after(async () => {
+      await sendResolutionEmails(actionedMarketId);
+    });
+  }
   revalidateStaff();
   return { ok: true };
 }

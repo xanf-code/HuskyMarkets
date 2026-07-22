@@ -22,9 +22,11 @@ interface HeaderProps {
   authenticated: boolean;
   /** Server-rendered balance chip, passed as a slot since Header is a client component. */
   balance?: ReactNode;
+  /** Server-rendered notification bell, passed as a slot for the same reason. */
+  notifications?: ReactNode;
 }
 
-export function Header({ authenticated, balance }: HeaderProps) {
+export function Header({ authenticated, balance, notifications }: HeaderProps) {
   const pathname = usePathname();
   // Authenticated phones use BottomNav; keep pills in the header from md up.
   // Guests only have two links, so they stay in the header at all sizes.
@@ -83,6 +85,7 @@ export function Header({ authenticated, balance }: HeaderProps) {
             <div className="min-w-0 flex-1 md:hidden" aria-hidden="true" />
             <span className="flex shrink-0 items-center gap-2 sm:gap-3">
               {balance}
+              {notifications}
               <UserMenu />
             </span>
           </>

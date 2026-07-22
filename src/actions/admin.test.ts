@@ -13,11 +13,24 @@ const { rpc, revalidatePath } = vi.hoisted(() => ({
   revalidatePath: vi.fn(),
 }));
 
+// Chainable from() mock: each call resets the chain so tests can drive
+// individual table queries independently.
+const fromChain = {
+  select: vi.fn().mockReturnThis(),
+  eq: vi.fn().mockReturnThis(),
+  single: vi.fn().mockResolvedValue({ data: null, error: null }),
+};
+const from = vi.fn(() => fromChain);
+
 vi.mock("@/lib/supabase/server", () => ({
-  createClient: async () => ({ rpc }),
+  createClient: async () => ({ rpc, from }),
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath }));
+vi.mock("next/server", () => ({ after: vi.fn() }));
+vi.mock("@/lib/email/send-resolution-emails", () => ({
+  sendResolutionEmails: vi.fn(),
+}));
 
 const MARKET_ID = "6f9619ff-8b86-4d01-b42d-00cf4fc964ff";
 const REPORT_ID = "7f9619ff-8b86-4d01-b42d-00cf4fc964ff";

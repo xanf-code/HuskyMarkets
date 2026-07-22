@@ -8,6 +8,7 @@ import { BalanceChip } from "@/components/layout/BalanceChip";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { DailyBonusClaimer } from "@/components/layout/DailyBonusClaimer";
 import { Header } from "@/components/layout/Header";
+import { NotificationBell } from "@/components/layout/NotificationBell";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ToastProvider } from "@/components/ui/Toast";
 import { APPEARANCE_COOKIE } from "@/lib/appearance";
@@ -72,6 +73,15 @@ export default async function RootLayout({
                     fallback={<Skeleton className="h-8 w-24 rounded-pill" />}
                   >
                     <BalanceChip />
+                  </Suspense>
+                ) : null
+              }
+              notifications={
+                user ? (
+                  <Suspense
+                    fallback={<Skeleton className="h-11 w-11 rounded-full" />}
+                  >
+                    <NotificationBell />
                   </Suspense>
                 ) : null
               }

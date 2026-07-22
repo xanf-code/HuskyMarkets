@@ -12,6 +12,7 @@ import { verifySession } from "@/lib/dal";
 import { getProfileStats } from "@/lib/queries/leaderboard";
 import { createClient } from "@/lib/supabase/server";
 import { BailoutButton } from "./BailoutButton";
+import { EmailNotificationsToggle } from "./EmailNotificationsToggle";
 import { ModApplicationForm } from "./ModApplicationForm";
 
 export const metadata: Metadata = {
@@ -27,9 +28,33 @@ export default async function ProfilePage() {
 
   const [{ data: profile }, { data: balanceData }, stats, { data: pendingApp }] =
     await Promise.all([
-      supabase
-        .from("profiles")
-        .select("email, real_name, anon_handle, display_mode, role")
+      // `email_notifications` is added by a migration applied in parallel, so
+      // it isn't in the generated column list yet; select it via an untyped
+      // accessor and read it defensively below.
+      (supabase.from("profiles") as unknown as {
+        select: (columns: string) => {
+          eq: (
+            column: "id",
+            value: string,
+          ) => {
+            single: () => Promise<{
+              data:
+                | {
+                    email: string | null;
+                    real_name: string | null;
+                    anon_handle: string | null;
+                    display_mode: "real" | "anon";
+                    role: "user" | "moderator" | "admin";
+                    email_notifications: boolean | null;
+                  }
+                | null;
+            }>;
+          };
+        };
+      })
+        .select(
+          "email, real_name, anon_handle, display_mode, role, email_notifications",
+        )
         .eq("id", userId)
         .single(),
       supabase.rpc("get_my_balance"),
@@ -43,6 +68,8 @@ export default async function ProfilePage() {
     ]);
 
   const balance = typeof balanceData === "number" ? balanceData : 0;
+  // Default to on when the value is missing (pre-migration) or null.
+  const emailNotifications = profile?.email_notifications ?? true;
   const displayName =
     profile?.display_mode === "real"
       ? (profile.real_name ?? profile.anon_handle)
@@ -129,6 +156,13 @@ export default async function ProfilePage() {
           Appearance
         </h2>
         <AppearanceToggle initialAppearance={initialAppearance} />
+      </section>
+
+      <section className="card-surface p-4 sm:p-6">
+        <h2 className="mb-3 text-sm font-semibold text-text-muted">
+          Notifications
+        </h2>
+        <EmailNotificationsToggle initialEnabled={emailNotifications} />
       </section>
 
       {balance < BAILOUT_THRESHOLD ? (

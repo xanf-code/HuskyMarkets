@@ -78,3 +78,36 @@ export async function rerollAnonHandle(): Promise<
   if (error) return { ok: false, error: error.message };
   return { ok: true, handle: data as string };
 }
+
+const emailNotificationsSchema = z.object({ enabled: z.boolean() });
+
+/**
+ * Flips the caller's `profiles.email_notifications` preference. The column
+ * grant permits the update; RLS scopes it to the caller's own row.
+ */
+export async function setEmailNotifications(
+  input: unknown,
+): Promise<ActionResult<{ enabled: boolean }>> {
+  const parsed = emailNotificationsSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: "Invalid preference." };
+  }
+
+  const session = await getSession();
+  if (!session) return { ok: false, error: "Not signed in." };
+
+  const supabase = await createClient();
+  // `profiles.email_notifications` is added by a migration applied in
+  // parallel; cast the update payload until database.types picks it up.
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      email_notifications: parsed.data.enabled,
+    } as never)
+    .eq("id", session.userId);
+
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/profile");
+  return { ok: true, enabled: parsed.data.enabled };
+}
