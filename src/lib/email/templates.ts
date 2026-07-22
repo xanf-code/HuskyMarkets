@@ -1,4 +1,4 @@
-import { createHmac } from 'crypto';
+import { buildUnsubscribeToken } from './unsubscribe-token';
 
 // Notification row shape (subset we need for emails)
 interface NotificationForEmail {
@@ -14,12 +14,6 @@ function escapeHtml(str: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
-}
-
-function buildUnsubscribeToken(userId: string): string {
-  return createHmac('sha256', process.env.EMAIL_UNSUBSCRIBE_SECRET ?? 'dev-secret')
-    .update(userId)
-    .digest('hex');
 }
 
 function buildSubject(notification: NotificationForEmail): string {

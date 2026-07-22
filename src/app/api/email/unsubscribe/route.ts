@@ -1,17 +1,10 @@
-import { createHmac, timingSafeEqual } from 'crypto';
+import { verifyUnsubscribeToken } from '@/lib/email/unsubscribe-token';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { NextRequest, NextResponse } from 'next/server';
 
 function verifyToken(uid: string, token: string): boolean {
   try {
-    const expected = createHmac(
-      'sha256',
-      process.env.EMAIL_UNSUBSCRIBE_SECRET ?? 'dev-secret'
-    )
-      .update(uid)
-      .digest('hex');
-    if (expected.length !== token.length) return false;
-    return timingSafeEqual(Buffer.from(expected), Buffer.from(token));
+    return verifyUnsubscribeToken(uid, token);
   } catch {
     return false;
   }
