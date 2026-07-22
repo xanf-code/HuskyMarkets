@@ -10,7 +10,7 @@ export default function Loading() {
           <Skeleton key={k} className="h-9 w-24 rounded-pill" />
         ))}
       </div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {["a", "b", "c", "d", "e", "f"].map((k) => (
           <div key={k} className="card-surface flex flex-col gap-3 p-4 sm:p-5">
             <div className="flex items-center justify-between gap-3">
