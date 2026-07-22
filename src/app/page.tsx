@@ -75,7 +75,7 @@ export default async function Home({ searchParams }: HomeProps) {
         <div
           className={
             hasMovers
-              ? "lg:grid lg:grid-cols-[minmax(0,1fr)_17.5rem] lg:items-start lg:gap-8"
+              ? "lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-8"
               : undefined
           }
         >

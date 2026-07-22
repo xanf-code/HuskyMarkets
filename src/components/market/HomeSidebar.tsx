@@ -66,10 +66,10 @@ function MoverCard({
   return (
     <Link
       href={`/market/${market.id}`}
-      className={`card-surface flex items-center gap-3 px-4 py-3 transition-[box-shadow,border-color,background-color] duration-200 ease-standard hover:border-border-strong hover:bg-muted hover:shadow-card-hover focus-visible:outline-red ${
+      className={`card-surface flex items-center gap-3 transition-[box-shadow,border-color,background-color] duration-200 ease-standard hover:border-border-strong hover:bg-muted hover:shadow-card-hover focus-visible:outline-red ${
         layout === "rail"
-          ? "w-full"
-          : "w-[78%] shrink-0 snap-start sm:w-auto sm:shrink"
+          ? "w-full gap-4 px-5 py-4"
+          : "w-[78%] shrink-0 snap-start gap-3 px-4 py-3 sm:w-auto sm:shrink"
       }`}
     >
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
