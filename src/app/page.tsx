@@ -50,6 +50,18 @@ export default async function Home({ searchParams }: HomeProps) {
   const showGroups = !filters.category && !filters.q;
   const hasMovers = getTopMovers(allMarkets).length > 0;
 
+  const moversRail = hasMovers ? (
+    <aside className="hidden lg:sticky lg:top-24 lg:block">
+      <HomeSidebar markets={allMarkets} layout="rail" />
+    </aside>
+  ) : null;
+
+  const moversAfterFirst = hasMovers ? (
+    <div className="lg:hidden">
+      <HomeSidebar markets={allMarkets} />
+    </div>
+  ) : undefined;
+
   return (
     <div className="flex flex-col gap-8 sm:gap-10">
       <h1 className="sr-only">HuskyMarkets - Campus Prediction Markets</h1>
@@ -59,11 +71,22 @@ export default async function Home({ searchParams }: HomeProps) {
           <MarketFilters />
         </Suspense>
       )}
-      {hasMovers ? <HomeSidebar markets={allMarkets} /> : null}
       {showGroups ? (
-        <HomeShowcase markets={markets} />
+        <div
+          className={
+            hasMovers
+              ? "lg:grid lg:grid-cols-[minmax(0,1fr)_17.5rem] lg:items-start lg:gap-8"
+              : undefined
+          }
+        >
+          <HomeShowcase markets={markets} afterFirstSection={moversAfterFirst} />
+          {moversRail}
+        </div>
       ) : (
-        <MarketGridLive initial={markets} />
+        <>
+          {hasMovers ? <HomeSidebar markets={allMarkets} /> : null}
+          <MarketGridLive initial={markets} />
+        </>
       )}
       {!session && <GuestScrollPrompt />}
     </div>

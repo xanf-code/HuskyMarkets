@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { Dialog } from "@/components/ui/Dialog";
 import { useSignInPrompt } from "./SignInPromptProvider";
 
 const SESSION_KEY = "hm-guest-prompted";
@@ -19,37 +18,27 @@ function markPrompted() {
   try {
     sessionStorage.setItem(SESSION_KEY, "1");
   } catch {
-    // Storage unavailable - modal will reappear on next mount, acceptable.
+    // Storage unavailable - card may reappear on next mount, acceptable.
   }
 }
 
 /**
- * Invisible sentinel at the bottom of the guest board. When it scrolls into
- * view (once per session), a CTA modal invites the guest to sign in.
+ * Visible end-of-board CTA for guests. Invitation strip (not a surprise
+ * modal) — matches GuestWelcome / FirstRunBanner.
  */
 export function GuestScrollPrompt() {
   const { promptSignIn } = useSignInPrompt();
-  const sentinelRef = useRef<HTMLDivElement>(null);
-  const [open, setOpen] = useState(false);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
-
-    const observer = new IntersectionObserver((entries) => {
-      if (!entries[0].isIntersecting) return;
-      if (hasBeenPrompted()) return;
-      observer.disconnect();
-      setOpen(true);
-    });
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
+    setVisible(!hasBeenPrompted());
   }, []);
+
+  if (!visible) return null;
 
   function dismiss() {
     markPrompted();
-    setOpen(false);
+    setVisible(false);
   }
 
   function onSignIn() {
@@ -58,26 +47,25 @@ export function GuestScrollPrompt() {
   }
 
   return (
-    <>
-      <div ref={sentinelRef} data-guest-sentinel aria-hidden="true" />
-      <Dialog
-        open={open}
-        onClose={dismiss}
-        title="Join HuskyMarkets"
-      >
-        <p className="text-sm text-text-muted">
-          Sign in with your Northeastern email to place your first bet - free
-          HuskyCoin, no real money.
-        </p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Button type="button" onClick={onSignIn}>
-            Sign in
-          </Button>
-          <Button type="button" variant="ghost" onClick={dismiss}>
-            Not now
-          </Button>
-        </div>
-      </Dialog>
-    </>
+    <aside
+      role="complementary"
+      aria-label="Sign in to place bets"
+      className="flex flex-col gap-3 rounded-lg bg-muted px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-5"
+    >
+      <p className="min-w-0 text-pretty text-sm text-text">
+        <span className="font-semibold">You&apos;re browsing as a guest.</span>{" "}
+        <span className="text-text-muted">
+          Sign in to place your first bet — free HuskyCoin, no real money.
+        </span>
+      </p>
+      <div className="flex shrink-0 flex-wrap items-center gap-2 self-start sm:self-auto">
+        <Button type="button" size="sm" onClick={onSignIn}>
+          Sign in
+        </Button>
+        <Button type="button" size="sm" variant="ghost" onClick={dismiss}>
+          Not now
+        </Button>
+      </div>
+    </aside>
   );
 }

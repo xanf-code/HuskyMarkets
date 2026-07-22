@@ -24,7 +24,7 @@ export function HomeShowcase({
     return (
       <EmptyState
         title="No open markets right now"
-        description="Check back soon, or create one for campus."
+        description="Check back soon — or start one and get the board moving."
         action={
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
             <Link
@@ -32,6 +32,12 @@ export function HomeShowcase({
               className="text-sm font-semibold text-red hover:text-red-hover focus-visible:outline-red"
             >
               Create a market
+            </Link>
+            <Link
+              href="/leaderboard"
+              className="text-sm font-semibold text-text-muted hover:text-text focus-visible:outline-red"
+            >
+              View leaderboard
             </Link>
           </div>
         }

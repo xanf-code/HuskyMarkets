@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { verifySession } from "@/lib/dal";
 import { createClient } from "@/lib/supabase/server";
 import { MarkReadOnMount } from "./MarkReadOnMount";
@@ -110,9 +111,10 @@ export default async function NotificationsPage() {
       </div>
 
       {notifications.length === 0 ? (
-        <div className="card-surface p-6 text-sm text-text-muted">
-          No notifications yet.
-        </div>
+        <EmptyState
+          title="No notifications yet"
+          description="Market resolutions and refunds will show up here."
+        />
       ) : (
         <ul className="card-surface flex flex-col divide-y divide-hairline overflow-hidden">
           {notifications.map((row) => {
