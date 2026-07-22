@@ -144,7 +144,7 @@ export async function createMarket(
     if (error.message.startsWith("rate_limited:")) {
       return {
         ok: false,
-        error: "You're creating markets too fast — try again later.",
+        error: "You're creating markets too fast -try again later.",
       };
     }
     return { ok: false, error: error.message };

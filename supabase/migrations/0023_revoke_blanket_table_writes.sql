@@ -1,10 +1,10 @@
 -- ════════════════════════════════════════════════════════════════════════
--- 0023: Migration B — revoke blanket table write-grants, re-grant minimal
+-- 0023: Migration B -revoke blanket table write-grants, re-grant minimal
 --
 -- H2 (continued): removes the existing per-table blanket write grants that
 --     0022 only fixed going forward via default-privilege change. After
 --     this migration, RLS is no longer the *only* guardrail against client
---     writes — the grants themselves enforce it.
+--     writes -the grants themselves enforce it.
 --
 -- Minimal direct-write surface re-granted (verified against RLS policies
 -- and src/actions/* code):

@@ -12,7 +12,7 @@ type Props = {
   onlyAfterPromoDismissed?: boolean;
 };
 
-/** Permanent leaderboard prize callout — not dismissible on its own. */
+/** Permanent leaderboard prize callout -not dismissible on its own. */
 export function LeaderboardPrizeCard({
   onlyAfterPromoDismissed = false,
 }: Props) {

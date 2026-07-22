@@ -199,7 +199,7 @@ describe("createMarket", () => {
       "create_market",
       expect.objectContaining({ p_auto_flagged: true }),
     );
-    // Pending markets already sit in the staff queue — no duplicate report.
+    // Pending markets already sit in the staff queue -no duplicate report.
     expect(reportInsert).not.toHaveBeenCalled();
   });
 

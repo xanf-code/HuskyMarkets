@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════════════
--- 0022: Migration A — lock app_config + fix blanket table default grants
+-- 0022: Migration A -lock app_config + fix blanket table default grants
 --
 -- C1: app_config had RLS disabled with anon/authenticated holding full
 --     write access (INSERT/UPDATE/DELETE/TRUNCATE). Anyone with the anon
@@ -8,7 +8,7 @@
 --
 -- H2 (root cause): pg_default_acl granted INSERT/UPDATE/DELETE/TRUNCATE
 --     to anon/authenticated on every new public table. Only RLS
---     default-deny was blocking writes — correct by accident. Fixed here
+--     default-deny was blocking writes -correct by accident. Fixed here
 --     so future tables start write-locked by default.
 --
 -- H3: public_profiles SECURITY DEFINER view had stray write grants to
@@ -35,7 +35,7 @@ create policy "app_config: read-only"
   to anon, authenticated
   using (true);
 
--- ── H2: fix default privileges — stop auto-granting writes on new tables ─
+-- ── H2: fix default privileges -stop auto-granting writes on new tables ─
 -- Going forward, tables in public start with SELECT-only for client roles.
 -- Individual migrations opt back in with explicit GRANTs as needed.
 
@@ -48,7 +48,7 @@ alter default privileges in schema public
   on tables from authenticated;
 
 -- ── H3: strip stray write grants from public_profiles view ───────────────
--- anon: already SELECT-only — no change needed.
+-- anon: already SELECT-only -no change needed.
 -- authenticated: had full write via blanket default; only SELECT is used.
 
 revoke insert, update, delete, truncate, references, trigger

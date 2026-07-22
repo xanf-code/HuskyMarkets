@@ -52,7 +52,7 @@ function buildBodyCopy(notification: NotificationForEmail): string {
   }
 
   if (type === 'market_rejected') {
-    return `Your market &#39;${market_title}&#39; was not approved. It may not meet the community guidelines — you can create a new market that does.`;
+    return `Your market &#39;${market_title}&#39; was not approved. It may not meet the community guidelines -you can create a new market that does.`;
   }
 
   if (type === 'market_resolved') {

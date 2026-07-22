@@ -5,7 +5,7 @@ vi.mock("./unsubscribe-token", () => ({
   buildUnsubscribeToken: () => "test-token",
 }));
 
-// Unsubscribe token helper is a pure HMAC derivation — no network needed.
+// Unsubscribe token helper is a pure HMAC derivation -no network needed.
 // The test just verifies the shape and content of the output, not the token value.
 
 const USER_ID = "ad6ec69d-93c7-45ef-b35d-8fa094876b04";
@@ -18,7 +18,7 @@ function build(type: string, payload: Record<string, unknown> = {}) {
   );
 }
 
-describe("buildResolutionEmail — market_approved", () => {
+describe("buildResolutionEmail -market_approved", () => {
   it("subject confirms approval", () => {
     const { subject } = build("market_approved");
     expect(subject).toMatch(/approved/i);
@@ -46,7 +46,7 @@ describe("buildResolutionEmail — market_approved", () => {
   });
 });
 
-describe("buildResolutionEmail — market_rejected", () => {
+describe("buildResolutionEmail -market_rejected", () => {
   it("subject signals rejection", () => {
     const { subject } = build("market_rejected");
     expect(subject).toMatch(/not approved|rejected/i);
@@ -63,7 +63,7 @@ describe("buildResolutionEmail — market_rejected", () => {
   });
 });
 
-describe("buildResolutionEmail — existing types still work", () => {
+describe("buildResolutionEmail -existing types still work", () => {
   it("market_resolved won produces a congratulatory subject", () => {
     const { subject } = build("market_resolved", { result: "won", amount: 42 });
     expect(subject).toMatch(/won/i);
