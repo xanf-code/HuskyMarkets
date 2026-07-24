@@ -20,9 +20,9 @@ describe("0028 semester upsert RPC", () => {
     await setUid(db, adminId);
     const created = await db.query<{ id: string }>(
       `select public.upsert_semester(
-         ' Fall 2026 ',
-         '2026-09-01T04:00:00Z',
-         '2026-12-20T05:00:00Z'
+         ' Spring 2027 ',
+         '2027-01-10T05:00:00Z',
+         '2027-04-30T04:00:00Z'
        ) as id`,
     );
     const semesterId = created.rows[0].id;
@@ -35,13 +35,13 @@ describe("0028 semester upsert RPC", () => {
       "select name, starts_at, ends_at from public.semesters where id = $1",
       [semesterId],
     );
-    expect(inserted.rows[0].name).toBe("Fall 2026");
+    expect(inserted.rows[0].name).toBe("Spring 2027");
 
     const updated = await db.query<{ id: string }>(
       `select public.upsert_semester(
-         'Fall 2026 Extended',
-         '2026-09-01T04:00:00Z',
-         '2026-12-21T05:00:00Z',
+         'Spring 2027 Extended',
+         '2027-01-10T05:00:00Z',
+         '2027-05-01T04:00:00Z',
          $1
        ) as id`,
       [semesterId],
@@ -52,7 +52,7 @@ describe("0028 semester upsert RPC", () => {
       "select name from public.semesters where id = $1",
       [semesterId],
     );
-    expect(name.rows[0].name).toBe("Fall 2026 Extended");
+    expect(name.rows[0].name).toBe("Spring 2027 Extended");
   });
 
   it("rejects non-admin callers", async () => {
