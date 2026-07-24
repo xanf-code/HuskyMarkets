@@ -7,6 +7,7 @@ import {
   reviewMarketAction,
   reviewModApplication,
   setMarketHidden,
+  upsertSemester,
 } from "./admin";
 
 const { rpc, revalidatePath } = vi.hoisted(() => ({
@@ -153,6 +154,43 @@ describe("setMarketHidden", () => {
     expect(rpc).toHaveBeenCalledWith("set_market_hidden", {
       p_market_id: MARKET_ID,
       p_hidden: true,
+    });
+  });
+});
+
+describe("upsertSemester", () => {
+  const semester = {
+    name: "Fall 2026",
+    startsAt: "2026-09-01T00:00:00-04:00",
+    endsAt: "2026-12-20T00:00:00-05:00",
+  };
+
+  it("creates a semester through the admin-only RPC", async () => {
+    rpc.mockResolvedValueOnce({ data: SEMESTER_ID, error: null });
+
+    const result = await upsertSemester(semester);
+
+    expect(result).toEqual({ ok: true, id: SEMESTER_ID });
+    expect(rpc).toHaveBeenCalledWith("upsert_semester", {
+      p_id: undefined,
+      p_name: semester.name,
+      p_starts_at: semester.startsAt,
+      p_ends_at: semester.endsAt,
+    });
+    expect(from).not.toHaveBeenCalled();
+  });
+
+  it("updates an existing semester through the same RPC", async () => {
+    rpc.mockResolvedValueOnce({ data: SEMESTER_ID, error: null });
+
+    const result = await upsertSemester({ ...semester, id: SEMESTER_ID });
+
+    expect(result).toEqual({ ok: true, id: SEMESTER_ID });
+    expect(rpc).toHaveBeenCalledWith("upsert_semester", {
+      p_id: SEMESTER_ID,
+      p_name: semester.name,
+      p_starts_at: semester.startsAt,
+      p_ends_at: semester.endsAt,
     });
   });
 });
