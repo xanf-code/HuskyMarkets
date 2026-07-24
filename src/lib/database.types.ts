@@ -949,6 +949,15 @@ export type Database = {
         Returns: undefined
       }
       snapshot_semester: { Args: { p_semester_id: string }; Returns: number }
+      upsert_semester: {
+        Args: {
+          p_ends_at: string
+          p_id?: string
+          p_name: string
+          p_starts_at: string
+        }
+        Returns: string
+      }
       update_market: {
         Args: {
           p_auto_flagged?: boolean

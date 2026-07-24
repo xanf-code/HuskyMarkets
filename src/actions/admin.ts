@@ -199,36 +199,17 @@ export async function upsertSemester(
   }
 
   const supabase = await createClient();
-  const id = parsed.data.id;
-
-  if (id) {
-    const { error } = await supabase
-      .from("semesters")
-      .update({
-        name: parsed.data.name,
-        starts_at: parsed.data.startsAt,
-        ends_at: parsed.data.endsAt,
-      })
-      .eq("id", id);
-    if (error) return { ok: false, error: error.message };
-    revalidatePath("/admin/semesters");
-    revalidatePath("/leaderboard");
-    return { ok: true, id };
-  }
-
-  const { data, error } = await supabase
-    .from("semesters")
-    .insert({
-      name: parsed.data.name,
-      starts_at: parsed.data.startsAt,
-      ends_at: parsed.data.endsAt,
-    })
-    .select("id")
-    .single();
-  if (error) return { ok: false, error: error.message };
+  const { data: id, error } = await supabase.rpc("upsert_semester", {
+    p_id: parsed.data.id,
+    p_name: parsed.data.name,
+    p_starts_at: parsed.data.startsAt,
+    p_ends_at: parsed.data.endsAt,
+  });
+  if (error) return { ok: false, error: mapStaffError(error.message) };
+  if (!id) return { ok: false, error: "Semester was not saved." };
   revalidatePath("/admin/semesters");
   revalidatePath("/leaderboard");
-  return { ok: true, id: data.id };
+  return { ok: true, id };
 }
 
 const snapshotSchema = z.object({ semesterId: z.uuid() });
