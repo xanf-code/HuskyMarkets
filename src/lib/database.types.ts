@@ -525,6 +525,7 @@ export type Database = {
           email: string
           email_notifications: boolean
           id: string
+          is_ai_bot: boolean
           onboarded: boolean
           real_name: string | null
           role: Database["public"]["Enums"]["user_role"]
@@ -536,6 +537,7 @@ export type Database = {
           email: string
           email_notifications?: boolean
           id: string
+          is_ai_bot?: boolean
           onboarded?: boolean
           real_name?: string | null
           role?: Database["public"]["Enums"]["user_role"]
@@ -547,6 +549,7 @@ export type Database = {
           email?: string
           email_notifications?: boolean
           id?: string
+          is_ai_bot?: boolean
           onboarded?: boolean
           real_name?: string | null
           role?: Database["public"]["Enums"]["user_role"]
