@@ -81,11 +81,16 @@ async function patchProfile(
   userId: string,
   realName: string,
   displayMode: "real" | "anon",
+  isAiBot = false,
 ): Promise<void> {
   const res = await fetch(`${REST_BASE}/profiles?id=eq.${userId}`, {
     method: "PATCH",
     headers: { ...HEADERS, Prefer: "return=minimal" },
-    body: JSON.stringify({ real_name: realName, display_mode: displayMode }),
+    body: JSON.stringify({
+      real_name: realName,
+      display_mode: displayMode,
+      is_ai_bot: isAiBot,
+    }),
   });
   if (!res.ok) {
     const text = await res.text();
@@ -152,7 +157,7 @@ async function main() {
 
     const userId = await createAuthUser(email, BOT_PASSWORD);
     console.log(`  User ID: ${userId}`);
-    await patchProfile(userId, realName, "real");
+    await patchProfile(userId, realName, "real", true);
     await topUpToGrant(userId, BOT_INITIAL_GRANT);
   }
 
