@@ -123,7 +123,7 @@ begin
   -- The minimum-two constraint is immediate by default, so deleting the old
   -- outcomes otherwise aborts before their replacements can be inserted.
   -- It still validates the final outcome set at transaction commit.
-  set constraints market_outcomes_min_two deferred;
+  set constraints public.market_outcomes_min_two deferred;
 
   -- Replace outcomes: safe because bets/price_history are empty at this point.
   delete from public.market_outcomes where market_id = p_market_id;
