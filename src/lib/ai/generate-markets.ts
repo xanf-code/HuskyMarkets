@@ -114,7 +114,7 @@ export async function generateMarketsForAllCategories(
       const flagResult = flagContent(
         proposal.title,
         proposal.description ?? "",
-        proposal.resolution_criteria,
+        [proposal.resolution_criteria, ...proposal.outcomes].join("\n"),
       );
 
       if (flagResult.blocked) {
