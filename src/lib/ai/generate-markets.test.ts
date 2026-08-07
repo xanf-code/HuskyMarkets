@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CATEGORIES } from "@/lib/constants";
 import { generateMarketsForAllCategories } from "./generate-markets";
 
@@ -20,6 +20,7 @@ vi.mock("./client", () => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.stubEnv("AI_CREATOR_EMAIL", "ai-markets@northeastern.edu");
 
   from.mockImplementation((table: string) => {
     if (table === "markets") {
@@ -65,6 +66,10 @@ beforeEach(() => {
     ],
     stop_reason: "tool_use",
   }));
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
 });
 
 describe("generateMarketsForAllCategories", () => {
