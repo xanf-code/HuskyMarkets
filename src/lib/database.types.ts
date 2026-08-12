@@ -881,6 +881,23 @@ export type Database = {
         }[]
       }
       get_balance: { Args: { p_user_id: string }; Returns: number }
+      get_market_activity: {
+        Args: { p_limit?: number; p_market_id: string }
+        Returns: {
+          activity_id: string
+          amount: number
+          created_at: string
+          outcome_id: string
+          price_at_bet: number
+        }[]
+      }
+      get_market_bettor_counts: {
+        Args: { p_market_ids: string[] }
+        Returns: {
+          bettor_count: number
+          market_id: string
+        }[]
+      }
       get_current_semester: {
         Args: never
         Returns: {
