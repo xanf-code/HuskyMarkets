@@ -1,5 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ACTIVITY_FEED_LIMIT } from "@/lib/constants";
 import { useMarketChannel } from "./useMarketChannel";
 
 type Handler = (payload: { new: Record<string, unknown> }) => void;
@@ -130,7 +131,7 @@ describe("useMarketChannel", () => {
     ]);
     expect(supabase.rpc).toHaveBeenCalledWith("get_market_activity", {
       p_market_id: "m1",
-      p_limit: 20,
+      p_limit: ACTIVITY_FEED_LIMIT,
     });
     expect(result.current.activity[0]).toEqual({
       id: "activity-9",
