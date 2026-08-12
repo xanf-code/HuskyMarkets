@@ -171,31 +171,32 @@ export async function getMarketList(
 
   const iso24hAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-  const [{ data: points }, betsResponse, { data: history24h }] = await Promise.all([
-    supabase
-      .from("price_history")
-      .select("market_id, outcome_id, implied")
-      .in("market_id", ids)
-      .order("recorded_at", { ascending: false })
-      .limit(ids.length * SPARK_POINTS * 6),
-    isGuest
-      ? Promise.resolve(null)
-      : supabase.from("bets").select("market_id, user_id").in("market_id", ids),
-    supabase
-      .from("price_history")
-      .select("market_id, outcome_id, implied, recorded_at")
-      .in("market_id", ids)
-      .gte("recorded_at", iso24hAgo)
-      .order("recorded_at", { ascending: true }),
-  ]);
+  const [{ data: points }, bettorCountsResponse, { data: history24h }] =
+    await Promise.all([
+      supabase
+        .from("price_history")
+        .select("market_id, outcome_id, implied")
+        .in("market_id", ids)
+        .order("recorded_at", { ascending: false })
+        .limit(ids.length * SPARK_POINTS * 6),
+      isGuest
+        ? Promise.resolve(null)
+        : supabase.rpc("get_market_bettor_counts", { p_market_ids: ids }),
+      supabase
+        .from("price_history")
+        .select("market_id, outcome_id, implied, recorded_at")
+        .in("market_id", ids)
+        .gte("recorded_at", iso24hAgo)
+        .order("recorded_at", { ascending: true }),
+    ]);
 
   const sparks = groupSparklines(points ?? []);
-  const bettorsByMarket = new Map<string, Set<string>>();
-  for (const bet of betsResponse?.data ?? []) {
-    const set = bettorsByMarket.get(bet.market_id) ?? new Set<string>();
-    set.add(bet.user_id);
-    bettorsByMarket.set(bet.market_id, set);
-  }
+  const bettorsByMarket = new Map(
+    (bettorCountsResponse?.data ?? []).map((row) => [
+      row.market_id,
+      row.bettor_count,
+    ]),
+  );
 
   const allHistory24h = history24h ?? [];
 
@@ -212,7 +213,7 @@ export async function getMarketList(
       createdAt: m.created_at,
       outcomes,
       volume: marketVolume(total, outcomes.length),
-      bettorCount: isGuest ? null : (bettorsByMarket.get(m.id)?.size ?? 0),
+      bettorCount: isGuest ? null : (bettorsByMarket.get(m.id) ?? 0),
       spark: leader
         ? (sparks.get(`${m.id}:${leader.id}`) ?? [leader.implied])
         : [],
@@ -288,7 +289,13 @@ export async function getMarketDetail(
   const session = await getSession();
   const isGuest = !session;
 
-  const [{ data: history }, betsResponse, balanceResponse] =
+  const [
+    { data: history },
+    activityResponse,
+    ownBetsResponse,
+    bettorCountsResponse,
+    balanceResponse,
+  ] =
     await Promise.all([
       supabase
         .from("price_history")
@@ -297,17 +304,30 @@ export async function getMarketDetail(
         .order("recorded_at", { ascending: true }),
       isGuest
         ? Promise.resolve(null)
+        : supabase.rpc("get_market_activity", {
+            p_market_id: id,
+            p_limit: ACTIVITY_LIMIT,
+          }),
+      isGuest
+        ? Promise.resolve(null)
         : supabase
             .from("bets")
-            .select("id, user_id, outcome_id, amount, price_at_bet, created_at")
+            .select("id, outcome_id, amount, price_at_bet, created_at")
             .eq("market_id", id)
             .order("created_at", { ascending: false }),
+      isGuest
+        ? Promise.resolve(null)
+        : supabase.rpc("get_market_bettor_counts", {
+            p_market_ids: [id],
+          }),
       isGuest
         ? Promise.resolve(null)
         : supabase.rpc("get_my_balance"),
     ]);
 
-  const allBets = betsResponse?.data ?? [];
+  const ownBets = ownBetsResponse?.data ?? [];
+  const activityRows = activityResponse?.data ?? [];
+  const bettorCount = bettorCountsResponse?.data?.[0]?.bettor_count ?? 0;
   const { data: creatorProfile } = await supabase
     .from("public_profiles")
     .select("display_name")
@@ -315,15 +335,11 @@ export async function getMarketDetail(
     .maybeSingle();
 
   const stakeByOutcome = new Map<string, number>();
-  if (session) {
-    for (const bet of allBets) {
-      if (bet.user_id === session.userId) {
-        stakeByOutcome.set(
-          bet.outcome_id,
-          (stakeByOutcome.get(bet.outcome_id) ?? 0) + bet.amount,
-        );
-      }
-    }
+  for (const bet of ownBets) {
+    stakeByOutcome.set(
+      bet.outcome_id,
+      (stakeByOutcome.get(bet.outcome_id) ?? 0) + bet.amount,
+    );
   }
 
   return {
@@ -335,15 +351,15 @@ export async function getMarketDetail(
       outcomeId: p.outcome_id,
       price: p.implied,
     })),
-    activity: allBets.slice(0, ACTIVITY_LIMIT).map((b) => ({
-      id: b.id,
+    activity: activityRows.map((b) => ({
+      id: b.activity_id,
       outcomeId: b.outcome_id,
       outcomeLabel: labelById.get(b.outcome_id) ?? "-",
       amount: b.amount,
       price: b.price_at_bet,
       createdAt: b.created_at,
     })),
-    bettorCount: isGuest ? null : new Set(allBets.map((b) => b.user_id)).size,
+    bettorCount: isGuest ? null : bettorCount,
     position: outcomes
       .filter((o) => stakeByOutcome.has(o.id))
       .map((o) => ({
@@ -354,6 +370,6 @@ export async function getMarketDetail(
     balance: balanceResponse?.data ?? 0,
     isGuest,
     isCreator: !isGuest && session.userId === market.creator_id,
-    hasBets: !isGuest && allBets.length > 0,
+    hasBets: !isGuest && bettorCount > 0,
   };
 }

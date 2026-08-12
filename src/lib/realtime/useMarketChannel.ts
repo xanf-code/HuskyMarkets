@@ -6,9 +6,9 @@
 // reconciles and augments, so nothing breaks if the socket drops.
 //
 // Event contract (REC-13): pool movements arrive as market_outcomes UPDATEs;
-// the markets row carries status/resolution only. Winning-outcome labels are
-// resolved against the already-loaded outcome map - never denormalized into
-// payloads (D-5).
+// the markets row carries status/resolution only. A pool movement also
+// refreshes the redacted activity RPC; raw bets rows are never subscribed to
+// because they contain bettor identity and share-link bearer UUIDs.
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ACTIVITY_FEED_LIMIT } from "@/lib/constants";
@@ -20,7 +20,6 @@ import {
   appendHistoryPoint,
   applyMarketUpdate,
   applyOutcomeUpdate,
-  prependActivity,
   type LiveMarketState,
 } from "./live-state";
 
@@ -63,6 +62,8 @@ export function useMarketChannel({ marketId, initial }: UseMarketChannelArgs) {
 
   useEffect(() => {
     const supabase = createClient();
+    let active = true;
+    let activityRequestId = 0;
     const channel = supabase
       .channel(`market:${marketId}`)
       .on(
@@ -87,42 +88,30 @@ export function useMarketChannel({ marketId, initial }: UseMarketChannelArgs) {
           table: "market_outcomes",
           filter: `market_id=eq.${marketId}`,
         },
-        (payload) => {
+        async (payload) => {
           setMarket((current) =>
             applyOutcomeUpdate(
               current,
               payload.new as Partial<Tables<"market_outcomes">>,
             ),
           );
-        },
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "bets",
-          filter: `market_id=eq.${marketId}`,
-        },
-        (payload) => {
-          const bet = payload.new as Tables<"bets">;
-          // Activity is anonymous - never resolve or ship trader identity.
-          const label =
-            outcomesRef.current.find((o) => o.id === bet.outcome_id)?.label ??
-            "-";
-          setActivity((current) =>
-            prependActivity(
-              current,
-              {
-                id: bet.id,
-                outcomeId: bet.outcome_id,
-                outcomeLabel: label,
-                amount: bet.amount,
-                price: bet.price_at_bet,
-                createdAt: bet.created_at,
-              },
-              ACTIVITY_LIMIT,
-            ),
+          const requestId = ++activityRequestId;
+          const { data } = await supabase.rpc("get_market_activity", {
+            p_market_id: marketId,
+            p_limit: ACTIVITY_LIMIT,
+          });
+          if (!active || requestId !== activityRequestId || !data) return;
+          setActivity(
+            data.map((bet) => ({
+              id: bet.activity_id,
+              outcomeId: bet.outcome_id,
+              outcomeLabel:
+                outcomesRef.current.find((o) => o.id === bet.outcome_id)
+                  ?.label ?? "-",
+              amount: bet.amount,
+              price: bet.price_at_bet,
+              createdAt: bet.created_at,
+            })),
           );
         },
       )
@@ -143,6 +132,8 @@ export function useMarketChannel({ marketId, initial }: UseMarketChannelArgs) {
       .subscribe();
 
     return () => {
+      active = false;
+      activityRequestId++;
       supabase.removeChannel(channel);
     };
   }, [marketId]);

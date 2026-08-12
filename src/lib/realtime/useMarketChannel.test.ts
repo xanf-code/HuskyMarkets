@@ -22,6 +22,7 @@ const { supabase, channel, handlers } = vi.hoisted(() => {
   const supabase = {
     channel: vi.fn(() => channel),
     removeChannel: vi.fn(),
+    rpc: vi.fn(),
   };
   return { supabase, channel, handlers };
 });
@@ -46,10 +47,22 @@ function renderChannel() {
 beforeEach(() => {
   vi.clearAllMocks();
   handlers.clear();
+  supabase.rpc.mockResolvedValue({
+    data: [
+      {
+        activity_id: "activity-9",
+        outcome_id: "o-no",
+        amount: 75,
+        price_at_bet: 33,
+        created_at: "2026-07-18T11:00:00Z",
+      },
+    ],
+    error: null,
+  });
 });
 
 describe("useMarketChannel", () => {
-  it("opens one market:{id} channel with the four scoped listeners", () => {
+  it("opens one market:{id} channel without subscribing to raw bets", () => {
     renderChannel();
 
     expect(supabase.channel).toHaveBeenCalledWith("market:m1");
@@ -75,18 +88,14 @@ describe("useMarketChannel", () => {
       "postgres_changes",
       expect.objectContaining({
         event: "INSERT",
-        table: "bets",
+        table: "price_history",
         filter: "market_id=eq.m1",
       }),
       expect.any(Function),
     );
-    expect(channel.on).toHaveBeenCalledWith(
+    expect(channel.on).not.toHaveBeenCalledWith(
       "postgres_changes",
-      expect.objectContaining({
-        event: "INSERT",
-        table: "price_history",
-        filter: "market_id=eq.m1",
-      }),
+      expect.objectContaining({ table: "bets" }),
       expect.any(Function),
     );
     expect(channel.subscribe).toHaveBeenCalled();
@@ -106,11 +115,11 @@ describe("useMarketChannel", () => {
     expect(result.current.market.outcomes).toEqual(initial.outcomes);
   });
 
-  it("applies market_outcomes UPDATE payloads to pools and prices", () => {
+  it("applies outcome updates and refreshes redacted activity", async () => {
     const { result } = renderChannel();
 
-    act(() => {
-      handlers.get("market_outcomes:UPDATE")!({
+    await act(async () => {
+      await handlers.get("market_outcomes:UPDATE")!({
         new: { id: "o-yes", market_id: "m1", pool: 300 },
       });
     });
@@ -119,26 +128,12 @@ describe("useMarketChannel", () => {
       { id: "o-yes", label: "Yes", sortOrder: 0, pool: 300, implied: 75 },
       { id: "o-no", label: "No", sortOrder: 1, pool: 100, implied: 25 },
     ]);
-  });
-
-  it("prepends bets INSERTs to activity anonymously with the outcome label resolved client-side", async () => {
-    const { result } = renderChannel();
-
-    await act(async () => {
-      handlers.get("bets:INSERT")!({
-        new: {
-          id: "b9",
-          user_id: "u1",
-          outcome_id: "o-no",
-          amount: 75,
-          price_at_bet: 33,
-          created_at: "2026-07-18T11:00:00Z",
-        },
-      });
+    expect(supabase.rpc).toHaveBeenCalledWith("get_market_activity", {
+      p_market_id: "m1",
+      p_limit: 20,
     });
-
     expect(result.current.activity[0]).toEqual({
-      id: "b9",
+      id: "activity-9",
       outcomeId: "o-no",
       outcomeLabel: "No",
       amount: 75,

@@ -54,12 +54,11 @@ export default async function EditMarketPage({ params }: EditMarketPageProps) {
 
   if (market.creator_id !== session.userId && !isAdmin) redirect(`/market/${id}`);
 
-  const hasBets = await supabase
-    .from("bets")
-    .select("id", { count: "exact", head: true })
-    .eq("market_id", id)
-    .limit(1)
-    .then(({ count }) => (count ?? 0) > 0);
+  const { data: bettorCounts } = await supabase.rpc(
+    "get_market_bettor_counts",
+    { p_market_ids: [id] },
+  );
+  const hasBets = (bettorCounts?.[0]?.bettor_count ?? 0) > 0;
 
   if (hasBets) {
     return (

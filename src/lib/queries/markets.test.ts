@@ -170,18 +170,18 @@ describe("getMarketList", () => {
       ],
       error: null,
     });
-    const betsBuilder = chainable({
-      data: [
-        { market_id: "m1", user_id: "u1" },
-        { market_id: "m1", user_id: "u2" },
-        { market_id: "m1", user_id: "u1" },
-      ],
-      error: null,
-    });
     from.mockImplementation((table: string) => {
       if (table === "markets") return marketsBuilder;
-      if (table === "bets") return betsBuilder;
       return historyBuilder;
+    });
+    rpc.mockImplementation((name: string) => {
+      if (name === "get_market_bettor_counts") {
+        return Promise.resolve({
+          data: [{ market_id: "m1", bettor_count: 2 }],
+          error: null,
+        });
+      }
+      return Promise.resolve({ data: null, error: null });
     });
 
     const list = await getMarketList({});
@@ -191,6 +191,10 @@ describe("getMarketList", () => {
     expect(selectSpy).toHaveBeenCalledWith(
       expect.stringContaining("market_outcomes"),
     );
+    expect(from).not.toHaveBeenCalledWith("bets");
+    expect(rpc).toHaveBeenCalledWith("get_market_bettor_counts", {
+      p_market_ids: ["m1"],
+    });
     expect(list).toEqual([
       {
         id: "m1",
@@ -260,11 +264,15 @@ describe("getMarketDetail", () => {
 
   function mockDetailQueries({
     session,
-    bets = [],
+    activity = [],
+    ownBets = [],
+    bettorCount = 0,
     balance = 0,
   }: {
     session: { userId: string; email: string | null } | null;
-    bets?: unknown[];
+    activity?: unknown[];
+    ownBets?: unknown[];
+    bettorCount?: number;
     balance?: number;
   }) {
     from.mockImplementation((table: string) => {
@@ -272,7 +280,7 @@ describe("getMarketDetail", () => {
         return detailBuilder({ data: MARKET_ROW, error: null });
       }
       if (table === "bets") {
-        return detailBuilder({ data: bets, error: null });
+        return detailBuilder({ data: ownBets, error: null });
       }
       if (table === "public_profiles") {
         return detailBuilder({
@@ -283,7 +291,18 @@ describe("getMarketDetail", () => {
       return detailBuilder({ data: [], error: null });
     });
     getSession.mockResolvedValue(session);
-    rpc.mockResolvedValue({ data: balance, error: null });
+    rpc.mockImplementation((name: string) => {
+      if (name === "get_market_activity") {
+        return Promise.resolve({ data: activity, error: null });
+      }
+      if (name === "get_market_bettor_counts") {
+        return Promise.resolve({
+          data: [{ market_id: "m1", bettor_count: bettorCount }],
+          error: null,
+        });
+      }
+      return Promise.resolve({ data: balance, error: null });
+    });
   }
 
   it("locks activity, position and balance for guests without querying bets", async () => {
@@ -313,24 +332,32 @@ describe("getMarketDetail", () => {
   it("returns activity, position and balance for signed-in users", async () => {
     mockDetailQueries({
       session: { userId: "u1", email: null },
-      bets: [
+      ownBets: [
         {
           id: "b1",
-          user_id: "u1",
+          outcome_id: "o-yes",
+          amount: 50,
+          price_at_bet: 67,
+          created_at: "2026-07-15T00:00:00Z",
+        },
+      ],
+      activity: [
+        {
+          activity_id: "activity-1",
           outcome_id: "o-yes",
           amount: 50,
           price_at_bet: 67,
           created_at: "2026-07-15T00:00:00Z",
         },
         {
-          id: "b2",
-          user_id: "u2",
+          activity_id: "activity-2",
           outcome_id: "o-no",
           amount: 25,
           price_at_bet: 33,
           created_at: "2026-07-14T00:00:00Z",
         },
       ],
+      bettorCount: 2,
       balance: 400,
     });
 
