@@ -197,4 +197,3 @@ describe("0027 semester settlement attribution", () => {
     expect(await scoreFor(userId)).toBe(1000);
   });
 });
-

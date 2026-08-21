@@ -114,4 +114,3 @@ as $$
   order by s.score desc, s.user_id
   limit greatest(p_limit, 1);
 $$;
-
