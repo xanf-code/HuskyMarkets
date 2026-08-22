@@ -65,12 +65,16 @@ export async function runBotTradingSession(
   await botClient.rpc("claim_daily_bonus");
   await botClient.rpc("claim_bailout");
 
-  // Get bot's current balance via transactions sum.
-  const { data: txRows } = await admin
-    .from("transactions")
-    .select("amount")
-    .eq("user_id", botId);
-  let balance = (txRows ?? []).reduce((s, r) => s + (r.amount ?? 0), 0);
+  // Aggregate in Postgres instead of fetching ledger rows, since PostgREST
+  // caps row responses and would eventually return only part of the balance.
+  const { data: currentBalance, error: balanceError } =
+    await botClient.rpc("get_my_balance");
+  if (balanceError || typeof currentBalance !== "number") {
+    throw new Error(
+      `Failed to read bot balance: ${balanceError?.message ?? "invalid response"}`,
+    );
+  }
+  let balance = currentBalance;
 
   if (balance <= 50) {
     // Not enough to bet even at minimum; bail.

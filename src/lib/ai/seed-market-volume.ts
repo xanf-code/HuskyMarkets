@@ -68,12 +68,14 @@ export async function seedMarketVolume(
     if (Date.now() - startMs > budgetMs * 0.2) break; // reserve 80% for bets
     try {
       const session = await signInBot(bot.email, bot.password);
-      // Get balance via transactions sum.
-      const { data: txRows } = await admin
-        .from("transactions")
-        .select("amount")
-        .eq("user_id", session.userId);
-      const balance = (txRows ?? []).reduce((s, r) => s + (r.amount ?? 0), 0);
+      // Aggregate in Postgres instead of fetching a row-limited ledger page.
+      const { data: balance, error: balanceError } =
+        await session.client.rpc("get_my_balance");
+      if (balanceError || typeof balance !== "number") {
+        throw new Error(
+          `Failed to read bot balance: ${balanceError?.message ?? "invalid response"}`,
+        );
+      }
       if (balance > 50) {
         botIds.push(session.userId);
         botSessions.set(session.userId, { ...session, balance });

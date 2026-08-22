@@ -96,12 +96,19 @@ async function patchProfile(
 // ── Balance helpers ───────────────────────────────────────────────────────────
 
 async function getBalance(userId: string): Promise<number> {
-  const res = await fetch(
-    `${REST_BASE}/transactions?user_id=eq.${userId}&select=amount`,
-    { headers: HEADERS },
-  );
-  const rows = await res.json() as { amount: number }[];
-  return rows.reduce((s, r) => s + (r.amount ?? 0), 0);
+  const res = await fetch(`${REST_BASE}/rpc/get_balance`, {
+    method: "POST",
+    headers: HEADERS,
+    body: JSON.stringify({ p_user_id: userId }),
+  });
+  const body = await res.json() as number | { message?: string };
+  if (!res.ok || typeof body !== "number") {
+    const message = typeof body === "number" ? res.statusText : body.message;
+    throw new Error(
+      `Failed to read balance for ${userId}: ${message ?? "invalid response"}`,
+    );
+  }
+  return body;
 }
 
 async function topUpToGrant(userId: string, targetGrant: number): Promise<void> {
