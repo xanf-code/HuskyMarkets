@@ -839,6 +839,10 @@ export type Database = {
       }
       claim_bailout: { Args: never; Returns: boolean }
       claim_daily_bonus: { Args: never; Returns: boolean }
+      cancel_pending_market: {
+        Args: { p_market_id: string }
+        Returns: undefined
+      }
       create_market: {
         Args: {
           p_auto_flagged?: boolean

@@ -29,8 +29,10 @@ export function CreatorControls({
   const [busy, setBusy] = useState<"lock" | "delete" | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const isSettled =
-    status === "resolved" || status === "voided";
+  const isPending = status === "pending";
+  const canEdit = status === "open" && !hasBets;
+  const canDelete =
+    status === "open" || status === "closed" || status === "pending";
 
   async function handleLock() {
     setError(null);
@@ -55,7 +57,9 @@ export function CreatorControls({
       setError(result.error);
       return;
     }
-    toast.push("Pool voided -all stakes refunded.");
+    toast.push(
+      isPending ? "Submission withdrawn." : "Pool voided -all stakes refunded.",
+    );
     router.refresh();
   }
 
@@ -66,18 +70,26 @@ export function CreatorControls({
       {error ? <InlineError>{error}</InlineError> : null}
 
       <div className="flex flex-col gap-2">
-        {hasBets ? (
+        {isPending ? (
+          <div className="rounded-md border border-hairline bg-muted px-4 py-3 text-sm text-text-muted">
+            Awaiting staff review. You can withdraw this submission below.
+          </div>
+        ) : status === "rejected" ? (
+          <div className="rounded-md border border-hairline bg-muted px-4 py-3 text-sm text-text-muted">
+            This submission is no longer under review.
+          </div>
+        ) : hasBets && (status === "open" || status === "closed") ? (
           <div className="rounded-md border border-hairline bg-muted px-4 py-3 text-sm text-text-muted">
             Editing locked -bets have been placed.
           </div>
-        ) : (
+        ) : canEdit ? (
           <Link
             href={`/market/${marketId}/edit`}
             className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-border-strong bg-card px-4 py-2.5 text-sm font-semibold text-text transition-colors duration-200 ease-standard hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red"
           >
             Edit pool
           </Link>
-        )}
+        ) : null}
 
         {status === "open" ? (
           <Button
@@ -91,14 +103,14 @@ export function CreatorControls({
           </Button>
         ) : null}
 
-        {!isSettled ? (
+        {canDelete ? (
           <Button
             variant="secondary"
             className="w-full"
             onClick={() => setShowDeleteDialog(true)}
             disabled={busy !== null}
           >
-            Delete pool (void &amp; refund)
+            {isPending ? "Withdraw submission" : "Delete pool (void & refund)"}
           </Button>
         ) : null}
       </div>
@@ -106,10 +118,12 @@ export function CreatorControls({
       <Dialog
         open={showDeleteDialog}
         onClose={() => setShowDeleteDialog(false)}
-        title="Delete this pool?"
+        title={isPending ? "Withdraw this submission?" : "Delete this pool?"}
       >
         <p className="text-sm text-text-muted">
-          {hasBets
+          {isPending
+            ? "This removes the pool from the review queue. This cannot be undone."
+            : hasBets
             ? "All bets will be fully refunded. This cannot be undone."
             : "The pool will be permanently deleted. This cannot be undone."}
         </p>

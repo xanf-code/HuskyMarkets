@@ -387,6 +387,21 @@ describe("updateMarket", () => {
 
 describe("deleteOwnMarket", () => {
   beforeEach(() => {
+    from.mockImplementation((table: string) => {
+      if (table === "markets") {
+        return {
+          select: () => ({
+            eq: () => ({
+              single: async () => ({
+                data: { status: "open" },
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+      return { insert: reportInsert };
+    });
     rpc.mockResolvedValue({ data: null, error: null });
   });
 
@@ -399,6 +414,33 @@ describe("deleteOwnMarket", () => {
     expect(rpc).toHaveBeenCalledWith("resolve_market", {
       p_market_id: "6f9619ff-8b86-4d01-b42d-00cf4fc964ff",
       p_action: "void",
+    });
+  });
+
+  it("calls cancel_pending_market for a pending submission", async () => {
+    from.mockImplementation((table: string) => {
+      if (table === "markets") {
+        return {
+          select: () => ({
+            eq: () => ({
+              single: async () => ({
+                data: { status: "pending" },
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+      return { insert: reportInsert };
+    });
+
+    const result = await deleteOwnMarket({
+      marketId: "6f9619ff-8b86-4d01-b42d-00cf4fc964ff",
+    });
+
+    expect(result.ok).toBe(true);
+    expect(rpc).toHaveBeenCalledWith("cancel_pending_market", {
+      p_market_id: "6f9619ff-8b86-4d01-b42d-00cf4fc964ff",
     });
   });
 

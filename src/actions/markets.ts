@@ -261,10 +261,24 @@ export async function deleteOwnMarket(input: unknown): Promise<ActionResult> {
     return { ok: false, error: parsed.error.issues[0].message };
   }
   const supabase = await createClient();
-  const { error } = await supabase.rpc("resolve_market", {
-    p_market_id: parsed.data.marketId,
-    p_action: "void",
-  });
+  const { data: market, error: lookupError } = await supabase
+    .from("markets")
+    .select("status")
+    .eq("id", parsed.data.marketId)
+    .single();
+  if (lookupError || !market) {
+    return { ok: false, error: lookupError?.message ?? "Market not found." };
+  }
+
+  const { error } =
+    market.status === "pending"
+      ? await supabase.rpc("cancel_pending_market", {
+          p_market_id: parsed.data.marketId,
+        })
+      : await supabase.rpc("resolve_market", {
+          p_market_id: parsed.data.marketId,
+          p_action: "void",
+        });
   if (error) return { ok: false, error: error.message };
   const deletedMarketId = parsed.data.marketId;
   after(async () => {
