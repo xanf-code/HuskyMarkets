@@ -1,9 +1,9 @@
 "use client";
 
 // Home live counter: server seeds all-time SUM(bets.amount), then guest-safe
-// market_outcomes UPDATEs trigger a get_platform_volume refetch. Digits count
-// up over adjustable durationMs; slot width tracks the widest formatted value
-// so commas/digits never shove neighboring layout.
+// market_outcomes UPDATEs trigger a rate-limited get_platform_volume refetch.
+// Digits count up over adjustable durationMs; slot width tracks the widest
+// formatted value so commas/digits never shove neighboring layout.
 
 import { useEffect, useRef, useState } from "react";
 import { HuskyCoinIcon } from "@/components/icons/HuskyCoinIcon";
@@ -16,6 +16,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 
 const DEFAULT_DURATION_MS = 800;
+const MIN_REFRESH_INTERVAL_MS = 5_000;
 
 interface LiveVolumeCounterProps {
   initialVolume: number;
@@ -41,22 +42,52 @@ export function LiveVolumeCounter({
   useEffect(() => {
     const supabase = createClient();
     let requestId = 0;
+    let active = true;
+    let inFlight = false;
+    let refreshPending = false;
+    let cooldown: ReturnType<typeof setTimeout> | undefined;
+
+    const refreshVolume = async () => {
+      if (!active || inFlight) return;
+
+      refreshPending = false;
+      inFlight = true;
+      const id = ++requestId;
+      try {
+        const { data } = await supabase.rpc("get_platform_volume");
+        if (active && id === requestId && typeof data === "number") {
+          setTarget(data);
+        }
+      } finally {
+        inFlight = false;
+        if (!active) return;
+
+        cooldown = setTimeout(() => {
+          cooldown = undefined;
+          if (refreshPending) void refreshVolume();
+        }, MIN_REFRESH_INTERVAL_MS);
+      }
+    };
+
+    const scheduleRefresh = () => {
+      if (!active) return;
+      refreshPending = true;
+      if (!inFlight && cooldown === undefined) void refreshVolume();
+    };
 
     const channel = supabase
       .channel("platform:volume")
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "market_outcomes" },
-        async () => {
-          const id = ++requestId;
-          const { data } = await supabase.rpc("get_platform_volume");
-          if (id !== requestId) return;
-          if (typeof data === "number") setTarget(data);
-        },
+        scheduleRefresh,
       )
       .subscribe();
 
     return () => {
+      active = false;
+      requestId++;
+      if (cooldown !== undefined) clearTimeout(cooldown);
       supabase.removeChannel(channel);
     };
   }, []);

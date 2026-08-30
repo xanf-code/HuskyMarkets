@@ -100,6 +100,25 @@ describe("LiveVolumeCounter", () => {
     expect(screen.getByLabelText("1,250 HC")).toBeInTheDocument();
   });
 
+  it("coalesces a burst of outcome updates during the refresh cooldown", async () => {
+    renderCounter();
+
+    await emitOutcomeUpdate();
+    await emitOutcomeUpdate();
+    await emitOutcomeUpdate();
+    expect(supabase.rpc).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      vi.advanceTimersByTime(4_999);
+    });
+    expect(supabase.rpc).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(supabase.rpc).toHaveBeenCalledTimes(2);
+  });
+
   it("reserves slot width for the wider of displayed and target amounts", () => {
     renderCounter(999);
 
