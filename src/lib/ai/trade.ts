@@ -1,6 +1,12 @@
 import type { MessageParam } from "@anthropic-ai/sdk/resources/messages";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getAnthropicClient, makeWebSearchTool, MODEL, type AiTool } from "./client";
+import {
+  appendPausedAssistantTurn,
+  getAnthropicClient,
+  makeWebSearchTool,
+  MODEL,
+  type AiTool,
+} from "./client";
 import { signInBot } from "./bot-auth";
 import {
   tradeEstimateSchema,
@@ -324,18 +330,7 @@ async function runEstimateCall(
 
     if (response.stop_reason !== "pause_turn") break;
 
-    const toolUses = response.content.filter((b) => b.type === "tool_use");
-    messages.push({ role: "assistant", content: response.content });
-    messages.push({
-      role: "user",
-      content: [
-        {
-          type: "tool_result",
-          tool_use_id: toolUses[0]?.id ?? "",
-          content: "Continue.",
-        },
-      ],
-    });
+    appendPausedAssistantTurn(messages, response.content);
   }
 
   throw new Error("Model did not call submit_estimate");
