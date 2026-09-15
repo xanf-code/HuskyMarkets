@@ -1,5 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
-import type { ToolUnion } from "@anthropic-ai/sdk/resources/messages";
+import type {
+  MessageParam,
+  ToolUnion,
+} from "@anthropic-ai/sdk/resources/messages";
 
 export const MODEL = "claude-sonnet-4-6" as const;
 
@@ -18,4 +21,11 @@ export function getAnthropicClient(): Anthropic {
 
 export function makeWebSearchTool(maxUses: number): AiTool {
   return { type: "web_search_20250305", name: "web_search", max_uses: maxUses } as unknown as AiTool;
+}
+
+export function appendPausedAssistantTurn(
+  messages: MessageParam[],
+  content: MessageParam["content"],
+): void {
+  messages.push({ role: "assistant", content });
 }

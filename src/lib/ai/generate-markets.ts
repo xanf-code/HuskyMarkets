@@ -2,7 +2,13 @@ import type { MessageParam } from "@anthropic-ai/sdk/resources/messages";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { flagContent } from "@/lib/content-flags";
 import { CATEGORIES, CONTENT_RULE } from "@/lib/constants";
-import { getAnthropicClient, makeWebSearchTool, MODEL, type AiTool } from "./client";
+import {
+  appendPausedAssistantTurn,
+  getAnthropicClient,
+  makeWebSearchTool,
+  MODEL,
+  type AiTool,
+} from "./client";
 import {
   marketProposalSchema,
   proposeMarketToolDef,
@@ -223,17 +229,7 @@ async function runGenerationCall(
     if (response.stop_reason !== "pause_turn") break;
 
     // Continue the conversation for server-tool results.
-    messages.push({ role: "assistant", content: response.content });
-    messages.push({
-      role: "user",
-      content: [
-        {
-          type: "tool_result",
-          tool_use_id: toolUses[0]?.id ?? "",
-          content: "Continue.",
-        },
-      ],
-    });
+    appendPausedAssistantTurn(messages, response.content);
   }
 
   return { type: "skip", reason: "model did not call a decision tool" };
