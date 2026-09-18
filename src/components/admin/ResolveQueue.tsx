@@ -60,19 +60,21 @@ export function ResolveQueue({ items }: { items: ResolveQueueItem[] }) {
               {m.autoFlagged ? " · auto-flagged" : ""}
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
-              {m.outcomes.map((outcome) => (
-                <Button
-                  key={outcome.id}
-                  size="sm"
-                  variant="primary"
-                  disabled={busy !== null}
-                  onClick={() =>
-                    act(m.id, { action: "resolve", winningOutcomeId: outcome.id })
-                  }
-                >
-                  {outcome.label}
-                </Button>
-              ))}
+              {m.canResolve
+                ? m.outcomes.map((outcome) => (
+                    <Button
+                      key={outcome.id}
+                      size="sm"
+                      variant="primary"
+                      disabled={busy !== null}
+                      onClick={() =>
+                        act(m.id, { action: "resolve", winningOutcomeId: outcome.id })
+                      }
+                    >
+                      {outcome.label}
+                    </Button>
+                  ))
+                : null}
               <Button
                 size="sm"
                 variant="secondary"
@@ -92,6 +94,11 @@ export function ResolveQueue({ items }: { items: ResolveQueueItem[] }) {
                 </Button>
               ) : null}
             </div>
+            {!m.canResolve ? (
+              <p className="mt-2 text-xs text-text-muted">
+                Outcome selection unlocks at the declared resolution time.
+              </p>
+            ) : null}
           </li>
         ))}
       </ul>

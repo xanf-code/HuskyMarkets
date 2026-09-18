@@ -18,6 +18,7 @@ const item: ResolveQueueItem = {
   title: "Which dining hall runs out of chicken first?",
   status: "open",
   closeAt: "2026-07-20T00:00:00Z",
+  canResolve: true,
   reportCount: 0,
   autoFlagged: false,
   creatorId: "u1",
@@ -89,6 +90,21 @@ describe("ResolveQueue", () => {
     expect(
       screen.queryByRole("button", { name: "Lock" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("hides outcome controls before the declared resolution time", () => {
+    render(<ResolveQueue items={[{ ...item, canResolve: false }]} />);
+
+    for (const outcome of item.outcomes) {
+      expect(
+        screen.queryByRole("button", { name: outcome.label }),
+      ).not.toBeInTheDocument();
+    }
+    expect(
+      screen.getByText(/unlocks at the declared resolution time/i),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Void" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Lock" })).toBeInTheDocument();
   });
 
   it("surfaces action errors inline", async () => {
