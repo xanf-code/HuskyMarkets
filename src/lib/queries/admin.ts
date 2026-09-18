@@ -23,6 +23,7 @@ export interface ResolveQueueItem {
   title: string;
   status: string;
   closeAt: string;
+  canResolve: boolean;
   reportCount: number;
   autoFlagged: boolean;
   creatorId: string;
@@ -109,7 +110,7 @@ export async function getResolveQueue(
   const { data: markets } = await supabase
     .from("markets")
     .select(
-      "id, title, status, close_at, auto_flagged, creator_id, hidden, market_outcomes!market_outcomes_market_id_fkey(id, label, sort_order)",
+      "id, title, status, close_at, resolve_at, auto_flagged, creator_id, hidden, market_outcomes!market_outcomes_market_id_fkey(id, label, sort_order)",
     )
     .in("status", ["open", "closed"])
     .eq("hidden", false)
@@ -147,6 +148,7 @@ export async function getResolveQueue(
       title: m.title,
       status: m.status,
       closeAt: m.close_at,
+      canResolve: m.resolve_at <= now,
       reportCount: reportCounts.get(m.id) ?? 0,
       autoFlagged: m.auto_flagged,
       creatorId: m.creator_id,
