@@ -16,11 +16,15 @@ export async function GET(req: NextRequest) {
   if (!uid || !token || !verifyToken(uid, token)) {
     return new NextResponse('Invalid unsubscribe link', { status: 400 });
   }
-  const supabase = createAdminClient();
-  await supabase.from('profiles').update({ email_notifications: false }).eq('id', uid);
+
   return new NextResponse(
-    '<html><body style="font-family:sans-serif;max-width:480px;margin:2rem auto"><h2>Unsubscribed</h2><p>You have been unsubscribed from HuskyMarkets market resolution emails.</p></body></html>',
-    { headers: { 'Content-Type': 'text/html' } }
+    '<html><body style="font-family:sans-serif;max-width:480px;margin:2rem auto"><h2>Unsubscribe from market emails?</h2><p>You will stop receiving HuskyMarkets market resolution emails.</p><form method="post"><button type="submit">Unsubscribe</button></form></body></html>',
+    {
+      headers: {
+        'Content-Type': 'text/html',
+        'Cache-Control': 'no-store',
+      },
+    },
   );
 }
 
